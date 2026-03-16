@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>雪雪劇本工坊 Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F7F2EA;--bg2:#EEE8DB;--bg3:#E5DDD0;--bg4:#DDD4C4;
+  --ink:#2A2018;--ink2:#56493A;--ink3:#8A7B68;--ink4:#B8A99A;
+  --amber:#B87A00;--amber2:#D4920A;--amber-l:#FDF5DC;--amber-b:#FFF8E8;
+  --teal:#0A5850;--teal-l:#E0F0EE;
+  --red:#7A1C1C;--red-l:#FAEDED;
+  --blue:#1A4A7A;--blue-l:#E8F0FA;
+  --green:#1A5C2A;--green-l:#E8F5EC;
+  --border:#C8BCA8;--border2:#B0A490;--border3:#9A8E7C;
+  --radius:5px;--radius2:8px;--radius3:12px;
+  --shadow:0 1px 3px rgba(0,0,0,0.08);
+  --shadow2:0 2px 8px rgba(0,0,0,0.12);
+}
+
+html,body{height:100%;overflow:hidden;font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+
+/* ── LAYOUT ─────────────────────────────────── */
+#shell{display:flex;flex-direction:column;height:100vh}
+#topbar{
+  height:48px;background:var(--bg2);border-bottom:1.5px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;
+  box-shadow:var(--shadow);
+}
+#main{display:flex;flex:1;overflow:hidden}
+#left{width:220px;min-width:160px;max-width:320px;background:var(--bg2);border-right:1.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width 0.2s;flex-shrink:0}
+#left.collapsed{width:0;min-width:0;border-right:none}
+#center{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#right{width:280px;min-width:200px;max-width:380px;background:var(--bg2);border-left:1.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+#right.collapsed{width:0;min-width:0;border-left:none}
+#statusbar{height:24px;background:var(--bg3);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:16px;font-size:10px;color:var(--ink3);flex-shrink:0;font-family:monospace}
+#statusbar b{color:var(--ink2);font-weight:600}
+
+/* ── TOPBAR ─────────────────────────────────── */
+.logo{font-family:'Noto Serif TC',serif;font-size:16px;font-weight:700;color:var(--amber);letter-spacing:2px;white-space:nowrap}
+.logo-sub{font-size:10px;color:var(--ink3);letter-spacing:1px}
+.sep{width:1px;height:22px;background:var(--border);flex-shrink:0}
+.tbar-group{display:flex;gap:5px;align-items:center}
+.tbar-spacer{flex:1}
+.tbtn{
+  padding:5px 11px;border:1px solid var(--border2);border-radius:var(--radius);
+  background:var(--bg);cursor:pointer;font-family:'Noto Sans TC',sans-serif;
+  font-size:11px;color:var(--ink2);transition:all 0.15s;white-space:nowrap;font-weight:500;
+}
+.tbtn:hover{background:var(--amber-l);border-color:var(--amber);color:var(--amber)}
+.tbtn.primary{background:var(--amber);color:#fff;border-color:var(--amber)}
+.tbtn.primary:hover{background:#9A6800}
+.tbtn.danger{color:var(--red);border-color:#C09090;background:var(--red-l)}
+.tbtn.danger:hover{border-color:var(--red)}
+.tbtn.active{background:var(--amber-l);border-color:var(--amber);color:var(--amber)}
+.icon-btn{
+  width:30px;height:30px;border:1px solid var(--border2);border-radius:var(--radius);
+  background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:14px;color:var(--ink2);transition:all 0.15s;flex-shrink:0;
+}
+.icon-btn:hover{background:var(--amber-l);border-color:var(--amber)}
+
+/* ── LEFT PANEL ─────────────────────────────── */
+.panel-hdr{
+  padding:10px 12px 8px;border-bottom:1px solid var(--border);
+  font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:2px;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+  text-transform:uppercase;
+}
+.panel-hdr .add-btn{
+  width:20px;height:20px;border-radius:50%;border:1px solid var(--border2);
+  background:var(--bg);cursor:pointer;font-size:14px;color:var(--amber2);
+  display:flex;align-items:center;justify-content:center;padding:0;transition:all 0.15s;
+}
+.panel-hdr .add-btn:hover{background:var(--amber-l);border-color:var(--amber)}
+
+/* Left nav tabs */
+.left-nav{display:flex;border-bottom:1px solid var(--border);background:var(--bg3);flex-shrink:0}
+.lnav-btn{
+  flex:1;padding:7px 2px;font-size:9px;text-align:center;cursor:pointer;
+  border:none;background:none;color:var(--ink3);letter-spacing:0.5px;font-weight:500;
+  border-bottom:2px solid transparent;transition:all 0.12s;
+}
+.lnav-btn:hover{color:var(--ink2)}
+.lnav-btn.active{color:var(--amber);border-bottom-color:var(--amber);background:var(--bg2)}
+.left-content{flex:1;overflow-y:auto;padding:6px}
+.left-panel{display:none}.left-panel.active{display:block}
+
+/* Scene items */
+.scene-item{
+  padding:7px 9px;border-radius:var(--radius);cursor:pointer;
+  border:1px solid transparent;margin-bottom:3px;transition:all 0.12s;
+}
+.scene-item:hover{background:var(--amber-l);border-color:var(--border)}
+.scene-item.active{background:var(--amber-l);border-color:var(--amber)}
+.scene-item .si-num{font-size:9px;color:var(--ink3);display:block;font-family:monospace;margin-bottom:2px}
+.scene-item .si-title{font-size:12px;color:var(--ink2);font-weight:500;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scene-item.active .si-title{color:var(--amber)}
+.scene-item .si-meta{font-size:10px;color:var(--ink4);margin-top:2px}
+
+/* Cards (scene cards / characters / notes) */
+.card-item{
+  padding:8px 10px;border-radius:var(--radius2);cursor:pointer;
+  border:1px solid var(--border);margin-bottom:5px;background:var(--bg);
+  transition:all 0.12s;box-shadow:var(--shadow);
+}
+.card-item:hover{border-color:var(--amber);box-shadow:var(--shadow2)}
+.card-item .ci-title{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:3px}
+.card-item .ci-meta{font-size:10px;color:var(--ink3);line-height:1.5}
+.card-item .ci-tags{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap}
+.tag{display:inline-block;padding:1px 6px;border-radius:10px;font-size:9px;font-weight:600;letter-spacing:0.5px}
+.tag-day{background:#FDF5DC;color:var(--amber);border:1px solid #E8D48A}
+.tag-night{background:#E8EAF5;color:#3A4580;border:1px solid #A8AEDE}
+.tag-int{background:var(--blue-l);color:var(--blue);border:1px solid #9AB8E0}
+.tag-ext{background:var(--green-l);color:var(--green);border:1px solid #8AC4A0}
+
+/* Character avatar */
+.char-avatar{
+  width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;
+}
+
+/* ── CENTER EDITOR ───────────────────────────── */
+.editor-toolbar{
+  padding:6px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;background:var(--bg2);flex-shrink:0;
+  box-shadow:var(--shadow);
+}
+.mode-pill{
+  padding:3px 10px;border-radius:12px;font-size:10px;font-weight:600;
+  letter-spacing:1px;border:1px solid;cursor:default;white-space:nowrap;
+}
+.m-scene{background:var(--red-l);color:var(--red);border-color:#D08080}
+.m-action{background:var(--bg3);color:var(--ink2);border-color:var(--border2)}
+.m-character{background:var(--teal-l);color:var(--teal);border-color:#6ABAD0}
+.m-dialogue{background:var(--amber-l);color:var(--amber);border-color:#E0C060}
+.m-parenthetical{background:var(--blue-l);color:var(--blue);border-color:#8AAEDD}
+.m-transition{background:#F0EBF5;color:#6A3A8A;border-color:#C090DA}
+.tbar-hint{font-size:10px;color:var(--ink4);margin-left:auto}
+kbd{
+  display:inline-block;padding:1px 5px;border:1px solid var(--border2);
+  border-radius:3px;background:var(--bg);font-size:9px;font-family:monospace;color:var(--ink2);
+}
+
+#editor-scroll{flex:1;overflow-y:auto;padding:28px 48px}
+#editor-page{max-width:680px;margin:0 auto}
+
+/* Script lines */
+.sl{
+  display:flex;align-items:flex-start;margin-bottom:0;
+  border-radius:3px;transition:background 0.08s;position:relative;
+}
+.sl:hover{background:rgba(184,122,0,0.05)}
+.sl.focused{background:rgba(184,122,0,0.07)}
+.sl-num{
+  width:30px;font-size:9px;color:var(--ink4);font-family:monospace;
+  text-align:right;padding-right:8px;flex-shrink:0;user-select:none;padding-top:5px;
+}
+.sl-type-badge{
+  width:56px;font-size:8px;color:var(--ink4);flex-shrink:0;
+  padding-top:5px;padding-right:4px;text-align:right;font-family:monospace;
+  letter-spacing:0.3px;
+}
+.sl-content{
+  flex:1;outline:none;min-height:24px;padding:3px 5px;
+  line-height:1.8;border:1px solid transparent;border-radius:3px;
+  transition:border-color 0.1s;word-break:break-all;
+  font-family:'Courier Prime',monospace;
+}
+.sl-content:focus{border-color:rgba(184,122,0,0.35);background:rgba(255,255,255,0.5)}
+
+/* Per-type formatting */
+.sl-content[data-type="scene"]{
+  font-size:12px;font-weight:700;color:var(--red);text-transform:uppercase;
+  letter-spacing:1.5px;border-bottom:1px solid rgba(122,28,28,0.2);margin-bottom:2px;padding-bottom:3px;
+}
+.sl-content[data-type="action"]{font-size:13px;color:var(--ink);font-weight:400;padding-top:2px}
+.sl-content[data-type="character"]{
+  font-size:12px;font-weight:700;color:var(--teal);text-transform:uppercase;
+  letter-spacing:2px;text-align:center;padding-left:80px;margin-top:8px;
+}
+.sl-content[data-type="dialogue"]{
+  font-size:13px;color:var(--ink2);padding-left:60px;padding-right:60px;
+}
+.sl-content[data-type="parenthetical"]{
+  font-size:12px;color:var(--blue);font-style:italic;
+  padding-left:48px;padding-right:80px;
+}
+.sl-content[data-type="transition"]{
+  font-size:12px;font-weight:700;color:#6A3A8A;text-transform:uppercase;
+  text-align:right;letter-spacing:1px;margin-top:6px;
+}
+
+.add-line-row{
+  display:flex;padding:4px 0 4px 94px;opacity:0;transition:opacity 0.15s;
+}
+.add-line-row:hover{opacity:1}
+#editor-page:hover .add-line-row{opacity:0.4}
+.add-line-btn{
+  font-size:11px;color:var(--ink3);border:none;background:none;cursor:pointer;
+  padding:2px 8px;border-radius:var(--radius);transition:all 0.12s;
+}
+.add-line-btn:hover{color:var(--amber);background:var(--amber-l)}
+
+/* ── RIGHT PREVIEW PANEL ─────────────────────── */
+.right-nav{display:flex;border-bottom:1px solid var(--border);background:var(--bg3);flex-shrink:0}
+.rnav-btn{
+  flex:1;padding:7px 2px;font-size:9px;text-align:center;cursor:pointer;
+  border:none;background:none;color:var(--ink3);letter-spacing:0.5px;font-weight:500;
+  border-bottom:2px solid transparent;transition:all 0.12s;
+}
+.rnav-btn.active{color:var(--amber);border-bottom-color:var(--amber);background:var(--bg2)}
+.right-content{flex:1;overflow-y:auto;padding:12px}
+.right-panel{display:none}.right-panel.active{display:block}
+
+/* Preview */
+#preview-page{
+  background:#fff;border:1px solid #DDD;border-radius:var(--radius2);
+  padding:40px 48px;font-family:'Courier Prime',monospace;font-size:11px;
+  line-height:1.6;color:#111;box-shadow:0 2px 12px rgba(0,0,0,0.1);min-height:300px;
+}
+.pv-scene{font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:16px 0 4px;font-size:11px}
+.pv-action{margin-bottom:8px;font-size:11px}
+.pv-character{text-align:center;font-weight:700;text-transform:uppercase;margin-top:12px;margin-bottom:0;font-size:11px}
+.pv-dialogue{padding:0 48px;margin-bottom:8px;font-size:11px}
+.pv-parenthetical{padding:0 64px;font-style:italic;margin-bottom:4px;font-size:11px}
+.pv-transition{text-align:right;font-weight:700;text-transform:uppercase;margin:8px 0;font-size:11px}
+.pv-empty{color:#bbb;font-style:italic;font-size:11px;text-align:center;padding:20px}
+
+/* Stats in right panel */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.stat-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px;text-align:center}
+.stat-num{font-size:20px;font-weight:700;color:var(--amber);font-family:monospace;display:block}
+.stat-lbl{font-size:9px;color:var(--ink3);letter-spacing:1px;text-transform:uppercase}
+
+/* Scene card detail modal */
+#modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);
+  z-index:1000;align-items:center;justify-content:center;
+}
+#modal-overlay.open{display:flex}
+#modal-box{
+  background:var(--bg);border:1px solid var(--border);border-radius:var(--radius3);
+  width:560px;max-width:90vw;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 8px 40px rgba(0,0,0,0.2);
+}
+.modal-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);flex-shrink:0}
+.modal-hdr h2{font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;color:var(--ink)}
+.modal-body{flex:1;overflow-y:auto;padding:16px 18px}
+.modal-footer{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg2);flex-shrink:0}
+
+/* Form elements */
+.form-row{margin-bottom:12px}
+.form-row label{display:block;font-size:10px;color:var(--ink3);letter-spacing:1px;margin-bottom:4px;text-transform:uppercase;font-weight:600}
+.form-input,.form-textarea,.form-select{
+  width:100%;border:1px solid var(--border2);border-radius:var(--radius);
+  background:var(--bg);padding:7px 10px;font-family:'Noto Sans TC',sans-serif;
+  font-size:12px;color:var(--ink);outline:none;transition:border-color 0.12s;
+}
+.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--amber)}
+.form-textarea{resize:vertical;min-height:60px;line-height:1.6}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--border3)}
+
+/* Print */
+@media print{
+  #topbar,#left,#right,#statusbar,.editor-toolbar,.add-line-row{display:none!important}
+  #main{display:block!important}
+  #center{display:block!important;overflow:visible!important}
+  #editor-scroll{overflow:visible!important;padding:0!important}
+  #editor-page{max-width:none!important}
+  .sl-num,.sl-type-badge{display:none!important}
+  .sl-content{border:none!important;background:none!important;font-family:'Courier Prime',Courier,monospace!important;font-size:12pt!important;line-height:1.5!important;padding:0!important;display:block!important;color:#000!important}
+  @page{margin:1in 1in 1in 1.5in;size:letter}
+  .sl-content[data-type="scene"]{font-weight:700!important;text-transform:uppercase!important;margin:20pt 0 8pt!important;border:none!important}
+  .sl-content[data-type="action"]{margin-bottom:10pt!important}
+  .sl-content[data-type="character"]{padding-left:3.5in!important;text-align:left!important;font-weight:700!important;margin-top:10pt!important;text-transform:uppercase!important;letter-spacing:0!important}
+  .sl-content[data-type="dialogue"]{padding-left:2in!important;padding-right:2in!important;margin-bottom:8pt!important}
+  .sl-content[data-type="parenthetical"]{padding-left:2.5in!important;padding-right:2.5in!important;font-style:italic!important}
+  .sl-content[data-type="transition"]{text-align:right!important;font-weight:700!important;margin:10pt 0!important;text-transform:uppercase!important}
+}
+
+/* Misc */
+.empty-state{text-align:center;padding:24px 12px;color:var(--ink3);font-size:12px;line-height:1.7}
+.empty-state .es-icon{font-size:28px;margin-bottom:8px;display:block;opacity:0.5}
+.divider{height:1px;background:var(--border);margin:6px 0}
+.badge{display:inline-block;padding:1px 6px;border-radius:10px;font-size:9px;font-weight:600}
+.badge-linked{background:var(--teal-l);color:var(--teal);border:1px solid #8AADA8}
+.ctx-menu{
+  position:fixed;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius2);
+  box-shadow:var(--shadow2);z-index:500;padding:4px;min-width:150px;display:none;
+}
+.ctx-item{padding:6px 12px;font-size:12px;color:var(--ink2);cursor:pointer;border-radius:var(--radius);transition:background 0.1s}
+.ctx-item:hover{background:var(--amber-l);color:var(--amber)}
+.ctx-item.danger{color:var(--red)}
+.ctx-item.danger:hover{background:var(--red-l)}
+</style>
+</head>
+<body>
+
+<div id="shell">
+
+<!-- ── TOPBAR ─────────────────────────────────── -->
+<div id="topbar">
+  <div style="display:flex;align-items:baseline;gap:6px">
+    <span class="logo">雪雪劇本工坊</span>
+    <span class="logo-sub">Pro</span>
+  </div>
+  <div class="sep"></div>
+
+  <!-- Project selector -->
+  <select id="project-select" class="form-select" style="width:160px;padding:4px 8px;font-size:12px">
+    <option>無題劇本 #1</option>
+  </select>
+  <button class="icon-btn" title="新增專案" onclick="newProject()">＋</button>
+
+  <div class="sep"></div>
+
+  <!-- Format toolbar -->
+  <div class="tbar-group" id="format-btns">
+    <button class="tbtn" onclick="setLineType('scene')" title="場景標題">場景</button>
+    <button class="tbtn" onclick="setLineType('action')" title="動作描述">動作</button>
+    <button class="tbtn" onclick="setLineType('character')" title="角色名稱">角色</button>
+    <button class="tbtn" onclick="setLineType('dialogue')" title="對白">對白</button>
+    <button class="tbtn" onclick="setLineType('parenthetical')" title="語氣說明">語氣</button>
+    <button class="tbtn" onclick="setLineType('transition')" title="轉場">轉場</button>
+  </div>
+
+  <div class="tbar-spacer"></div>
+
+  <!-- Right side buttons -->
+  <div class="tbar-group">
+    <button class="tbtn danger" onclick="exportFountain()">⬇ Fountain</button>
+    <button class="tbtn" onclick="exportHtml()">⬇ 備份 App</button>
+    <button class="tbtn primary" onclick="window.print()">🖨 列印 PDF</button>
+    <div class="sep"></div>
+    <button class="icon-btn" title="收合左側欄" onclick="toggleLeft()">◀</button>
+    <button class="icon-btn" title="收合右側欄" onclick="toggleRight()">▶</button>
+  </div>
+</div>
+
+<!-- ── MAIN ───────────────────────────────────── -->
+<div id="main">
+
+  <!-- ── LEFT PANEL ─────────────────────────── -->
+  <div id="left">
+    <div class="left-nav">
+      <button class="lnav-btn active" onclick="switchLeft('scenes',this)" title="劇本場景">場景</button>
+      <button class="lnav-btn" onclick="switchLeft('cards',this)" title="分場卡">分場卡</button>
+      <button class="lnav-btn" onclick="switchLeft('chars',this)" title="角色">角色</button>
+      <button class="lnav-btn" onclick="switchLeft('notes',this)" title="筆記">筆記</button>
+      <button class="lnav-btn" onclick="switchLeft('assets',this)" title="參考資料">資料</button>
+    </div>
+
+    <!-- SCENES -->
+    <div class="left-panel active" id="lpanel-scenes">
+      <div class="panel-hdr">
+        劇本場景
+        <button class="add-btn" onclick="addScriptLine('scene')" title="新增場景標題">＋</button>
+      </div>
+      <div class="left-content" id="scene-nav-list"></div>
+    </div>
+
+    <!-- SCENE CARDS -->
+    <div class="left-panel" id="lpanel-cards">
+      <div class="panel-hdr">
+        分場卡
+        <button class="add-btn" onclick="openNewCardModal()" title="新增分場卡">＋</button>
+      </div>
+      <div class="left-content" id="scene-cards-list"></div>
+    </div>
+
+    <!-- CHARACTERS -->
+    <div class="left-panel" id="lpanel-chars">
+      <div class="panel-hdr">
+        角色
+        <button class="add-btn" onclick="openNewCharModal()" title="新增角色">＋</button>
+      </div>
+      <div class="left-content" id="chars-list"></div>
+    </div>
+
+    <!-- NOTES -->
+    <div class="left-panel" id="lpanel-notes">
+      <div class="panel-hdr">
+        創作筆記
+        <button class="add-btn" onclick="addNote()" title="新增筆記">＋</button>
+      </div>
+      <div class="left-content" id="notes-list"></div>
+    </div>
+
+    <!-- ASSETS -->
+    <div class="left-panel" id="lpanel-assets">
+      <div class="panel-hdr">參考資料</div>
+      <div class="left-content">
+        <div class="empty-state">
+          <span class="es-icon">🖼</span>
+          拖曳圖片至此處<br>或點擊上傳
+          <br><br>
+          <label style="cursor:pointer">
+            <input type="file" accept="image/*" multiple style="display:none" onchange="handleAssets(event)">
+            <span class="tbtn" style="display:inline-block">選擇圖片</span>
+          </label>
+        </div>
+        <div id="assets-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CENTER EDITOR ───────────────────────── -->
+  <div id="center">
+    <div class="editor-toolbar">
+      <span style="font-size:10px;color:var(--ink3);letter-spacing:1px">目前格式</span>
+      <span class="mode-pill m-action" id="mode-pill">動作</span>
+      <div class="sep" style="margin:0 4px"></div>
+      <span class="tbar-hint">
+        <kbd>Tab</kbd> 下一種格式
+        <kbd>Shift+Tab</kbd> 上一種格式
+        <kbd>Enter</kbd> 智慧換行
+      </span>
+    </div>
+    <div id="editor-scroll">
+      <div id="editor-page">
+        <div id="lines-container"></div>
+        <div class="add-line-row">
+          <button class="add-line-btn" onclick="addScriptLine('action')">＋ 新增一行</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RIGHT PANEL ─────────────────────────── -->
+  <div id="right">
+    <div class="right-nav">
+      <button class="rnav-btn active" onclick="switchRight('preview',this)">預覽</button>
+      <button class="rnav-btn" onclick="switchRight('stats',this)">統計</button>
+      <button class="rnav-btn" onclick="switchRight('fountain',this)">格式說明</button>
+    </div>
+    <div class="right-content">
+
+      <!-- PREVIEW -->
+      <div class="right-panel active" id="rpanel-preview">
+        <div id="preview-page"></div>
+      </div>
+
+      <!-- STATS -->
+      <div class="right-panel" id="rpanel-stats">
+        <div class="stat-grid">
+          <div class="stat-box"><span class="stat-num" id="stat-scenes">0</span><span class="stat-lbl">場景數</span></div>
+          <div class="stat-box"><span class="stat-num" id="stat-lines">0</span><span class="stat-lbl">總行數</span></div>
+          <div class="stat-box"><span class="stat-num" id="stat-chars-count">0</span><span class="stat-lbl">總字數</span></div>
+          <div class="stat-box"><span class="stat-num" id="stat-dialogues">0</span><span class="stat-lbl">對白行</span></div>
+        </div>
+        <div class="divider"></div>
+        <div style="font-size:10px;color:var(--ink3);letter-spacing:1px;margin:8px 0 6px;text-transform:uppercase;font-weight:700">角色台詞次數</div>
+        <div id="char-stat-list"></div>
+        <div class="divider"></div>
+        <div style="font-size:10px;color:var(--ink3);letter-spacing:1px;margin:8px 0 6px;text-transform:uppercase;font-weight:700">預估頁數</div>
+        <div id="stat-pages" style="font-size:13px;color:var(--ink2)"></div>
+      </div>
+
+      <!-- FOUNTAIN GUIDE -->
+      <div class="right-panel" id="rpanel-fountain">
+        <div style="font-size:12px;line-height:1.9;color:var(--ink2)">
+          <p style="margin-bottom:10px;color:var(--ink3);font-size:11px">匯出的 .fountain 檔符合 <strong style="color:var(--ink2)">Fountain 1.1</strong> 標準，可直接匯入：</p>
+          <p style="margin-bottom:6px;font-size:11px;color:var(--ink3)">▸ Highland 2 &nbsp;▸ WriterDuet<br>▸ Slugline &nbsp;&nbsp;&nbsp;▸ Logline<br>▸ FadeIn &nbsp;&nbsp;&nbsp;&nbsp;▸ Fountain.io</p>
+          <div class="divider" style="margin:10px 0"></div>
+          <table style="width:100%;font-size:11px;border-collapse:collapse">
+            <tr><td style="color:var(--ink3);padding:3px 0">場景標題</td><td style="text-align:right"><code style="background:var(--green-l);color:var(--green);padding:1px 5px;border-radius:3px;font-size:10px">INT./EXT. ... - 日/夜</code></td></tr>
+            <tr><td style="color:var(--ink3);padding:3px 0">動作描述</td><td style="text-align:right"><code style="background:var(--bg3);color:var(--ink2);padding:1px 5px;border-radius:3px;font-size:10px">純文字段落</code></td></tr>
+            <tr><td style="color:var(--ink3);padding:3px 0">角色名稱</td><td style="text-align:right"><code style="background:var(--teal-l);color:var(--teal);padding:1px 5px;border-radius:3px;font-size:10px">全大寫獨立行</code></td></tr>
+            <tr><td style="color:var(--ink3);padding:3px 0">對白</td><td style="text-align:right"><code style="background:var(--amber-l);color:var(--amber);padding:1px 5px;border-radius:3px;font-size:10px">角色行下方</code></td></tr>
+            <tr><td style="color:var(--ink3);padding:3px 0">語氣說明</td><td style="text-align:right"><code style="background:var(--blue-l);color:var(--blue);padding:1px 5px;border-radius:3px;font-size:10px">（括號內文字）</code></td></tr>
+            <tr><td style="color:var(--ink3);padding:3px 0">轉場</td><td style="text-align:right"><code style="background:#F0EBF5;color:#6A3A8A;padding:1px 5px;border-radius:3px;font-size:10px">&gt; FADE TO:</code></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div id="statusbar">
+  <span>專案：<b id="sb-project">無題劇本 #1</b></span>
+  <span>場景：<b id="sb-scene">—</b></span>
+  <span>行：<b id="sb-lines">0</b></span>
+  <span>字：<b id="sb-chars">0</b></span>
+  <span style="margin-left:auto;color:var(--teal);font-size:9px">✦ Fountain 1.1 相容　✦ 好萊塢格式列印</span>
+</div>
+</div>
+
+<!-- ── MODAL ──────────────────────────────────── -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div id="modal-box">
+    <div class="modal-hdr">
+      <h2 id="modal-title">新增分場卡</h2>
+      <button class="icon-btn" onclick="closeModal()" style="font-size:16px">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div class="ctx-menu" id="ctx-menu">
+  <div class="ctx-item" onclick="ctxAction('import')">⬇ 導入劇本</div>
+  <div class="ctx-item" onclick="ctxAction('edit')">✏ 編輯</div>
+  <div class="divider"></div>
+  <div class="ctx-item danger" onclick="ctxAction('delete')">✕ 刪除</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  DATA MODEL
+// ═══════════════════════════════════════════════
+const BLOCK_TYPES = ['scene','action','character','dialogue','parenthetical','transition'];
+const TYPE_LABELS = {scene:'場景標題',action:'動作描述',character:'角色名稱',dialogue:'對白',parenthetical:'語氣說明',transition:'轉場'};
+const TYPE_PILL_CLASS = {scene:'m-scene',action:'m-action',character:'m-character',dialogue:'m-dialogue',parenthetical:'m-parenthetical',transition:'m-transition'};
+const CHAR_COLORS = ['#1D9E75','#185FA5','#C8860A','#8B2020','#533BAB','#0F6E56','#D4537E','#8A6A00'];
+
+// Enter logic: what type follows each type
+const ENTER_NEXT = {
+  scene:'action', action:'action', character:'dialogue',
+  dialogue:'character', parenthetical:'dialogue', transition:'scene'
+};
+
+// Tab cycle
+const TAB_CYCLE = ['action','character','parenthetical','dialogue','transition','scene'];
+
+let DB = {
+  projects: [{id:'p1',name:'無題劇本 #1'}],
+  activeProject: 'p1',
+  scripts: {
+    p1: {
+      id:'s1', projectId:'p1',
+      blocks: [
+        {id:'b1',type:'scene',text:'INT. 城市街道 - 黃昏',linkedCardId:null},
+        {id:'b2',type:'action',text:'空曠的街道。遠處傳來鐘聲，最後一縷陽光斜穿過巷弄。行人稀少，只有風吹落幾片枯葉。'},
+        {id:'b3',type:'character',text:'雪雪',linkedCardId:null},
+        {id:'b4',type:'dialogue',text:'（輕聲）這個城市，好像從未真正醒來過。'},
+        {id:'b5',type:'action',text:'她停下腳步，望向窗格折射的夕陽，若有所思。'},
+        {id:'b6',type:'character',text:'路人',linkedCardId:null},
+        {id:'b7',type:'dialogue',text:'小姐，你擋到路了。'},
+        {id:'b8',type:'transition',text:'FADE TO:'},
+        {id:'b9',type:'scene',text:'INT. 咖啡館 - 夜',linkedCardId:null},
+        {id:'b10',type:'action',text:'燈光昏黃的咖啡館。雪雪坐在窗邊，面前放著一杯已涼的拿鐵。她翻開記事本，開始書寫。'},
+        {id:'b11',type:'character',text:'雪雪'},
+        {id:'b12',type:'parenthetical',text:'（自言自語）'},
+        {id:'b13',type:'dialogue',text:'今天一定要把第一幕寫完。'},
+      ]
+    }
+  },
+  sceneCards: {
+    p1: [
+      {id:'sc1',projectId:'p1',num:1,title:'開場·街道',location:'城市街道',time:'黃昏',interior:'INT',
+       characters:['雪雪','路人'],purpose:'建立世界觀，展示主角的孤獨感',
+       conflict:'主角沉浸在思緒中，被路人打斷',notes:'注意黃昏光線的氛圍渲染',linkedBlockId:'b1'},
+      {id:'sc2',projectId:'p1',num:2,title:'夜間咖啡館',location:'咖啡館',time:'夜',interior:'INT',
+       characters:['雪雪'],purpose:'主角試圖找回創作狀態',
+       conflict:'內心掙扎與現實壓力',notes:'背景音樂：輕柔爵士樂',linkedBlockId:'b9'},
+    ]
+  },
+  characters: {
+    p1: [
+      {id:'ch1',projectId:'p1',name:'雪雪',age:'28',role:'編劇',
+       personality:'敏感、細膩、容易陷入沉思',arc:'從懷疑自我到重拾創作信心',
+       notes:'全劇主視角人物',color:'#1D9E75'},
+      {id:'ch2',projectId:'p1',name:'路人',age:'40+',role:'普通市民',
+       personality:'急躁、現實',arc:'象徵主角與現實世界的碰撞',
+       notes:'小配角，出現一次即可',color:'#185FA5'},
+    ]
+  },
+  notes: {
+    p1: [
+      {id:'n1',projectId:'p1',title:'故事核心',content:'一個編劇在截稿壓力下，重新發現生活中的故事。'},
+      {id:'n2',projectId:'p1',title:'視覺風格參考',content:'台北的黃昏、老舊咖啡館、手寫字跡。參考《咖啡時光》的色調處理。'},
+    ]
+  }
+};
+
+let activeLineIdx = null;
+let blockCounter = 100;
+let modalCtx = null; // {type, id} for context menu
+
+// ═══════════════════════════════════════════════
+//  UTILITY
+// ═══════════════════════════════════════════════
+function uid(){ return 'id_'+(++blockCounter)+'_'+Date.now(); }
+function esc(t){ return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function getProject(){ return DB.activeProject; }
+function getScript(){ return DB.scripts[getProject()]; }
+function getBlocks(){ return getScript().blocks; }
+function getCards(){ return DB.sceneCards[getProject()]||[]; }
+function getChars(){ return DB.characters[getProject()]||[]; }
+function getNotes(){ return DB.notes[getProject()]||[]; }
+
+// ═══════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════
+function renderAll(){
+  renderLines();
+  renderSceneNav();
+  renderCards();
+  renderChars();
+  renderNotes();
+  updatePreview();
+  updateStats();
+}
+
+function renderLines(){
+  const blocks = getBlocks();
+  const container = document.getElementById('lines-container');
+  container.innerHTML = blocks.map((b,i) => `
+    <div class="sl${activeLineIdx===i?' focused':''}" id="row-${i}" data-idx="${i}">
+      <span class="sl-num">${i+1}</span>
+      <span class="sl-type-badge">${TYPE_LABELS[b.type]||b.type}</span>
+      <div class="sl-content"
+        contenteditable="true"
+        data-type="${b.type}"
+        data-idx="${i}"
+        id="line-${i}"
+        spellcheck="false"
+        oninput="onLineInput(${i},this)"
+        onkeydown="onLineKey(event,${i})"
+        onfocus="onLineFocus(${i})"
+      >${esc(b.text)}</div>
+    </div>
+  `).join('');
+  updateModeIndicator();
+}
+
+function renderSceneNav(){
+  const blocks = getBlocks();
+  const scenes = blocks.filter(b=>b.type==='scene').map((b,si) => {
+    const realIdx = blocks.indexOf(b);
+    return {b,si,realIdx};
+  });
+  const el = document.getElementById('scene-nav-list');
+  if(scenes.length===0){
+    el.innerHTML=`<div class="empty-state"><span class="es-icon">🎬</span>尚無場景標題<br>在編輯區輸入後會自動出現</div>`;return;
+  }
+  el.innerHTML = scenes.map(({b,si,realIdx}) => `
+    <div class="scene-item" onclick="jumpToLine(${realIdx})">
+      <span class="si-num">場景 ${si+1}</span>
+      <span class="si-title">${esc(b.text)||'（未命名場景）'}</span>
+      ${b.linkedCardId?'<span class="badge badge-linked" style="margin-top:3px;display:inline-block">已連結分場卡</span>':''}
+    </div>
+  `).join('');
+}
+
+function renderCards(){
+  const cards = getCards();
+  const el = document.getElementById('scene-cards-list');
+  if(cards.length===0){
+    el.innerHTML=`<div class="empty-state"><span class="es-icon">🗂</span>尚無分場卡<br>點擊右上角 ＋ 新增</div>`;return;
+  }
+  el.innerHTML = cards.map(c => `
+    <div class="card-item" oncontextmenu="showCtx(event,'card','${c.id}')" onclick="openEditCardModal('${c.id}')">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
+        <div>
+          <div class="ci-title">${c.num}. ${esc(c.title)||'（未命名）'}</div>
+          <div class="ci-meta">${esc(c.location)||'—'}</div>
+        </div>
+        <div style="display:flex;gap:3px;flex-shrink:0">
+          <span class="tag ${c.interior==='INT'?'tag-int':'tag-ext'}">${c.interior}</span>
+          <span class="tag ${c.time==='夜'?'tag-night':'tag-day'}">${c.time}</span>
+        </div>
+      </div>
+      <div class="ci-tags">
+        ${(c.characters||[]).map(ch=>`<span class="tag" style="background:var(--bg3);color:var(--ink2);border:1px solid var(--border)">${esc(ch)}</span>`).join('')}
+        ${c.linkedBlockId?'<span class="badge badge-linked">已導入劇本</span>':'<span class="badge" style="background:var(--amber-l);color:var(--amber);border:1px solid var(--border2);cursor:pointer" onclick="event.stopPropagation();importCard(\''+c.id+'\')">⬇ 導入劇本</span>'}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderChars(){
+  const chars = getChars();
+  const el = document.getElementById('chars-list');
+  if(chars.length===0){
+    el.innerHTML=`<div class="empty-state"><span class="es-icon">👤</span>尚無角色<br>點擊右上角 ＋ 新增</div>`;return;
+  }
+  el.innerHTML = chars.map(c => `
+    <div class="card-item" onclick="openEditCharModal('${c.id}')">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="char-avatar" style="background:${c.color}22;color:${c.color}">${(c.name||'?').charAt(0)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="ci-title">${esc(c.name)}</div>
+          <div class="ci-meta">${esc(c.role)||'—'}${c.age?` · ${c.age}歲`:''}</div>
+        </div>
+      </div>
+      ${c.arc?`<div class="ci-meta" style="margin-top:5px;border-top:1px solid var(--border);padding-top:5px">弧線：${esc(c.arc)}</div>`:''}
+    </div>
+  `).join('');
+}
+
+function renderNotes(){
+  const notes = getNotes();
+  const el = document.getElementById('notes-list');
+  if(notes.length===0){
+    el.innerHTML=`<div class="empty-state"><span class="es-icon">📝</span>尚無筆記<br>點擊右上角 ＋ 新增</div>`;return;
+  }
+  el.innerHTML = notes.map(n => `
+    <div class="card-item" onclick="openEditNoteModal('${n.id}')">
+      <div class="ci-title">${esc(n.title)||'（未命名）'}</div>
+      <div class="ci-meta" style="margin-top:3px">${esc(n.content||'').substring(0,60)}${(n.content||'').length>60?'…':''}</div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  EDITOR LOGIC
+// ═══════════════════════════════════════════════
+function onLineFocus(i){
+  activeLineIdx = i;
+  document.querySelectorAll('.sl').forEach((r,idx)=>r.classList.toggle('focused',idx===i));
+  updateModeIndicator();
+}
+
+function onLineInput(i,el){
+  getBlocks()[i].text = el.innerText.replace(/\n/g,' ');
+  scheduleUpdate();
+}
+
+function onLineKey(e,i){
+  const blocks = getBlocks();
+
+  if(e.key==='Tab'){
+    e.preventDefault();
+    const cur = blocks[i].type;
+    const idx = TAB_CYCLE.indexOf(cur);
+    const shift = e.shiftKey;
+    let next;
+    if(shift){
+      next = TAB_CYCLE[(idx-1+TAB_CYCLE.length)%TAB_CYCLE.length];
+    } else {
+      next = TAB_CYCLE[(idx+1)%TAB_CYCLE.length];
+    }
+    blocks[i].type = next;
+    const el = document.getElementById('line-'+i);
+    el.setAttribute('data-type', next);
+    document.querySelector('.sl-type-badge', document.getElementById('row-'+i));
+    // Update badge
+    const row = document.getElementById('row-'+i);
+    if(row) row.querySelector('.sl-type-badge').textContent = TYPE_LABELS[next]||next;
+    updateModeIndicator();
+    scheduleUpdate();
+    return;
+  }
+
+  if(e.key==='Enter'){
+    e.preventDefault();
+    const prev = blocks[i];
+    const nextType = ENTER_NEXT[prev.type]||'action';
+    const newBlock = {id:uid(),type:nextType,text:'',linkedCardId:null};
+    blocks.splice(i+1,0,newBlock);
+    activeLineIdx = i+1;
+    renderLines();
+    setTimeout(()=>{
+      const el = document.getElementById('line-'+(i+1));
+      if(el){el.focus();placeCaretEnd(el);}
+    },10);
+    return;
+  }
+
+  if(e.key==='Backspace'){
+    const el = document.getElementById('line-'+i);
+    if(el.innerText==='' && blocks.length>1){
+      e.preventDefault();
+      blocks.splice(i,1);
+      activeLineIdx = Math.max(0,i-1);
+      renderLines();
+      setTimeout(()=>{
+        const p = document.getElementById('line-'+activeLineIdx);
+        if(p){p.focus();placeCaretEnd(p);}
+      },10);
+    }
+  }
+
+  if(e.key==='ArrowUp'&&i>0){
+    const prevEl = document.getElementById('line-'+(i-1));
+    if(prevEl) setTimeout(()=>prevEl.focus(),0);
+  }
+  if(e.key==='ArrowDown'&&i<blocks.length-1){
+    const nextEl = document.getElementById('line-'+(i+1));
+    if(nextEl) setTimeout(()=>nextEl.focus(),0);
+  }
+}
+
+function placeCaretEnd(el){
+  const r=document.createRange(),s=window.getSelection();
+  r.selectNodeContents(el);r.collapse(false);s.removeAllRanges();s.addRange(r);
+}
+
+function setLineType(type){
+  if(activeLineIdx===null) return;
+  const blocks = getBlocks();
+  blocks[activeLineIdx].type = type;
+  const el = document.getElementById('line-'+activeLineIdx);
+  if(el) el.setAttribute('data-type',type);
+  const row = document.getElementById('row-'+activeLineIdx);
+  if(row) row.querySelector('.sl-type-badge').textContent = TYPE_LABELS[type]||type;
+  updateModeIndicator();
+  scheduleUpdate();
+}
+
+function addScriptLine(type){
+  const blocks = getBlocks();
+  const newBlock = {id:uid(),type:type||'action',text:'',linkedCardId:null};
+  if(activeLineIdx!==null){
+    blocks.splice(activeLineIdx+1,0,newBlock);
+    activeLineIdx++;
+  } else {
+    blocks.push(newBlock);
+    activeLineIdx = blocks.length-1;
+  }
+  renderLines();
+  setTimeout(()=>{
+    const el = document.getElementById('line-'+activeLineIdx);
+    if(el) el.focus();
+  },10);
+}
+
+function jumpToLine(idx){
+  renderLines();
+  setTimeout(()=>{
+    const el = document.getElementById('line-'+idx);
+    if(el){
+      el.scrollIntoView({behavior:'smooth',block:'center'});
+      el.focus();
+    }
+  },30);
+}
+
+function updateModeIndicator(){
+  const pill = document.getElementById('mode-pill');
+  const blocks = getBlocks();
+  if(activeLineIdx===null||!blocks[activeLineIdx]){
+    pill.textContent='—';pill.className='mode-pill m-action';return;
+  }
+  const t = blocks[activeLineIdx].type;
+  pill.textContent = TYPE_LABELS[t]||t;
+  pill.className = 'mode-pill '+(TYPE_PILL_CLASS[t]||'m-action');
+}
+
+// ═══════════════════════════════════════════════
+//  PREVIEW + STATS
+// ═══════════════════════════════════════════════
+let updateTimer = null;
+function scheduleUpdate(){
+  clearTimeout(updateTimer);
+  updateTimer = setTimeout(()=>{
+    renderSceneNav();
+    updatePreview();
+    updateStats();
+  }, 300);
+}
+
+function updatePreview(){
+  const blocks = getBlocks();
+  const pvEl = document.getElementById('preview-page');
+  if(blocks.length===0){pvEl.innerHTML='<div class="pv-empty">劇本尚未有內容</div>';return;}
+  pvEl.innerHTML = blocks.map(b=>{
+    const t = esc(b.text||'');
+    if(b.type==='scene') return `<div class="pv-scene">${t}</div>`;
+    if(b.type==='action') return `<div class="pv-action">${t}</div>`;
+    if(b.type==='character') return `<div class="pv-character">${t}</div>`;
+    if(b.type==='dialogue') return `<div class="pv-dialogue">${t}</div>`;
+    if(b.type==='parenthetical') return `<div class="pv-parenthetical">${t}</div>`;
+    if(b.type==='transition') return `<div class="pv-transition">${t}</div>`;
+    return '';
+  }).join('');
+}
+
+function updateStats(){
+  const blocks = getBlocks();
+  const chars = {};
+  let diaCount=0, lastChar=null;
+  blocks.forEach(b=>{
+    if(b.type==='character') lastChar=b.text.trim().toUpperCase();
+    if(b.type==='dialogue'){diaCount++;if(lastChar)chars[lastChar]=(chars[lastChar]||0)+1;}
+  });
+  const sceneCount = blocks.filter(b=>b.type==='scene').length;
+  const wordCount = blocks.map(b=>b.text).join('').replace(/\s/g,'').length;
+  const pages = Math.max(1, Math.round(blocks.length/50));
+
+  document.getElementById('stat-scenes').textContent = sceneCount;
+  document.getElementById('stat-lines').textContent = blocks.length;
+  document.getElementById('stat-chars-count').textContent = wordCount;
+  document.getElementById('stat-dialogues').textContent = diaCount;
+  document.getElementById('stat-pages').textContent = `約 ${pages} 頁（每頁約 50 行估算）`;
+  document.getElementById('sb-lines').textContent = blocks.length;
+  document.getElementById('sb-chars').textContent = wordCount;
+
+  // Active scene
+  if(activeLineIdx!==null){
+    const sceneBlocks = blocks.slice(0,activeLineIdx+1).filter(b=>b.type==='scene');
+    document.getElementById('sb-scene').textContent = sceneBlocks.length>0?esc(sceneBlocks[sceneBlocks.length-1].text||'—').substring(0,20):'—';
+  }
+
+  // Char stat
+  const entries = Object.entries(chars).sort((a,b)=>b[1]-a[1]);
+  const csl = document.getElementById('char-stat-list');
+  csl.innerHTML = entries.length===0?'<div style="font-size:11px;color:var(--ink3)">尚無資料</div>':
+    entries.map(([n,c],i)=>`
+      <div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);font-size:11px">
+        <div style="width:7px;height:7px;border-radius:50%;background:${CHAR_COLORS[i%CHAR_COLORS.length]};flex-shrink:0"></div>
+        <span style="flex:1;color:var(--ink2);font-weight:500">${esc(n)}</span>
+        <span style="font-family:monospace;color:var(--ink3)">${c}次</span>
+      </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  SCENE CARD MODAL
+// ═══════════════════════════════════════════════
+function openNewCardModal(){
+  const c = {id:uid(),projectId:getProject(),num:getCards().length+1,title:'',location:'',time:'日',interior:'INT',characters:[],purpose:'',conflict:'',notes:'',linkedBlockId:null};
+  openCardModal('新增分場卡', c, true);
+}
+function openEditCardModal(id){
+  const c = getCards().find(x=>x.id===id);
+  if(!c) return;
+  openCardModal('編輯分場卡', {...c}, false);
+}
+
+function openCardModal(title, cardData, isNew){
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-row-2">
+      <div class="form-row"><label>場次編號</label><input class="form-input" id="cf-num" type="number" value="${cardData.num||''}"></div>
+      <div class="form-row"><label>場景標題</label><input class="form-input" id="cf-title" value="${esc(cardData.title||'')}"></div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-row"><label>地點</label><input class="form-input" id="cf-location" value="${esc(cardData.location||'')}"></div>
+      <div class="form-row"><label>時間</label>
+        <select class="form-select" id="cf-time">
+          <option value="日"${cardData.time==='日'?' selected':''}>日</option>
+          <option value="夜"${cardData.time==='夜'?' selected':''}>夜</option>
+          <option value="黃昏"${cardData.time==='黃昏'?' selected':''}>黃昏</option>
+          <option value="清晨"${cardData.time==='清晨'?' selected':''}>清晨</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-row"><label>室內/室外</label>
+        <select class="form-select" id="cf-interior">
+          <option value="INT"${cardData.interior==='INT'?' selected':''}>INT（室內）</option>
+          <option value="EXT"${cardData.interior==='EXT'?' selected':''}>EXT（室外）</option>
+          <option value="INT/EXT"${cardData.interior==='INT/EXT'?' selected':''}>INT/EXT</option>
+        </select>
+      </div>
+      <div class="form-row"><label>出場角色（逗號分隔）</label><input class="form-input" id="cf-chars" value="${esc((cardData.characters||[]).join('，'))}"></div>
+    </div>
+    <div class="form-row"><label>場景功能</label><textarea class="form-textarea" id="cf-purpose" rows="2">${esc(cardData.purpose||'')}</textarea></div>
+    <div class="form-row"><label>衝突</label><textarea class="form-textarea" id="cf-conflict" rows="2">${esc(cardData.conflict||'')}</textarea></div>
+    <div class="form-row"><label>備註</label><textarea class="form-textarea" id="cf-notes" rows="2">${esc(cardData.notes||'')}</textarea></div>
+  `;
+  document.getElementById('modal-footer').innerHTML = `
+    <button class="tbtn" onclick="closeModal()">取消</button>
+    ${!isNew&&cardData.linkedBlockId?'':'<button class="tbtn" onclick="saveCard(\''+cardData.id+'\','+isNew+');importCard(\''+cardData.id+'\')">儲存並導入劇本</button>'}
+    <button class="tbtn primary" onclick="saveCard('${cardData.id}',${isNew})">儲存</button>
+  `;
+  // Store card data temporarily
+  document.getElementById('modal-box').dataset.cardId = cardData.id;
+  document.getElementById('modal-box').dataset.isNew = isNew;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function saveCard(id, isNew){
+  const cards = getCards();
+  const card = {
+    id, projectId:getProject(),
+    num: parseInt(document.getElementById('cf-num').value)||1,
+    title: document.getElementById('cf-title').value,
+    location: document.getElementById('cf-location').value,
+    time: document.getElementById('cf-time').value,
+    interior: document.getElementById('cf-interior').value,
+    characters: document.getElementById('cf-chars').value.split(/[,，]/).map(s=>s.trim()).filter(Boolean),
+    purpose: document.getElementById('cf-purpose').value,
+    conflict: document.getElementById('cf-conflict').value,
+    notes: document.getElementById('cf-notes').value,
+    linkedBlockId: isNew?null:(cards.find(c=>c.id===id)||{}).linkedBlockId||null,
+  };
+  if(isNew){
+    if(!DB.sceneCards[getProject()]) DB.sceneCards[getProject()]=[];
+    DB.sceneCards[getProject()].push(card);
+  } else {
+    const idx = cards.findIndex(c=>c.id===id);
+    if(idx>=0) DB.sceneCards[getProject()][idx]=card;
+  }
+  closeModal();
+  renderCards();
+}
+
+function importCard(cardId){
+  const cards = getCards();
+  const card = cards.find(c=>c.id===cardId);
+  if(!card) return;
+
+  const blocks = getBlocks();
+  const sceneTitle = `${card.interior}. ${card.location||'場景'} - ${card.time}`;
+  const newBlocks = [
+    {id:uid(),type:'scene',text:sceneTitle,linkedCardId:cardId},
+    {id:uid(),type:'action',text:'',linkedCardId:null},
+  ];
+  if(card.characters && card.characters.length>0){
+    newBlocks.push({id:uid(),type:'character',text:card.characters[0],linkedCardId:null});
+    newBlocks.push({id:uid(),type:'dialogue',text:'',linkedCardId:null});
+  }
+
+  // Insert after cursor or at end
+  const insertAt = activeLineIdx!==null ? activeLineIdx+1 : blocks.length;
+  blocks.splice(insertAt, 0, ...newBlocks);
+
+  // Mark card as linked
+  card.linkedBlockId = newBlocks[0].id;
+  // Mark scene block as linked
+  newBlocks[0].linkedCardId = cardId;
+
+  closeModal();
+  renderAll();
+  setTimeout(()=>{
+    const el = document.getElementById('line-'+insertAt);
+    if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.focus();}
+  },50);
+}
+
+// ═══════════════════════════════════════════════
+//  CHARACTER MODAL
+// ═══════════════════════════════════════════════
+function openNewCharModal(){
+  const c={id:uid(),projectId:getProject(),name:'',age:'',role:'',personality:'',arc:'',notes:'',color:CHAR_COLORS[getChars().length%CHAR_COLORS.length]};
+  openCharModal('新增角色',c,true);
+}
+function openEditCharModal(id){
+  const c=getChars().find(x=>x.id===id);if(!c)return;
+  openCharModal('編輯角色',{...c},false);
+}
+function openCharModal(title,charData,isNew){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').innerHTML=`
+    <div class="form-row-2">
+      <div class="form-row"><label>姓名</label><input class="form-input" id="chf-name" value="${esc(charData.name||'')}"></div>
+      <div class="form-row"><label>年齡</label><input class="form-input" id="chf-age" value="${esc(charData.age||'')}"></div>
+    </div>
+    <div class="form-row"><label>身分 / 職業</label><input class="form-input" id="chf-role" value="${esc(charData.role||'')}"></div>
+    <div class="form-row"><label>性格特質</label><textarea class="form-textarea" id="chf-personality" rows="2">${esc(charData.personality||'')}</textarea></div>
+    <div class="form-row"><label>角色弧線</label><textarea class="form-textarea" id="chf-arc" rows="2">${esc(charData.arc||'')}</textarea></div>
+    <div class="form-row"><label>備註</label><textarea class="form-textarea" id="chf-notes" rows="2">${esc(charData.notes||'')}</textarea></div>
+  `;
+  document.getElementById('modal-footer').innerHTML=`
+    <button class="tbtn" onclick="closeModal()">取消</button>
+    <button class="tbtn primary" onclick="saveChar('${charData.id}',${isNew})">儲存</button>
+  `;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function saveChar(id,isNew){
+  const chars=getChars();
+  const c={id,projectId:getProject(),
+    name:document.getElementById('chf-name').value,
+    age:document.getElementById('chf-age').value,
+    role:document.getElementById('chf-role').value,
+    personality:document.getElementById('chf-personality').value,
+    arc:document.getElementById('chf-arc').value,
+    notes:document.getElementById('chf-notes').value,
+    color:CHAR_COLORS[chars.length%CHAR_COLORS.length],
+  };
+  if(isNew){if(!DB.characters[getProject()])DB.characters[getProject()]=[];DB.characters[getProject()].push(c);}
+  else{const idx=chars.findIndex(x=>x.id===id);if(idx>=0)DB.characters[getProject()][idx]=c;}
+  closeModal();renderChars();
+}
+
+// ═══════════════════════════════════════════════
+//  NOTE MODAL
+// ═══════════════════════════════════════════════
+function addNote(){
+  const n={id:uid(),projectId:getProject(),title:'',content:''};
+  openNoteModal('新增筆記',n,true);
+}
+function openEditNoteModal(id){
+  const n=getNotes().find(x=>x.id===id);if(!n)return;
+  openNoteModal('編輯筆記',{...n},false);
+}
+function openNoteModal(title,noteData,isNew){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').innerHTML=`
+    <div class="form-row"><label>標題</label><input class="form-input" id="nf-title" value="${esc(noteData.title||'')}"></div>
+    <div class="form-row"><label>內容</label><textarea class="form-textarea" id="nf-content" rows="8">${esc(noteData.content||'')}</textarea></div>
+  `;
+  document.getElementById('modal-footer').innerHTML=`
+    <button class="tbtn" onclick="closeModal()">取消</button>
+    ${!isNew?`<button class="tbtn danger" onclick="deleteNote('${noteData.id}')">刪除</button>`:''}
+    <button class="tbtn primary" onclick="saveNote('${noteData.id}',${isNew})">儲存</button>
+  `;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function saveNote(id,isNew){
+  const notes=getNotes();
+  const n={id,projectId:getProject(),
+    title:document.getElementById('nf-title').value,
+    content:document.getElementById('nf-content').value,
+  };
+  if(isNew){if(!DB.notes[getProject()])DB.notes[getProject()]=[];DB.notes[getProject()].push(n);}
+  else{const idx=notes.findIndex(x=>x.id===id);if(idx>=0)DB.notes[getProject()][idx]=n;}
+  closeModal();renderNotes();
+}
+function deleteNote(id){
+  DB.notes[getProject()]=getNotes().filter(n=>n.id!==id);
+  closeModal();renderNotes();
+}
+
+function closeModal(e){
+  if(e&&e.target!==document.getElementById('modal-overlay'))return;
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+// ═══════════════════════════════════════════════
+//  CONTEXT MENU
+// ═══════════════════════════════════════════════
+function showCtx(e,type,id){
+  e.preventDefault();
+  modalCtx={type,id};
+  const m=document.getElementById('ctx-menu');
+  m.style.display='block';
+  m.style.left=e.clientX+'px';
+  m.style.top=e.clientY+'px';
+}
+function hideCtx(){document.getElementById('ctx-menu').style.display='none';}
+function ctxAction(action){
+  hideCtx();
+  if(!modalCtx)return;
+  if(modalCtx.type==='card'){
+    if(action==='import') importCard(modalCtx.id);
+    else if(action==='edit') openEditCardModal(modalCtx.id);
+    else if(action==='delete'){DB.sceneCards[getProject()]=getCards().filter(c=>c.id!==modalCtx.id);renderCards();}
+  }
+}
+document.addEventListener('click',hideCtx);
+
+// ═══════════════════════════════════════════════
+//  PANELS
+// ═══════════════════════════════════════════════
+function switchLeft(name,btn){
+  document.querySelectorAll('.left-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.lnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('lpanel-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+function switchRight(name,btn){
+  document.querySelectorAll('.right-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.rnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('rpanel-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+function toggleLeft(){
+  document.getElementById('left').classList.toggle('collapsed');
+}
+function toggleRight(){
+  document.getElementById('right').classList.toggle('collapsed');
+}
+
+// ═══════════════════════════════════════════════
+//  PROJECT
+// ═══════════════════════════════════════════════
+function newProject(){
+  const name=prompt('新劇本專案名稱：');
+  if(!name)return;
+  const id='p'+Date.now();
+  DB.projects.push({id,name});
+  DB.scripts[id]={id:'s'+Date.now(),projectId:id,blocks:[
+    {id:uid(),type:'scene',text:'INT. 場景一 - 日',linkedCardId:null},
+    {id:uid(),type:'action',text:''},
+  ]};
+  DB.sceneCards[id]=[];DB.characters[id]=[];DB.notes[id]=[];
+  DB.activeProject=id;
+  const sel=document.getElementById('project-select');
+  sel.innerHTML=DB.projects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  sel.value=id;
+  document.getElementById('sb-project').textContent=name;
+  renderAll();
+}
+document.getElementById('project-select').addEventListener('change',function(){
+  DB.activeProject=this.value;
+  document.getElementById('sb-project').textContent=DB.projects.find(p=>p.id===this.value)?.name||'';
+  renderAll();
+});
+
+// ═══════════════════════════════════════════════
+//  EXPORT
+// ═══════════════════════════════════════════════
+function toFountain(){
+  const proj=DB.projects.find(p=>p.id===getProject());
+  let o=`Title: ${proj?.name||'劇本'}\nAuthor: 雪雪\nDraft date: ${new Date().toISOString().slice(0,10)}\n\n`;
+  getBlocks().forEach(b=>{
+    const t=(b.text||'').trim();if(!t){o+='\n';return;}
+    if(b.type==='scene') o+='\n'+t.toUpperCase()+'\n\n';
+    else if(b.type==='action') o+=t+'\n\n';
+    else if(b.type==='character') o+='\n'+t.toUpperCase()+'\n';
+    else if(b.type==='dialogue') o+=t+'\n\n';
+    else if(b.type==='parenthetical') o+='('+t.replace(/^[(（]/,'').replace(/[)）]$/,'')+')\n';
+    else if(b.type==='transition') o+='\n> '+(t.toUpperCase().endsWith(':')?t.toUpperCase():t.toUpperCase()+':')+'\n\n';
+  });
+  return o;
+}
+function exportFountain(){
+  const blob=new Blob([toFountain()],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=(DB.projects.find(p=>p.id===getProject())?.name||'劇本')+'_'+new Date().toISOString().slice(0,10)+'.fountain';
+  a.click();
+}
+function exportHtml(){
+  const blob=new Blob([document.documentElement.outerHTML],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='雪雪劇本工坊Pro_'+new Date().toISOString().slice(0,10)+'.html';a.click();
+}
+
+// Assets
+function handleAssets(e){
+  const grid=document.getElementById('assets-grid');
+  Array.from(e.target.files).forEach(f=>{
+    const url=URL.createObjectURL(f);
+    const d=document.createElement('div');
+    d.style.cssText='border-radius:6px;overflow:hidden;border:1px solid var(--border);aspect-ratio:1;background:var(--bg3)';
+    d.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover">`;
+    grid.appendChild(d);
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+renderAll();
+</script>
+</body>
+</html>
