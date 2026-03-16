@@ -830,6 +830,8 @@ function cycleTime(i){
   const next = TIME_OPTIONS[(idx+1) % TIME_OPTIONS.length];
   setTime(i, next);
 }
+
+function renderLines(){
   const blocks = getBlocks();
   const container = document.getElementById('lines-container');
 
