@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
+<html lang="zh-Hant"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>雪雪劇本工坊 Pro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700&amp;family=Noto+Sans+TC:wght@300;400;500;700&amp;family=Courier+Prime:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -243,21 +241,6 @@ kbd{
 .int-chip:hover{border-color:var(--amber);color:var(--amber);background:var(--amber-l)}
 .int-chip.active{background:var(--red-l);color:var(--red);border-color:#D08080;font-weight:700}
 .int-sep{font-size:10px;color:var(--border2);user-select:none;line-height:1}
-
-/* Time-of-day chips — amber/gold tones to distinguish from INT/EXT */
-.time-chip{
-  padding:2px 7px;border-radius:10px;font-size:9px;font-weight:700;
-  border:1px solid var(--border2);background:var(--bg3);color:var(--ink3);
-  cursor:pointer;transition:all 0.12s;letter-spacing:0.5px;font-family:'Noto Sans TC',sans-serif;
-  line-height:1.4;
-}
-.time-chip:hover{border-color:var(--amber2);color:var(--amber);background:var(--amber-l)}
-.time-chip.active{background:var(--amber-l);color:var(--amber);border-color:var(--amber2);font-weight:700}
-.scene-time-wrap{
-  display:none;align-items:center;gap:3px;padding:3px 0 2px 0;flex-shrink:0;
-}
-.sl[data-scene="1"] .scene-time-wrap{display:flex}
-.chip-group-sep{width:1px;height:14px;background:var(--border);margin:0 4px;flex-shrink:0}
 #script-title-block{
   margin-bottom:24px;padding-bottom:18px;
   border-bottom:2px solid var(--border);
@@ -418,7 +401,6 @@ kbd{
 .ctx-item.danger{color:var(--red)}
 .ctx-item.danger:hover{background:var(--red-l)}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
 </head>
 <body>
 
@@ -442,12 +424,12 @@ kbd{
 
   <!-- Format toolbar -->
   <div class="tbar-group" id="format-btns">
-    <button class="tbtn fmt-btn" id="fmtbtn-scene"          data-type="scene"         onclick="setLineType('scene')"         title="場景標題 (Tab)">場景標題</button>
-    <button class="tbtn fmt-btn" id="fmtbtn-action"         data-type="action"        onclick="setLineType('action')"        title="動作描述 (Tab)">動作描述</button>
-    <button class="tbtn fmt-btn" id="fmtbtn-character"      data-type="character"     onclick="setLineType('character')"     title="角色名稱 (Tab)">角色名稱</button>
-    <button class="tbtn fmt-btn" id="fmtbtn-dialogue"       data-type="dialogue"      onclick="setLineType('dialogue')"      title="對白 (Tab)">對白</button>
-    <button class="tbtn fmt-btn" id="fmtbtn-parenthetical"  data-type="parenthetical" onclick="setLineType('parenthetical')" title="語氣說明 (Tab)">語氣說明</button>
-    <button class="tbtn fmt-btn" id="fmtbtn-transition"     data-type="transition"    onclick="setLineType('transition')"    title="轉場 (Tab)">轉場</button>
+    <button class="tbtn fmt-btn" id="fmtbtn-scene" data-type="scene" onclick="setLineType('scene')" title="場景標題 (Tab)">場景標題</button>
+    <button class="tbtn fmt-btn" id="fmtbtn-action" data-type="action" onclick="setLineType('action')" title="動作描述 (Tab)">動作描述</button>
+    <button class="tbtn fmt-btn" id="fmtbtn-character" data-type="character" onclick="setLineType('character')" title="角色名稱 (Tab)">角色名稱</button>
+    <button class="tbtn fmt-btn" id="fmtbtn-dialogue" data-type="dialogue" onclick="setLineType('dialogue')" title="對白 (Tab)">對白</button>
+    <button class="tbtn fmt-btn" id="fmtbtn-parenthetical" data-type="parenthetical" onclick="setLineType('parenthetical')" title="語氣說明 (Tab)">語氣說明</button>
+    <button class="tbtn fmt-btn" id="fmtbtn-transition" data-type="transition" onclick="setLineType('transition')" title="轉場 (Tab)">轉場</button>
   </div>
 
   <div class="tbar-spacer"></div>
@@ -455,7 +437,6 @@ kbd{
   <!-- Right side buttons -->
   <div class="tbar-group">
     <button class="tbtn danger" onclick="exportFountain()">⬇ Fountain</button>
-    <button class="tbtn" style="color:var(--blue);border-color:#9AB8E0;background:var(--blue-l)" onclick="exportDocx()">⬇ Word (.docx)</button>
     <button class="tbtn" onclick="exportHtml()">⬇ 備份 App</button>
     <button class="tbtn primary" onclick="window.print()">🖨 列印 PDF</button>
     <div class="sep"></div>
@@ -470,20 +451,32 @@ kbd{
   <!-- ── LEFT PANEL ─────────────────────────── -->
   <div id="left">
     <div class="left-nav">
-      <button class="lnav-btn active" onclick="switchLeft('scenes',this)" title="劇本場景">場景</button>
+      <button class="lnav-btn" onclick="switchLeft('scenes',this)" title="劇本場景">場景</button>
       <button class="lnav-btn" onclick="switchLeft('cards',this)" title="分場卡">分場卡</button>
       <button class="lnav-btn" onclick="switchLeft('chars',this)" title="角色">角色</button>
       <button class="lnav-btn" onclick="switchLeft('notes',this)" title="筆記">筆記</button>
-      <button class="lnav-btn" onclick="switchLeft('assets',this)" title="參考資料">資料</button>
+      <button class="lnav-btn active" onclick="switchLeft('assets',this)" title="參考資料">資料</button>
     </div>
 
     <!-- SCENES -->
-    <div class="left-panel active" id="lpanel-scenes">
+    <div class="left-panel" id="lpanel-scenes">
       <div class="panel-hdr">
         劇本場景
         <button class="add-btn" onclick="addScriptLine('scene')" title="新增場景標題">＋</button>
       </div>
-      <div class="left-content" id="scene-nav-list"></div>
+      <div class="left-content" id="scene-nav-list">
+    <div class="scene-item" onclick="jumpToLine(0)">
+      <span class="si-num">場景 1</span>
+      <span class="si-title">INT. 城市街道 - 黃昏</span>
+      
+    </div>
+  
+    <div class="scene-item" onclick="jumpToLine(8)">
+      <span class="si-num">場景 2</span>
+      <span class="si-title">INT. 咖啡館 - 夜</span>
+      
+    </div>
+  </div>
     </div>
 
     <!-- SCENE CARDS -->
@@ -492,7 +485,41 @@ kbd{
         分場卡
         <button class="add-btn" onclick="openNewCardModal()" title="新增分場卡">＋</button>
       </div>
-      <div class="left-content" id="scene-cards-list"></div>
+      <div class="left-content" id="scene-cards-list">
+    <div class="card-item" oncontextmenu="showCtx(event,'card','sc1')" onclick="openEditCardModal('sc1')">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
+        <div>
+          <div class="ci-title">1. 開場·街道</div>
+          <div class="ci-meta">城市街道</div>
+        </div>
+        <div style="display:flex;gap:3px;flex-shrink:0">
+          <span class="tag tag-int">INT</span>
+          <span class="tag tag-day">黃昏</span>
+        </div>
+      </div>
+      <div class="ci-tags">
+        <span class="tag" style="background:var(--bg3);color:var(--ink2);border:1px solid var(--border)">雪雪</span><span class="tag" style="background:var(--bg3);color:var(--ink2);border:1px solid var(--border)">路人</span>
+        <span class="badge badge-linked">已導入劇本</span>
+      </div>
+    </div>
+  
+    <div class="card-item" oncontextmenu="showCtx(event,'card','sc2')" onclick="openEditCardModal('sc2')">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
+        <div>
+          <div class="ci-title">2. 夜間咖啡館</div>
+          <div class="ci-meta">咖啡館</div>
+        </div>
+        <div style="display:flex;gap:3px;flex-shrink:0">
+          <span class="tag tag-int">INT</span>
+          <span class="tag tag-night">夜</span>
+        </div>
+      </div>
+      <div class="ci-tags">
+        <span class="tag" style="background:var(--bg3);color:var(--ink2);border:1px solid var(--border)">雪雪</span>
+        <span class="badge badge-linked">已導入劇本</span>
+      </div>
+    </div>
+  </div>
     </div>
 
     <!-- CHARACTERS -->
@@ -501,7 +528,29 @@ kbd{
         角色
         <button class="add-btn" onclick="openNewCharModal()" title="新增角色">＋</button>
       </div>
-      <div class="left-content" id="chars-list"></div>
+      <div class="left-content" id="chars-list">
+    <div class="card-item" onclick="openEditCharModal('ch1')">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="char-avatar" style="background:#1D9E7522;color:#1D9E75">雪</div>
+        <div style="flex:1;min-width:0">
+          <div class="ci-title">雪雪</div>
+          <div class="ci-meta">編劇 · 28歲</div>
+        </div>
+      </div>
+      <div class="ci-meta" style="margin-top:5px;border-top:1px solid var(--border);padding-top:5px">弧線：從懷疑自我到重拾創作信心</div>
+    </div>
+  
+    <div class="card-item" onclick="openEditCharModal('ch2')">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="char-avatar" style="background:#185FA522;color:#185FA5">路</div>
+        <div style="flex:1;min-width:0">
+          <div class="ci-title">路人</div>
+          <div class="ci-meta">普通市民 · 40+歲</div>
+        </div>
+      </div>
+      <div class="ci-meta" style="margin-top:5px;border-top:1px solid var(--border);padding-top:5px">弧線：象徵主角與現實世界的碰撞</div>
+    </div>
+  </div>
     </div>
 
     <!-- NOTES -->
@@ -510,27 +559,31 @@ kbd{
         創作筆記
         <button class="add-btn" onclick="addNote()" title="新增筆記">＋</button>
       </div>
-      <div class="left-content" id="notes-list"></div>
+      <div class="left-content" id="notes-list">
+    <div class="card-item" onclick="openEditNoteModal('n1')">
+      <div class="ci-title">故事核心</div>
+      <div class="ci-meta" style="margin-top:3px">一個編劇在截稿壓力下，重新發現生活中的故事。</div>
+    </div>
+  
+    <div class="card-item" onclick="openEditNoteModal('n2')">
+      <div class="ci-title">視覺風格參考</div>
+      <div class="ci-meta" style="margin-top:3px">台北的黃昏、老舊咖啡館、手寫字跡。參考《咖啡時光》的色調處理。</div>
+    </div>
+  </div>
     </div>
 
     <!-- ASSETS -->
-    <div class="left-panel" id="lpanel-assets">
+    <div class="left-panel active" id="lpanel-assets">
       <div class="panel-hdr">
         參考資料
         <label style="cursor:pointer" title="上傳檔案">
-          <input type="file" id="asset-file-input" multiple accept="image/*,.pdf,.doc,.docx,.html,.htm,.txt,.md,.pptx,.xlsx,.csv" style="display:none" onchange="handleAssetFiles(this.files)">
+          <input type="file" id="asset-file-input" multiple="" accept="image/*,.pdf,.doc,.docx,.html,.htm,.txt,.md,.pptx,.xlsx,.csv" style="display:none" onchange="handleAssetFiles(this.files)">
           <span class="add-btn" onclick="document.getElementById('asset-file-input').click()">＋</span>
         </label>
       </div>
       <div class="left-content" style="padding:0;display:flex;flex-direction:column;height:100%">
         <!-- Drop zone -->
-        <div id="asset-dropzone"
-          ondragover="assetDragOver(event)"
-          ondragleave="assetDragLeave(event)"
-          ondrop="assetDrop(event)"
-          style="margin:8px;border:2px dashed var(--border2);border-radius:8px;padding:14px 8px;text-align:center;transition:all 0.15s;cursor:pointer;flex-shrink:0"
-          onclick="document.getElementById('asset-file-input').click()"
-        >
+        <div id="asset-dropzone" ondragover="assetDragOver(event)" ondragleave="assetDragLeave(event)" ondrop="assetDrop(event)" style="margin:8px;border:2px dashed var(--border2);border-radius:8px;padding:14px 8px;text-align:center;transition:all 0.15s;cursor:pointer;flex-shrink:0" onclick="document.getElementById('asset-file-input').click()" class="">
           <div style="font-size:20px;margin-bottom:4px;opacity:0.5">📂</div>
           <div style="font-size:11px;color:var(--ink3);line-height:1.6">
             拖曳檔案至此<br>
@@ -550,13 +603,12 @@ kbd{
   <div id="center">
     <div class="editor-toolbar">
       <span style="font-size:10px;color:var(--ink3);letter-spacing:1px">目前格式</span>
-      <span class="mode-pill m-action" id="mode-pill">動作</span>
+      <span class="mode-pill m-action" id="mode-pill">—</span>
       <div class="sep" style="margin:0 4px"></div>
       <span class="tbar-hint">
-        <kbd>Tab</kbd> 下一種格式　
-        <kbd>Shift+Tab</kbd> 上一種格式　
-        <kbd>Enter</kbd> 智慧換行　
-        <kbd>Alt+T</kbd> 切換時間（場景行）
+        <kbd>Tab</kbd> 下一種格式
+        <kbd>Shift+Tab</kbd> 上一種格式
+        <kbd>Enter</kbd> 智慧換行
       </span>
     </div>
     <div id="editor-scroll">
@@ -565,7 +617,476 @@ kbd{
           <input id="script-title-input" type="text" placeholder="劇本標題" spellcheck="false" oninput="scheduleUpdate()">
           <input id="script-subtitle-input" type="text" placeholder="副標題 · 作者 · 版次（選填）" spellcheck="false" oninput="scheduleUpdate()">
         </div>
-        <div id="lines-container"></div>
+        <div id="lines-container">
+    <div class="sl" id="row-0" data-idx="0" data-scene="1">
+      <span class="sl-num">1</span>
+      <div class="sl-type-wrap" id="typewrap-0">
+        <button class="sl-type-btn t-scene" id="typebtn-0" onclick="toggleTypeDropdown(event,0)" title="點擊切換格式（或按 Tab 鍵）">場景標題</button>
+        <div class="type-dropdown" id="typedd-0">
+          
+            <div class="type-dd-item selected" onclick="setLineTypeAt(0,'scene')">
+              <span class="type-dd-dot" style="background:var(--red)"></span>
+              場景標題
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(0,'action')">
+              <span class="type-dd-dot" style="background:var(--ink3)"></span>
+              動作描述
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(0,'character')">
+              <span class="type-dd-dot" style="background:var(--teal)"></span>
+              角色名稱
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(0,'dialogue')">
+              <span class="type-dd-dot" style="background:var(--amber)"></span>
+              對白
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(0,'parenthetical')">
+              <span class="type-dd-dot" style="background:var(--blue)"></span>
+              語氣說明
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(0,'transition')">
+              <span class="type-dd-dot" style="background:#6A3A8A"></span>
+              轉場
+            </div>
+        </div>
+      </div>
+      
+      <div class="scene-int-wrap">
+        <button class="int-chip active" onclick="setInterior(0,'INT')" title="室內景">INT</button>
+        <span class="int-sep">/</span>
+        <button class="int-chip" onclick="setInterior(0,'EXT')" title="室外景">EXT</button>
+        <span class="int-sep">/</span>
+        <button class="int-chip" onclick="setInterior(0,'INT/EXT')" title="內外景">INT/EXT</button>
+      </div>
+      <div class="sl-content" contenteditable="true" data-type="scene" data-idx="0" id="line-0" spellcheck="false" oninput="onLineInput(0,this)" onkeydown="onLineKey(event,0)" onfocus="onLineFocus(0)">INT. 城市街道 - 黃昏</div>
+    </div>
+    <div class="sl" id="row-1" data-idx="1">
+      <span class="sl-num">2</span>
+      <div class="sl-type-wrap" id="typewrap-1">
+        <button class="sl-type-btn t-action" id="typebtn-1" onclick="toggleTypeDropdown(event,1)" title="點擊切換格式（或按 Tab 鍵）">動作描述</button>
+        <div class="type-dropdown" id="typedd-1">
+          
+            <div class="type-dd-item" onclick="setLineTypeAt(1,'scene')">
+              <span class="type-dd-dot" style="background:var(--red)"></span>
+              場景標題
+            </div>
+            <div class="type-dd-item selected" onclick="setLineTypeAt(1,'action')">
+              <span class="type-dd-dot" style="background:var(--ink3)"></span>
+              動作描述
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(1,'character')">
+              <span class="type-dd-dot" style="background:var(--teal)"></span>
+              角色名稱
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(1,'dialogue')">
+              <span class="type-dd-dot" style="background:var(--amber)"></span>
+              對白
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(1,'parenthetical')">
+              <span class="type-dd-dot" style="background:var(--blue)"></span>
+              語氣說明
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(1,'transition')">
+              <span class="type-dd-dot" style="background:#6A3A8A"></span>
+              轉場
+            </div>
+        </div>
+      </div>
+      
+      <div class="sl-content" contenteditable="true" data-type="action" data-idx="1" id="line-1" spellcheck="false" oninput="onLineInput(1,this)" onkeydown="onLineKey(event,1)" onfocus="onLineFocus(1)">空曠的街道。遠處傳來鐘聲，最後一縷陽光斜穿過巷弄。行人稀少，只有風吹落幾片枯葉。</div>
+    </div>
+    <div class="sl" id="row-2" data-idx="2">
+      <span class="sl-num">3</span>
+      <div class="sl-type-wrap" id="typewrap-2">
+        <button class="sl-type-btn t-character" id="typebtn-2" onclick="toggleTypeDropdown(event,2)" title="點擊切換格式（或按 Tab 鍵）">角色名稱</button>
+        <div class="type-dropdown" id="typedd-2">
+          
+            <div class="type-dd-item" onclick="setLineTypeAt(2,'scene')">
+              <span class="type-dd-dot" style="background:var(--red)"></span>
+              場景標題
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(2,'action')">
+              <span class="type-dd-dot" style="background:var(--ink3)"></span>
+              動作描述
+            </div>
+            <div class="type-dd-item selected" onclick="setLineTypeAt(2,'character')">
+              <span class="type-dd-dot" style="background:var(--teal)"></span>
+              角色名稱
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(2,'dialogue')">
+              <span class="type-dd-dot" style="background:var(--amber)"></span>
+              對白
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(2,'parenthetical')">
+              <span class="type-dd-dot" style="background:var(--blue)"></span>
+              語氣說明
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(2,'transition')">
+              <span class="type-dd-dot" style="background:#6A3A8A"></span>
+              轉場
+            </div>
+        </div>
+      </div>
+      
+      <div class="sl-content" contenteditable="true" data-type="character" data-idx="2" id="line-2" spellcheck="false" oninput="onLineInput(2,this)" onkeydown="onLineKey(event,2)" onfocus="onLineFocus(2)">雪雪</div>
+    </div>
+    <div class="sl" id="row-3" data-idx="3">
+      <span class="sl-num">4</span>
+      <div class="sl-type-wrap" id="typewrap-3">
+        <button class="sl-type-btn t-dialogue" id="typebtn-3" onclick="toggleTypeDropdown(event,3)" title="點擊切換格式（或按 Tab 鍵）">對白</button>
+        <div class="type-dropdown" id="typedd-3">
+          
+            <div class="type-dd-item" onclick="setLineTypeAt(3,'scene')">
+              <span class="type-dd-dot" style="background:var(--red)"></span>
+              場景標題
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(3,'action')">
+              <span class="type-dd-dot" style="background:var(--ink3)"></span>
+              動作描述
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(3,'character')">
+              <span class="type-dd-dot" style="background:var(--teal)"></span>
+              角色名稱
+            </div>
+            <div class="type-dd-item selected" onclick="setLineTypeAt(3,'dialogue')">
+              <span class="type-dd-dot" style="background:var(--amber)"></span>
+              對白
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(3,'parenthetical')">
+              <span class="type-dd-dot" style="background:var(--blue)"></span>
+              語氣說明
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(3,'transition')">
+              <span class="type-dd-dot" style="background:#6A3A8A"></span>
+              轉場
+            </div>
+        </div>
+      </div>
+      
+      <div class="sl-content" contenteditable="true" data-type="dialogue" data-idx="3" id="line-3" spellcheck="false" oninput="onLineInput(3,this)" onkeydown="onLineKey(event,3)" onfocus="onLineFocus(3)">（輕聲）這個城市，好像從未真正醒來過。</div>
+    </div>
+    <div class="sl" id="row-4" data-idx="4">
+      <span class="sl-num">5</span>
+      <div class="sl-type-wrap" id="typewrap-4">
+        <button class="sl-type-btn t-action" id="typebtn-4" onclick="toggleTypeDropdown(event,4)" title="點擊切換格式（或按 Tab 鍵）">動作描述</button>
+        <div class="type-dropdown" id="typedd-4">
+          
+            <div class="type-dd-item" onclick="setLineTypeAt(4,'scene')">
+              <span class="type-dd-dot" style="background:var(--red)"></span>
+              場景標題
+            </div>
+            <div class="type-dd-item selected" onclick="setLineTypeAt(4,'action')">
+              <span class="type-dd-dot" style="background:var(--ink3)"></span>
+              動作描述
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(4,'character')">
+              <span class="type-dd-dot" style="background:var(--teal)"></span>
+              角色名稱
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(4,'dialogue')">
+              <span class="type-dd-dot" style="background:var(--amber)"></span>
+              對白
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(4,'parenthetical')">
+              <span class="type-dd-dot" style="background:var(--blue)"></span>
+              語氣說明
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(4,'transition')">
+              <span class="type-dd-dot" style="background:#6A3A8A"></span>
+              轉場
+            </div>
+        </div>
+      </div>
+      
+      <div class="sl-content" contenteditable="true" data-type="action" data-idx="4" id="line-4" spellcheck="false" oninput="onLineInput(4,this)" onkeydown="onLineKey(event,4)" onfocus="onLineFocus(4)">她停下腳步，望向窗格折射的夕陽，若有所思。</div>
+    </div>
+    <div class="sl" id="row-5" data-idx="5">
+      <span class="sl-num">6</span>
+      <div class="sl-type-wrap" id="typewrap-5">
+        <button class="sl-type-btn t-character" id="typebtn-5" onclick="toggleTypeDropdown(event,5)" title="點擊切換格式（或按 Tab 鍵）">角色名稱</button>
+        <div class="type-dropdown" id="typedd-5">
+          
+            <div class="type-dd-item" onclick="setLineTypeAt(5,'scene')">
+              <span class="type-dd-dot" style="background:var(--red)"></span>
+              場景標題
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(5,'action')">
+              <span class="type-dd-dot" style="background:var(--ink3)"></span>
+              動作描述
+            </div>
+            <div class="type-dd-item selected" onclick="setLineTypeAt(5,'character')">
+              <span class="type-dd-dot" style="background:var(--teal)"></span>
+              角色名稱
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(5,'dialogue')">
+              <span class="type-dd-dot" style="background:var(--amber)"></span>
+              對白
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(5,'parenthetical')">
+              <span class="type-dd-dot" style="background:var(--blue)"></span>
+              語氣說明
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(5,'transition')">
+              <span class="type-dd-dot" style="background:#6A3A8A"></span>
+              轉場
+            </div>
+        </div>
+      </div>
+      
+      <div class="sl-content" contenteditable="true" data-type="character" data-idx="5" id="line-5" spellcheck="false" oninput="onLineInput(5,this)" onkeydown="onLineKey(event,5)" onfocus="onLineFocus(5)">路人</div>
+    </div>
+    <div class="sl" id="row-6" data-idx="6">
+      <span class="sl-num">7</span>
+      <div class="sl-type-wrap" id="typewrap-6">
+        <button class="sl-type-btn t-dialogue" id="typebtn-6" onclick="toggleTypeDropdown(event,6)" title="點擊切換格式（或按 Tab 鍵）">對白</button>
+        <div class="type-dropdown" id="typedd-6">
+          
+            <div class="type-dd-item" onclick="setLineTypeAt(6,'scene')">
+              <span class="type-dd-dot" style="background:var(--red)"></span>
+              場景標題
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(6,'action')">
+              <span class="type-dd-dot" style="background:var(--ink3)"></span>
+              動作描述
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(6,'character')">
+              <span class="type-dd-dot" style="background:var(--teal)"></span>
+              角色名稱
+            </div>
+            <div class="type-dd-item selected" onclick="setLineTypeAt(6,'dialogue')">
+              <span class="type-dd-dot" style="background:var(--amber)"></span>
+              對白
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(6,'parenthetical')">
+              <span class="type-dd-dot" style="background:var(--blue)"></span>
+              語氣說明
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(6,'transition')">
+              <span class="type-dd-dot" style="background:#6A3A8A"></span>
+              轉場
+            </div>
+        </div>
+      </div>
+      
+      <div class="sl-content" contenteditable="true" data-type="dialogue" data-idx="6" id="line-6" spellcheck="false" oninput="onLineInput(6,this)" onkeydown="onLineKey(event,6)" onfocus="onLineFocus(6)">小姐，你擋到路了。</div>
+    </div>
+    <div class="sl" id="row-7" data-idx="7">
+      <span class="sl-num">8</span>
+      <div class="sl-type-wrap" id="typewrap-7">
+        <button class="sl-type-btn t-transition" id="typebtn-7" onclick="toggleTypeDropdown(event,7)" title="點擊切換格式（或按 Tab 鍵）">轉場</button>
+        <div class="type-dropdown" id="typedd-7">
+          
+            <div class="type-dd-item" onclick="setLineTypeAt(7,'scene')">
+              <span class="type-dd-dot" style="background:var(--red)"></span>
+              場景標題
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(7,'action')">
+              <span class="type-dd-dot" style="background:var(--ink3)"></span>
+              動作描述
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(7,'character')">
+              <span class="type-dd-dot" style="background:var(--teal)"></span>
+              角色名稱
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(7,'dialogue')">
+              <span class="type-dd-dot" style="background:var(--amber)"></span>
+              對白
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(7,'parenthetical')">
+              <span class="type-dd-dot" style="background:var(--blue)"></span>
+              語氣說明
+            </div>
+            <div class="type-dd-item selected" onclick="setLineTypeAt(7,'transition')">
+              <span class="type-dd-dot" style="background:#6A3A8A"></span>
+              轉場
+            </div>
+        </div>
+      </div>
+      
+      <div class="sl-content" contenteditable="true" data-type="transition" data-idx="7" id="line-7" spellcheck="false" oninput="onLineInput(7,this)" onkeydown="onLineKey(event,7)" onfocus="onLineFocus(7)">FADE TO:</div>
+    </div>
+    <div class="sl" id="row-8" data-idx="8" data-scene="1">
+      <span class="sl-num">9</span>
+      <div class="sl-type-wrap" id="typewrap-8">
+        <button class="sl-type-btn t-scene" id="typebtn-8" onclick="toggleTypeDropdown(event,8)" title="點擊切換格式（或按 Tab 鍵）">場景標題</button>
+        <div class="type-dropdown" id="typedd-8">
+          
+            <div class="type-dd-item selected" onclick="setLineTypeAt(8,'scene')">
+              <span class="type-dd-dot" style="background:var(--red)"></span>
+              場景標題
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(8,'action')">
+              <span class="type-dd-dot" style="background:var(--ink3)"></span>
+              動作描述
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(8,'character')">
+              <span class="type-dd-dot" style="background:var(--teal)"></span>
+              角色名稱
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(8,'dialogue')">
+              <span class="type-dd-dot" style="background:var(--amber)"></span>
+              對白
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(8,'parenthetical')">
+              <span class="type-dd-dot" style="background:var(--blue)"></span>
+              語氣說明
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(8,'transition')">
+              <span class="type-dd-dot" style="background:#6A3A8A"></span>
+              轉場
+            </div>
+        </div>
+      </div>
+      
+      <div class="scene-int-wrap">
+        <button class="int-chip active" onclick="setInterior(8,'INT')" title="室內景">INT</button>
+        <span class="int-sep">/</span>
+        <button class="int-chip" onclick="setInterior(8,'EXT')" title="室外景">EXT</button>
+        <span class="int-sep">/</span>
+        <button class="int-chip" onclick="setInterior(8,'INT/EXT')" title="內外景">INT/EXT</button>
+      </div>
+      <div class="sl-content" contenteditable="true" data-type="scene" data-idx="8" id="line-8" spellcheck="false" oninput="onLineInput(8,this)" onkeydown="onLineKey(event,8)" onfocus="onLineFocus(8)">INT. 咖啡館 - 夜</div>
+    </div>
+    <div class="sl" id="row-9" data-idx="9">
+      <span class="sl-num">10</span>
+      <div class="sl-type-wrap" id="typewrap-9">
+        <button class="sl-type-btn t-action" id="typebtn-9" onclick="toggleTypeDropdown(event,9)" title="點擊切換格式（或按 Tab 鍵）">動作描述</button>
+        <div class="type-dropdown" id="typedd-9">
+          
+            <div class="type-dd-item" onclick="setLineTypeAt(9,'scene')">
+              <span class="type-dd-dot" style="background:var(--red)"></span>
+              場景標題
+            </div>
+            <div class="type-dd-item selected" onclick="setLineTypeAt(9,'action')">
+              <span class="type-dd-dot" style="background:var(--ink3)"></span>
+              動作描述
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(9,'character')">
+              <span class="type-dd-dot" style="background:var(--teal)"></span>
+              角色名稱
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(9,'dialogue')">
+              <span class="type-dd-dot" style="background:var(--amber)"></span>
+              對白
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(9,'parenthetical')">
+              <span class="type-dd-dot" style="background:var(--blue)"></span>
+              語氣說明
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(9,'transition')">
+              <span class="type-dd-dot" style="background:#6A3A8A"></span>
+              轉場
+            </div>
+        </div>
+      </div>
+      
+      <div class="sl-content" contenteditable="true" data-type="action" data-idx="9" id="line-9" spellcheck="false" oninput="onLineInput(9,this)" onkeydown="onLineKey(event,9)" onfocus="onLineFocus(9)">燈光昏黃的咖啡館。雪雪坐在窗邊，面前放著一杯已涼的拿鐵。她翻開記事本，開始書寫。</div>
+    </div>
+    <div class="sl" id="row-10" data-idx="10">
+      <span class="sl-num">11</span>
+      <div class="sl-type-wrap" id="typewrap-10">
+        <button class="sl-type-btn t-character" id="typebtn-10" onclick="toggleTypeDropdown(event,10)" title="點擊切換格式（或按 Tab 鍵）">角色名稱</button>
+        <div class="type-dropdown" id="typedd-10">
+          
+            <div class="type-dd-item" onclick="setLineTypeAt(10,'scene')">
+              <span class="type-dd-dot" style="background:var(--red)"></span>
+              場景標題
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(10,'action')">
+              <span class="type-dd-dot" style="background:var(--ink3)"></span>
+              動作描述
+            </div>
+            <div class="type-dd-item selected" onclick="setLineTypeAt(10,'character')">
+              <span class="type-dd-dot" style="background:var(--teal)"></span>
+              角色名稱
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(10,'dialogue')">
+              <span class="type-dd-dot" style="background:var(--amber)"></span>
+              對白
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(10,'parenthetical')">
+              <span class="type-dd-dot" style="background:var(--blue)"></span>
+              語氣說明
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(10,'transition')">
+              <span class="type-dd-dot" style="background:#6A3A8A"></span>
+              轉場
+            </div>
+        </div>
+      </div>
+      
+      <div class="sl-content" contenteditable="true" data-type="character" data-idx="10" id="line-10" spellcheck="false" oninput="onLineInput(10,this)" onkeydown="onLineKey(event,10)" onfocus="onLineFocus(10)">雪雪</div>
+    </div>
+    <div class="sl" id="row-11" data-idx="11">
+      <span class="sl-num">12</span>
+      <div class="sl-type-wrap" id="typewrap-11">
+        <button class="sl-type-btn t-parenthetical" id="typebtn-11" onclick="toggleTypeDropdown(event,11)" title="點擊切換格式（或按 Tab 鍵）">語氣說明</button>
+        <div class="type-dropdown" id="typedd-11">
+          
+            <div class="type-dd-item" onclick="setLineTypeAt(11,'scene')">
+              <span class="type-dd-dot" style="background:var(--red)"></span>
+              場景標題
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(11,'action')">
+              <span class="type-dd-dot" style="background:var(--ink3)"></span>
+              動作描述
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(11,'character')">
+              <span class="type-dd-dot" style="background:var(--teal)"></span>
+              角色名稱
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(11,'dialogue')">
+              <span class="type-dd-dot" style="background:var(--amber)"></span>
+              對白
+            </div>
+            <div class="type-dd-item selected" onclick="setLineTypeAt(11,'parenthetical')">
+              <span class="type-dd-dot" style="background:var(--blue)"></span>
+              語氣說明
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(11,'transition')">
+              <span class="type-dd-dot" style="background:#6A3A8A"></span>
+              轉場
+            </div>
+        </div>
+      </div>
+      
+      <div class="sl-content" contenteditable="true" data-type="parenthetical" data-idx="11" id="line-11" spellcheck="false" oninput="onLineInput(11,this)" onkeydown="onLineKey(event,11)" onfocus="onLineFocus(11)">（自言自語）</div>
+    </div>
+    <div class="sl" id="row-12" data-idx="12">
+      <span class="sl-num">13</span>
+      <div class="sl-type-wrap" id="typewrap-12">
+        <button class="sl-type-btn t-dialogue" id="typebtn-12" onclick="toggleTypeDropdown(event,12)" title="點擊切換格式（或按 Tab 鍵）">對白</button>
+        <div class="type-dropdown" id="typedd-12">
+          
+            <div class="type-dd-item" onclick="setLineTypeAt(12,'scene')">
+              <span class="type-dd-dot" style="background:var(--red)"></span>
+              場景標題
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(12,'action')">
+              <span class="type-dd-dot" style="background:var(--ink3)"></span>
+              動作描述
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(12,'character')">
+              <span class="type-dd-dot" style="background:var(--teal)"></span>
+              角色名稱
+            </div>
+            <div class="type-dd-item selected" onclick="setLineTypeAt(12,'dialogue')">
+              <span class="type-dd-dot" style="background:var(--amber)"></span>
+              對白
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(12,'parenthetical')">
+              <span class="type-dd-dot" style="background:var(--blue)"></span>
+              語氣說明
+            </div>
+            <div class="type-dd-item" onclick="setLineTypeAt(12,'transition')">
+              <span class="type-dd-dot" style="background:#6A3A8A"></span>
+              轉場
+            </div>
+        </div>
+      </div>
+      
+      <div class="sl-content" contenteditable="true" data-type="dialogue" data-idx="12" id="line-12" spellcheck="false" oninput="onLineInput(12,this)" onkeydown="onLineKey(event,12)" onfocus="onLineFocus(12)">今天一定要把第一幕寫完。</div>
+    </div></div>
         <div class="add-line-row">
           <button class="add-line-btn" onclick="addScriptLine('action')">＋ 新增一行</button>
         </div>
@@ -584,23 +1105,33 @@ kbd{
 
       <!-- PREVIEW -->
       <div class="right-panel active" id="rpanel-preview">
-        <div id="preview-page"></div>
+        <div id="preview-page"><div class="pv-scene">INT. 城市街道 - 黃昏</div><div class="pv-action">空曠的街道。遠處傳來鐘聲，最後一縷陽光斜穿過巷弄。行人稀少，只有風吹落幾片枯葉。</div><div class="pv-character">雪雪</div><div class="pv-dialogue">（輕聲）這個城市，好像從未真正醒來過。</div><div class="pv-action">她停下腳步，望向窗格折射的夕陽，若有所思。</div><div class="pv-character">路人</div><div class="pv-dialogue">小姐，你擋到路了。</div><div class="pv-transition">FADE TO:</div><div class="pv-scene">INT. 咖啡館 - 夜</div><div class="pv-action">燈光昏黃的咖啡館。雪雪坐在窗邊，面前放著一杯已涼的拿鐵。她翻開記事本，開始書寫。</div><div class="pv-character">雪雪</div><div class="pv-parenthetical">（自言自語）</div><div class="pv-dialogue">今天一定要把第一幕寫完。</div></div>
       </div>
 
       <!-- STATS -->
       <div class="right-panel" id="rpanel-stats">
         <div class="stat-grid">
-          <div class="stat-box"><span class="stat-num" id="stat-scenes">0</span><span class="stat-lbl">場景數</span></div>
-          <div class="stat-box"><span class="stat-num" id="stat-lines">0</span><span class="stat-lbl">總行數</span></div>
-          <div class="stat-box"><span class="stat-num" id="stat-chars-count">0</span><span class="stat-lbl">總字數</span></div>
-          <div class="stat-box"><span class="stat-num" id="stat-dialogues">0</span><span class="stat-lbl">對白行</span></div>
+          <div class="stat-box"><span class="stat-num" id="stat-scenes">2</span><span class="stat-lbl">場景數</span></div>
+          <div class="stat-box"><span class="stat-num" id="stat-lines">13</span><span class="stat-lbl">總行數</span></div>
+          <div class="stat-box"><span class="stat-num" id="stat-chars-count">180</span><span class="stat-lbl">總字數</span></div>
+          <div class="stat-box"><span class="stat-num" id="stat-dialogues">3</span><span class="stat-lbl">對白行</span></div>
         </div>
         <div class="divider"></div>
         <div style="font-size:10px;color:var(--ink3);letter-spacing:1px;margin:8px 0 6px;text-transform:uppercase;font-weight:700">角色台詞次數</div>
-        <div id="char-stat-list"></div>
+        <div id="char-stat-list">
+      <div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);font-size:11px">
+        <div style="width:7px;height:7px;border-radius:50%;background:#1D9E75;flex-shrink:0"></div>
+        <span style="flex:1;color:var(--ink2);font-weight:500">雪雪</span>
+        <span style="font-family:monospace;color:var(--ink3)">2次</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);font-size:11px">
+        <div style="width:7px;height:7px;border-radius:50%;background:#185FA5;flex-shrink:0"></div>
+        <span style="flex:1;color:var(--ink2);font-weight:500">路人</span>
+        <span style="font-family:monospace;color:var(--ink3)">1次</span>
+      </div></div>
         <div class="divider"></div>
         <div style="font-size:10px;color:var(--ink3);letter-spacing:1px;margin:8px 0 6px;text-transform:uppercase;font-weight:700">預估頁數</div>
-        <div id="stat-pages" style="font-size:13px;color:var(--ink2)"></div>
+        <div id="stat-pages" style="font-size:13px;color:var(--ink2)">約 1 頁（每頁約 50 行估算）</div>
       </div>
 
       <!-- FOUNTAIN GUIDE -->
@@ -610,13 +1141,13 @@ kbd{
           <p style="margin-bottom:6px;font-size:11px;color:var(--ink3)">▸ Highland 2 &nbsp;▸ WriterDuet<br>▸ Slugline &nbsp;&nbsp;&nbsp;▸ Logline<br>▸ FadeIn &nbsp;&nbsp;&nbsp;&nbsp;▸ Fountain.io</p>
           <div class="divider" style="margin:10px 0"></div>
           <table style="width:100%;font-size:11px;border-collapse:collapse">
-            <tr><td style="color:var(--ink3);padding:3px 0">場景標題</td><td style="text-align:right"><code style="background:var(--green-l);color:var(--green);padding:1px 5px;border-radius:3px;font-size:10px">INT./EXT. ... - 日/夜</code></td></tr>
+            <tbody><tr><td style="color:var(--ink3);padding:3px 0">場景標題</td><td style="text-align:right"><code style="background:var(--green-l);color:var(--green);padding:1px 5px;border-radius:3px;font-size:10px">INT./EXT. ... - 日/夜</code></td></tr>
             <tr><td style="color:var(--ink3);padding:3px 0">動作描述</td><td style="text-align:right"><code style="background:var(--bg3);color:var(--ink2);padding:1px 5px;border-radius:3px;font-size:10px">純文字段落</code></td></tr>
             <tr><td style="color:var(--ink3);padding:3px 0">角色名稱</td><td style="text-align:right"><code style="background:var(--teal-l);color:var(--teal);padding:1px 5px;border-radius:3px;font-size:10px">全大寫獨立行</code></td></tr>
             <tr><td style="color:var(--ink3);padding:3px 0">對白</td><td style="text-align:right"><code style="background:var(--amber-l);color:var(--amber);padding:1px 5px;border-radius:3px;font-size:10px">角色行下方</code></td></tr>
             <tr><td style="color:var(--ink3);padding:3px 0">語氣說明</td><td style="text-align:right"><code style="background:var(--blue-l);color:var(--blue);padding:1px 5px;border-radius:3px;font-size:10px">（括號內文字）</code></td></tr>
             <tr><td style="color:var(--ink3);padding:3px 0">轉場</td><td style="text-align:right"><code style="background:#F0EBF5;color:#6A3A8A;padding:1px 5px;border-radius:3px;font-size:10px">&gt; FADE TO:</code></td></tr>
-          </table>
+          </tbody></table>
         </div>
       </div>
     </div>
@@ -627,8 +1158,8 @@ kbd{
 <div id="statusbar">
   <span>專案：<b id="sb-project">無題劇本 #1</b></span>
   <span>場景：<b id="sb-scene">—</b></span>
-  <span>行：<b id="sb-lines">0</b></span>
-  <span>字：<b id="sb-chars">0</b></span>
+  <span>行：<b id="sb-lines">13</b></span>
+  <span>字：<b id="sb-chars">180</b></span>
   <span style="margin-left:auto;color:var(--teal);font-size:9px">✦ Fountain 1.1 相容　✦ 好萊塢格式列印</span>
 </div>
 </div>
@@ -646,7 +1177,7 @@ kbd{
 </div>
 
 <!-- CONTEXT MENU -->
-<div class="ctx-menu" id="ctx-menu">
+<div class="ctx-menu" id="ctx-menu" style="display: none;">
   <div class="ctx-item" onclick="ctxAction('import')">⬇ 導入劇本</div>
   <div class="ctx-item" onclick="ctxAction('edit')">✏ 編輯</div>
   <div class="divider"></div>
@@ -773,62 +1304,21 @@ function setInterior(i, interior){
   const prefix = interior==='INT/EXT' ? 'INT/EXT. ' : interior+'. ';
   b.text = prefix + rest;
 
+  // Update the contenteditable content
   const el = document.getElementById('line-'+i);
-  if(el){ el.textContent = b.text; placeCaretEnd(el); }
+  if(el){
+    el.textContent = b.text;
+    placeCaretEnd(el);
+  }
 
+  // Update chip active states
   const row = document.getElementById('row-'+i);
   if(row){
     row.querySelectorAll('.int-chip').forEach(chip=>{
       chip.classList.toggle('active', chip.textContent.trim()===interior);
     });
-    // time chips unchanged — re-sync against updated text
-    const time = parseTime(b.text);
-    row.querySelectorAll('.time-chip').forEach(chip=>{
-      chip.classList.toggle('active', chip.dataset.time===time);
-    });
   }
   scheduleUpdate();
-}
-
-// ── Time-of-day helpers ─────────────────────────
-const TIME_OPTIONS = ['日','夜','黃昏','清晨'];
-const TIME_CYCLE_HOTKEY = 'Alt+T'; // shown in tooltip
-
-// Parse time suffix after ' - ' in scene heading
-function parseTime(text){
-  const m = (text||'').match(/[-－]\s*(日|夜|黃昏|清晨)\s*$/);
-  return m ? m[1] : '';
-}
-
-// Strip existing time suffix from scene heading
-function stripTime(text){
-  return (text||'').replace(/\s*[-－]\s*(日|夜|黃昏|清晨)\s*$/, '').trimEnd();
-}
-
-// Set or replace time suffix, keep interior + location intact
-function setTime(i, time){
-  const blocks = getBlocks();
-  const b = blocks[i];
-  const base = stripTime(b.text);           // e.g. "INT. 咖啡館"
-  b.text = base + (time ? ' - ' + time : '');
-
-  const el = document.getElementById('line-'+i);
-  if(el){ el.textContent = b.text; placeCaretEnd(el); }
-
-  // Sync chip highlights
-  const row = document.getElementById('row-'+i);
-  if(row) row.querySelectorAll('.time-chip').forEach(chip=>{
-    chip.classList.toggle('active', chip.dataset.time === time);
-  });
-  scheduleUpdate();
-}
-
-// Cycle to next time option (for Alt+T shortcut)
-function cycleTime(i){
-  const cur = parseTime(getBlocks()[i].text);
-  const idx = TIME_OPTIONS.indexOf(cur);
-  const next = TIME_OPTIONS[(idx+1) % TIME_OPTIONS.length];
-  setTime(i, next);
 }
 
 function renderLines(){
@@ -843,7 +1333,6 @@ function renderLines(){
   container.innerHTML = blocks.map((b,i) => {
     const isScene = b.type === 'scene';
     const interior = parseInterior(b.text); // 'INT' | 'EXT' | 'INT/EXT' | ''
-    const time     = parseTime(b.text);     // '日' | '夜' | '黃昏' | '清晨' | ''
 
     const intChips = isScene ? `
       <div class="scene-int-wrap">
@@ -855,12 +1344,6 @@ function renderLines(){
         <span class="int-sep">/</span>
         <button class="int-chip${interior==='INT/EXT'?' active':''}"
           onclick="setInterior(${i},'INT/EXT')" title="內外景">INT/EXT</button>
-        <span class="chip-group-sep"></span>
-        ${TIME_OPTIONS.map(t=>`
-          <button class="time-chip${time===t?' active':''}"
-            data-time="${t}"
-            onclick="setTime(${i},'${t}')"
-            title="${t}（Alt+T 循環切換）">${t}</button>`).join('')}
       </div>` : '';
 
     return `
@@ -985,32 +1468,19 @@ function onLineFocus(i){
 
 function onLineInput(i,el){
   getBlocks()[i].text = el.innerText.replace(/\n/g,' ');
-  // Keep scene chips in sync when user types manually
+  // Keep INT/EXT chips in sync if this is a scene line
   if(getBlocks()[i].type==='scene'){
+    const interior = parseInterior(getBlocks()[i].text);
     const row = document.getElementById('row-'+i);
-    if(row){
-      const interior = parseInterior(getBlocks()[i].text);
-      const time     = parseTime(getBlocks()[i].text);
-      row.querySelectorAll('.int-chip').forEach(chip=>{
-        chip.classList.toggle('active', chip.textContent.trim()===interior);
-      });
-      row.querySelectorAll('.time-chip').forEach(chip=>{
-        chip.classList.toggle('active', chip.dataset.time===time);
-      });
-    }
+    if(row) row.querySelectorAll('.int-chip').forEach(chip=>{
+      chip.classList.toggle('active', chip.textContent.trim()===interior);
+    });
   }
   scheduleUpdate();
 }
 
 function onLineKey(e,i){
   const blocks = getBlocks();
-
-  // Alt+T — cycle time-of-day on scene heading lines
-  if(e.altKey && e.key.toLowerCase()==='t'){
-    e.preventDefault();
-    if(blocks[i].type==='scene') cycleTime(i);
-    return;
-  }
 
   if(e.key==='Tab'){
     e.preventDefault();
@@ -1564,181 +2034,6 @@ function exportHtml(){
   a.download='雪雪劇本工坊Pro_'+new Date().toISOString().slice(0,10)+'.html';a.click();
 }
 
-// ─────────────────────────────────────────────
-//  WORD (.docx) EXPORT — Hollywood format
-//  US Letter, Courier Prime 12pt
-//  Margins: Left 1.5in, Right 1in, Top/Bottom 1in
-//  Character: indent 3.7in   Dialogue: 2in–6in
-//  Parenthetical: 2.5in–5.5in   Transition: right-align
-// ─────────────────────────────────────────────
-async function exportDocx(){
-  const btnEl = document.querySelector('[onclick="exportDocx()"]');
-  const origText = btnEl.textContent;
-  btnEl.textContent = '⏳ 生成中…';
-  btnEl.disabled = true;
-
-  try {
-    const { Document, Packer, Paragraph, TextRun, AlignmentType,
-            PageOrientation, BorderStyle, UnderlineType } = docx;
-
-    const proj  = DB.projects.find(p=>p.id===getProject());
-    const titleVal   = document.getElementById('script-title-input')?.value  || proj?.name || '劇本';
-    const subtitleVal= document.getElementById('script-subtitle-input')?.value || '';
-    const blocks = getBlocks();
-    const dateStr = new Date().toLocaleDateString('zh-TW');
-
-    // DXA helpers (1 inch = 1440 DXA)
-    const IN = v => Math.round(v * 1440);
-
-    // Hollywood page: Letter, Left 1.5in R 1in T 1in B 1in
-    const pageProps = {
-      page: {
-        size: { width: IN(8.5), height: IN(11) },
-        margin: { top: IN(1), right: IN(1), bottom: IN(1), left: IN(1.5) }
-      }
-    };
-
-    // Base run style — Courier Prime falls back to Courier New
-    const baseRun = (text, opts={}) => new TextRun({
-      text,
-      font: 'Courier Prime',
-      size: 24, // 12pt = 24 half-points
-      ...opts
-    });
-
-    const children = [];
-
-    // ── Title page ──────────────────────────────
-    children.push(
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { before: IN(2.5), after: 0 },
-        children: [baseRun(titleVal.toUpperCase(), { bold: true, size: 28 })]
-      })
-    );
-    if(subtitleVal){
-      children.push(
-        new Paragraph({
-          alignment: AlignmentType.CENTER,
-          spacing: { before: IN(0.15), after: 0 },
-          children: [baseRun(subtitleVal, { size: 22 })]
-        })
-      );
-    }
-    children.push(
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { before: IN(0.3), after: 0 },
-        children: [baseRun(dateStr, { size: 20 })]
-      })
-    );
-    // Blank lines before script body
-    children.push(new Paragraph({ spacing:{ before:0,after:0 }, children:[baseRun('')] }));
-    children.push(new Paragraph({ spacing:{ before:0,after:0 }, children:[baseRun('')] }));
-    children.push(new Paragraph({
-      border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '888888', space: 6 } },
-      spacing: { before: 0, after: IN(0.5) },
-      children: [baseRun('')]
-    }));
-
-    // ── Script body ──────────────────────────────
-    blocks.forEach(b => {
-      const t = (b.text || '').trim();
-      if(!t){
-        children.push(new Paragraph({ spacing:{before:0,after:0}, children:[baseRun('')] }));
-        return;
-      }
-
-      switch(b.type){
-
-        case 'scene':
-          // Scene heading: ALL CAPS, underline, top margin
-          children.push(new Paragraph({
-            spacing: { before: IN(0.33), after: IN(0.17) },
-            children: [baseRun(t.toUpperCase(), {
-              bold: true,
-              underline: { type: UnderlineType.SINGLE }
-            })]
-          }));
-          break;
-
-        case 'action':
-          // Action: full width, normal
-          children.push(new Paragraph({
-            spacing: { before: 0, after: IN(0.17) },
-            children: [baseRun(t)]
-          }));
-          break;
-
-        case 'character':
-          // Character cue: centred at ~3.7in from left margin
-          // Left margin is already 1.5in; indent 2.2in more = 3.7in total
-          children.push(new Paragraph({
-            indent: { left: IN(2.2) },
-            spacing: { before: IN(0.17), after: 0 },
-            children: [baseRun(t.toUpperCase(), { bold: true })]
-          }));
-          break;
-
-        case 'parenthetical': {
-          // Parenthetical: 2.5in from page left = 1in indent from left margin
-          const inner = t.replace(/^[(（]/,'').replace(/[)）]$/,'');
-          children.push(new Paragraph({
-            indent: { left: IN(1), right: IN(1.5) },
-            spacing: { before: 0, after: 0 },
-            children: [baseRun(`(${inner})`, { italics: true })]
-          }));
-          break;
-        }
-
-        case 'dialogue':
-          // Dialogue: 2in from page left = 0.5in indent; right margin at 6in = 1.5in right indent
-          children.push(new Paragraph({
-            indent: { left: IN(0.5), right: IN(1) },
-            spacing: { before: 0, after: IN(0.17) },
-            children: [baseRun(t)]
-          }));
-          break;
-
-        case 'transition':
-          // Transition: right-aligned, ALL CAPS, top margin
-          children.push(new Paragraph({
-            alignment: AlignmentType.RIGHT,
-            spacing: { before: IN(0.17), after: IN(0.17) },
-            children: [baseRun(
-              t.toUpperCase().endsWith(':') ? t.toUpperCase() : t.toUpperCase()+':',
-              { bold: true }
-            )]
-          }));
-          break;
-
-        default:
-          children.push(new Paragraph({ children: [baseRun(t)] }));
-      }
-    });
-
-    const doc = new Document({
-      creator: '雪雪劇本工坊 Pro',
-      title: titleVal,
-      description: subtitleVal,
-      sections: [{ properties: pageProps, children }]
-    });
-
-    const buffer = await Packer.toBlob(doc);
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(buffer);
-    a.download = titleVal + '_' + new Date().toISOString().slice(0,10) + '.docx';
-    a.click();
-
-  } catch(err){
-    alert('Word 匯出失敗：' + err.message + '\n\n請確認網路連線（需載入 docx.js 函式庫）');
-    console.error(err);
-  } finally {
-    btnEl.textContent = origText;
-    btnEl.disabled = false;
-  }
-}
-
 // ═══════════════════════════════════════════════
 //  ASSETS
 // ═══════════════════════════════════════════════
@@ -1840,5 +2135,6 @@ function assetDrop(e){
 // ═══════════════════════════════════════════════
 renderAll();
 </script>
-</body>
-</html>
+
+
+</body></html>
