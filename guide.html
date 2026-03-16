@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>雪雪劇本工坊 Pro — 使用指南</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700;900&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F7F2EA;--bg2:#EDE8DC;--bg3:#E5DDD0;
+  --ink:#2A2018;--ink2:#56493A;--ink3:#8A7B68;--ink4:#B8A99A;
+  --amber:#B87A00;--amber2:#D4920A;--amber-l:#FDF5DC;
+  --teal:#0A5850;--teal-l:#E0F0EE;
+  --red:#7A1C1C;--red-l:#FAEDED;
+  --blue:#1A4A7A;--blue-l:#E8F0FA;
+  --green:#1A5C2A;--green-l:#E8F5EC;
+  --border:#C8BCA8;--border2:#B0A490;
+}
+body{
+  font-family:'Noto Sans TC',sans-serif;
+  background:var(--bg);color:var(--ink);
+  font-size:15px;line-height:1.8;
+}
+.page{max-width:780px;margin:0 auto;padding:48px 32px 80px}
+
+/* ── COVER ── */
+.cover{
+  text-align:center;padding:56px 0 48px;
+  border-bottom:2px solid var(--border);margin-bottom:48px;
+}
+.cover-logo{
+  font-family:'Noto Serif TC',serif;font-size:32px;font-weight:900;
+  color:var(--amber);letter-spacing:4px;display:block;margin-bottom:8px;
+}
+.cover-sub{font-size:13px;color:var(--ink3);letter-spacing:2px;margin-bottom:24px}
+.cover-title{
+  font-family:'Noto Serif TC',serif;font-size:22px;font-weight:700;
+  color:var(--ink);margin-bottom:10px;
+}
+.cover-desc{font-size:14px;color:var(--ink2);max-width:480px;margin:0 auto;line-height:1.9}
+.version-badge{
+  display:inline-block;margin-top:20px;padding:4px 14px;
+  border-radius:20px;background:var(--amber-l);color:var(--amber);
+  border:1px solid #E0C060;font-size:12px;font-weight:600;letter-spacing:1px;
+}
+
+/* ── TOC ── */
+.toc{
+  background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:24px 28px;margin-bottom:48px;
+}
+.toc-title{
+  font-family:'Noto Serif TC',serif;font-size:14px;font-weight:700;
+  color:var(--ink3);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;
+}
+.toc-list{list-style:none;columns:2;gap:24px}
+.toc-list li{margin-bottom:6px;break-inside:avoid}
+.toc-list a{
+  color:var(--ink2);text-decoration:none;font-size:13px;
+  border-bottom:1px dashed var(--border2);transition:color 0.12s;
+  display:inline-block;
+}
+.toc-list a:hover{color:var(--amber);border-bottom-color:var(--amber)}
+.toc-list .toc-num{
+  display:inline-block;width:20px;font-size:11px;
+  color:var(--ink4);font-family:monospace;
+}
+
+/* ── SECTION ── */
+.section{margin-bottom:52px}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  border-bottom:2px solid var(--amber);padding-bottom:10px;margin-bottom:24px;
+}
+.section-num{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--amber);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;font-family:monospace;flex-shrink:0;
+}
+.section-title{
+  font-family:'Noto Serif TC',serif;font-size:20px;font-weight:700;color:var(--ink);
+}
+.section-icon{font-size:22px;flex-shrink:0}
+
+h3{
+  font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;
+  color:var(--ink);margin:24px 0 10px;
+  padding-left:10px;border-left:3px solid var(--amber2);
+}
+p{color:var(--ink2);margin-bottom:12px;font-size:14px}
+ul,ol{padding-left:20px;margin-bottom:12px}
+li{color:var(--ink2);font-size:14px;margin-bottom:5px}
+li strong{color:var(--ink)}
+
+/* ── SHORTCUT TABLE ── */
+.shortcut-table{
+  width:100%;border-collapse:collapse;margin:16px 0 20px;font-size:13px;
+}
+.shortcut-table th{
+  background:var(--bg3);color:var(--ink3);font-weight:600;
+  padding:8px 12px;text-align:left;border:1px solid var(--border);
+  letter-spacing:0.5px;font-size:11px;text-transform:uppercase;
+}
+.shortcut-table td{
+  padding:8px 12px;border:1px solid var(--border);color:var(--ink2);
+  vertical-align:top;
+}
+.shortcut-table tr:nth-child(even) td{background:var(--bg2)}
+.shortcut-table tr:hover td{background:var(--amber-l)}
+kbd{
+  display:inline-block;padding:2px 7px;border:1px solid var(--border2);
+  border-radius:4px;background:var(--bg);font-size:11px;
+  font-family:monospace;color:var(--ink);font-weight:600;
+  box-shadow:0 1px 2px rgba(0,0,0,0.1);white-space:nowrap;
+}
+
+/* ── FORMAT CARDS ── */
+.format-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 20px}
+.fmt-card{
+  border:1px solid var(--border);border-radius:8px;
+  padding:12px 14px;background:var(--bg);
+}
+.fmt-card .fc-type{
+  font-size:10px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:6px;
+}
+.fmt-card .fc-desc{font-size:12px;color:var(--ink3);margin-bottom:6px}
+.fmt-card .fc-example{
+  font-family:monospace;font-size:11px;padding:5px 8px;
+  border-radius:4px;background:var(--bg3);color:var(--ink2);
+}
+.fc-scene  .fc-type{color:var(--red)} .fc-scene  .fc-example{background:var(--red-l);color:var(--red)}
+.fc-action .fc-type{color:var(--ink3)}
+.fc-char   .fc-type{color:var(--teal)}.fc-char   .fc-example{background:var(--teal-l);color:var(--teal)}
+.fc-dial   .fc-type{color:var(--amber)}.fc-dial  .fc-example{background:var(--amber-l);color:var(--amber)}
+.fc-paren  .fc-type{color:var(--blue)}.fc-paren  .fc-example{background:var(--blue-l);color:var(--blue)}
+.fc-trans  .fc-type{color:#6A3A8A}    .fc-trans  .fc-example{background:#F0EBF5;color:#6A3A8A}
+
+/* ── CALLOUT BOXES ── */
+.callout{
+  border-radius:8px;padding:14px 16px;margin:16px 0;
+  display:flex;gap:12px;align-items:flex-start;font-size:13px;
+}
+.callout-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.callout-body{flex:1;color:var(--ink2);line-height:1.7}
+.callout-body strong{color:var(--ink);display:block;margin-bottom:3px}
+.callout.tip   {background:var(--teal-l);border:1px solid #8ACAC0}
+.callout.warn  {background:var(--amber-l);border:1px solid #E0C060}
+.callout.info  {background:var(--blue-l);border:1px solid #9AB8E0}
+.callout.note  {background:var(--bg3);border:1px solid var(--border2)}
+
+/* ── WORKFLOW ── */
+.workflow{display:flex;gap:0;margin:16px 0 20px;flex-wrap:wrap}
+.wf-step{
+  flex:1;min-width:120px;text-align:center;padding:14px 10px;
+  background:var(--bg2);border:1px solid var(--border);
+  position:relative;font-size:12px;
+}
+.wf-step:first-child{border-radius:8px 0 0 8px}
+.wf-step:last-child{border-radius:0 8px 8px 0}
+.wf-step+.wf-step{border-left:none}
+.wf-num{
+  width:26px;height:26px;border-radius:50%;background:var(--amber);
+  color:#fff;font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 8px;
+}
+.wf-label{font-weight:600;color:var(--ink);margin-bottom:3px;font-size:12px}
+.wf-sub{color:var(--ink3);font-size:11px}
+.wf-arrow{
+  display:flex;align-items:center;padding:0;
+  font-size:18px;color:var(--border2);align-self:center;
+  background:none;border:none;flex:0 0 auto;
+}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:var(--border);margin:36px 0}
+
+/* ── FOOTER ── */
+.footer{
+  text-align:center;padding-top:32px;border-top:1px solid var(--border);
+  color:var(--ink4);font-size:12px;line-height:2;
+}
+
+/* ── PRINT ── */
+@media print{
+  body{background:#fff;font-size:12pt}
+  .page{max-width:none;padding:20px}
+  .toc-list{columns:1}
+  .format-grid{grid-template-columns:1fr 1fr}
+  .workflow{page-break-inside:avoid}
+  .section{page-break-inside:avoid}
+  a{color:var(--ink);text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- COVER -->
+<div class="cover">
+  <span class="cover-logo">雪雪劇本工坊</span>
+  <div class="cover-sub">SCREENPLAY EDITOR PRO · FOUNTAIN 相容</div>
+  <div class="cover-title">使用指南</div>
+  <div class="cover-desc">
+    專為繁體中文編劇設計的網頁式劇本編輯器，<br>
+    支援好萊塢標準格式、分場卡系統與多種匯出格式。
+  </div>
+  <span class="version-badge">完整功能版 · 單一 HTML 檔案</span>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <div class="toc-title">目錄</div>
+  <ul class="toc-list">
+    <li><a href="#s1"><span class="toc-num">01</span>介面總覽</a></li>
+    <li><a href="#s2"><span class="toc-num">02</span>開始寫劇本</a></li>
+    <li><a href="#s3"><span class="toc-num">03</span>六種段落格式</a></li>
+    <li><a href="#s4"><span class="toc-num">04</span>場景標題工具列</a></li>
+    <li><a href="#s5"><span class="toc-num">05</span>分場卡系統</a></li>
+    <li><a href="#s6"><span class="toc-num">06</span>角色資料庫</a></li>
+    <li><a href="#s7"><span class="toc-num">07</span>創作筆記</a></li>
+    <li><a href="#s8"><span class="toc-num">08</span>參考資料上傳</a></li>
+    <li><a href="#s9"><span class="toc-num">09</span>右側預覽與統計</a></li>
+    <li><a href="#s10"><span class="toc-num">10</span>匯出與備份</a></li>
+    <li><a href="#s11"><span class="toc-num">11</span>快捷鍵速查表</a></li>
+    <li><a href="#s12"><span class="toc-num">12</span>常見問題</a></li>
+  </ul>
+</div>
+
+<!-- ── 1. 介面總覽 ── -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <span class="section-icon">🗂</span>
+    <div class="section-title">介面總覽</div>
+  </div>
+
+  <p>雪雪劇本工坊採用<strong>三欄式</strong>佈局，讓編劇能在同一個畫面中同時處理劇本內容、專案資料與格式預覽。</p>
+
+  <h3>頂部工具列</h3>
+  <p>最上方的工具列由左至右依序為：</p>
+  <ul>
+    <li><strong>劇本工坊 Logo</strong>：點擊無動作，僅作為識別標誌</li>
+    <li><strong>專案選單</strong>：切換目前編輯的劇本專案，旁邊的 ＋ 可新增專案</li>
+    <li><strong>六種段落格式按鈕</strong>：場景標題、動作描述、角色名稱、對白、語氣說明、轉場——游標所在行的格式會亮起對應按鈕</li>
+    <li><strong>匯出區</strong>（右側）：Fountain、Word、備份 App、列印 PDF</li>
+    <li><strong>◀ ▶ 按鈕</strong>：收合或展開左右側欄，讓編輯區最大化</li>
+  </ul>
+
+  <h3>左側資料欄（五個頁籤）</h3>
+  <ul>
+    <li><strong>場景</strong>：自動列出劇本中所有場景標題，點擊可跳轉</li>
+    <li><strong>分場卡</strong>：獨立管理每個場景的詳細資訊，可拖曳排序</li>
+    <li><strong>角色</strong>：建立與管理角色資料卡</li>
+    <li><strong>筆記</strong>：自由記錄靈感、橋段、研究資料</li>
+    <li><strong>資料</strong>：上傳圖片、PDF、Word 等參考文件</li>
+  </ul>
+
+  <h3>中央編輯區</h3>
+  <p>劇本的主要書寫區域。頂端輸入劇本標題與副標題，下方逐行輸入劇本內容。每一行左側顯示行號與可點擊的格式標籤。</p>
+
+  <h3>右側面板（三個頁籤）</h3>
+  <ul>
+    <li><strong>預覽</strong>：即時模擬正式劇本排版，白底黑字 Courier 字型</li>
+    <li><strong>統計</strong>：場景數、字數、對白行數、角色台詞次數排行</li>
+    <li><strong>格式說明</strong>：Fountain 標記對照表與相容軟體列表</li>
+  </ul>
+</div>
+
+<!-- ── 2. 開始寫劇本 ── -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <span class="section-icon">✍️</span>
+    <div class="section-title">開始寫劇本</div>
+  </div>
+
+  <h3>建立新專案</h3>
+  <p>點擊頂部工具列中專案選單旁的 <strong>＋</strong> 按鈕，輸入劇本名稱，即可建立全新的空白專案。每個專案擁有獨立的劇本、分場卡、角色、筆記與參考資料。</p>
+
+  <h3>輸入劇本標題</h3>
+  <p>編輯區最上方有兩個輸入欄：</p>
+  <ul>
+    <li>第一行輸入<strong>劇本標題</strong>（大字置中，列印時也會顯示）</li>
+    <li>第二行輸入<strong>副標題、作者名、版次</strong>等資訊（選填）</li>
+  </ul>
+
+  <h3>推薦的寫作流程</h3>
+  <div class="workflow">
+    <div class="wf-step"><div class="wf-num">1</div><div class="wf-label">建立分場卡</div><div class="wf-sub">規劃場景架構</div></div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-step"><div class="wf-num">2</div><div class="wf-label">導入劇本</div><div class="wf-sub">自動生成骨架</div></div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-step"><div class="wf-num">3</div><div class="wf-label">填寫動作與對白</div><div class="wf-sub">逐場補完內容</div></div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-step"><div class="wf-num">4</div><div class="wf-label">匯出備份</div><div class="wf-sub">PDF / Word / Fountain</div></div>
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span>
+    <div class="callout-body">
+      <strong>也可以直接從劇本開始</strong>
+      不一定要先建分場卡。你可以直接在編輯區輸入場景標題，開始寫劇本，之後再回頭補建分場卡資料。兩種工作流程都完全支援。
+    </div>
+  </div>
+</div>
+
+<!-- ── 3. 六種段落格式 ── -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <span class="section-icon">🎬</span>
+    <div class="section-title">六種段落格式</div>
+  </div>
+
+  <p>每一行劇本都屬於六種格式之一，對應好萊塢劇本的標準結構。格式決定了這行文字在劇本中的外觀、縮排與語義。</p>
+
+  <div class="format-grid">
+    <div class="fmt-card fc-scene">
+      <div class="fc-type">場景標題</div>
+      <div class="fc-desc">標示新場景的開始。包含地點、室內外、時間。</div>
+      <div class="fc-example">INT. 城市街道 - 黃昏</div>
+    </div>
+    <div class="fmt-card fc-action">
+      <div class="fc-type">動作描述</div>
+      <div class="fc-desc">描述畫面中發生的事、人物行為、場景氛圍。</div>
+      <div class="fc-example">她停下腳步，望向遠方。</div>
+    </div>
+    <div class="fmt-card fc-char">
+      <div class="fc-type">角色名稱</div>
+      <div class="fc-desc">說話角色的名字，置於對白之前，全大寫。</div>
+      <div class="fc-example">雪雪</div>
+    </div>
+    <div class="fmt-card fc-dial">
+      <div class="fc-type">對白</div>
+      <div class="fc-desc">角色說的話，接在角色名稱行之後。</div>
+      <div class="fc-example">這個城市從未醒來過。</div>
+    </div>
+    <div class="fmt-card fc-paren">
+      <div class="fc-type">語氣說明</div>
+      <div class="fc-desc">補充說明說話方式或動作，夾在角色名與對白之間。</div>
+      <div class="fc-example">（輕聲、轉向窗外）</div>
+    </div>
+    <div class="fmt-card fc-trans">
+      <div class="fc-type">轉場</div>
+      <div class="fc-desc">場景之間的過渡指示，靠右對齊，全大寫。</div>
+      <div class="fc-example">FADE TO:</div>
+    </div>
+  </div>
+
+  <h3>如何切換格式</h3>
+  <p>有三種方式可以切換目前行的段落格式，任選一種：</p>
+  <ol>
+    <li><strong>點擊頂部工具列按鈕</strong>：直接點「場景標題」「動作描述」等按鈕，游標所在行立即套用</li>
+    <li><strong>點擊行首格式標籤</strong>：每行左側都有一個帶顏色的小按鈕，點擊後展開下拉選單，選擇目標格式</li>
+    <li><strong>鍵盤快捷鍵</strong>：按 <kbd>Tab</kbd> 循環到下一種格式，按 <kbd>Shift</kbd>+<kbd>Tab</kbd> 反向切換</li>
+  </ol>
+
+  <h3>Enter 智慧換行邏輯</h3>
+  <p>按下 <kbd>Enter</kbd> 時，系統會根據目前行的格式自動判斷下一行的格式，減少重複操作：</p>
+  <table class="shortcut-table">
+    <tr><th>目前格式</th><th>按 Enter 後</th></tr>
+    <tr><td>場景標題</td><td>→ 動作描述</td></tr>
+    <tr><td>動作描述</td><td>→ 動作描述（繼續）</td></tr>
+    <tr><td>角色名稱</td><td>→ 對白</td></tr>
+    <tr><td>對白</td><td>→ 角色名稱（自動準備下一個角色）</td></tr>
+    <tr><td>語氣說明</td><td>→ 對白</td></tr>
+    <tr><td>轉場</td><td>→ 場景標題</td></tr>
+  </table>
+</div>
+
+<!-- ── 4. 場景標題工具列 ── -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <span class="section-icon">🏷</span>
+    <div class="section-title">場景標題工具列</div>
+  </div>
+
+  <p>當游標停在一行<strong>場景標題</strong>時，該行前方會自動出現兩組快速切換按鈕，讓你不用手動輸入 INT. 或 - 夜：</p>
+
+  <h3>室內 / 室外切換（INT / EXT）</h3>
+  <ul>
+    <li><strong>INT</strong>：室內景（Interior）</li>
+    <li><strong>EXT</strong>：室外景（Exterior）</li>
+    <li><strong>INT/EXT</strong>：室內外切換景</li>
+  </ul>
+  <p>點擊後，系統自動在行首補上或替換對應的英文縮寫，不影響後面的地點文字。</p>
+
+  <h3>時間切換（日 / 夜 / 黃昏 / 清晨）</h3>
+  <p>點擊四個時間按鈕之一，系統自動在地點後加上「- 日」「- 夜」等標準格式的時間後綴。</p>
+
+  <div class="callout tip">
+    <span class="callout-icon">⌨️</span>
+    <div class="callout-body">
+      <strong>Alt + T 快捷鍵</strong>
+      在場景標題行按下 <kbd>Alt</kbd>+<kbd>T</kbd>，可以快速循環切換四個時間選項（日→夜→黃昏→清晨→日），不必移開手離開鍵盤。
+    </div>
+  </div>
+
+  <p>這兩組按鈕也會在你手動輸入 INT.、EXT.、- 夜 等文字時自動同步高亮，反映目前狀態。</p>
+</div>
+
+<!-- ── 5. 分場卡系統 ── -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <span class="section-icon">🗂</span>
+    <div class="section-title">分場卡系統</div>
+  </div>
+
+  <p>分場卡是整個專案系統的核心。每張分場卡代表劇本中的一個場景，可以在劇本成形之前就先獨立規劃，也可以在寫作過程中隨時補建。</p>
+
+  <h3>建立分場卡</h3>
+  <p>切換到左側「分場卡」頁籤，點擊右上角的 <strong>＋</strong> 按鈕，填寫以下欄位：</p>
+  <ul>
+    <li><strong>場次編號</strong>：系統自動編號，可手動修改</li>
+    <li><strong>場景標題</strong>：這場戲的簡短描述</li>
+    <li><strong>地點</strong>：場景發生的地方</li>
+    <li><strong>時間</strong>：日、夜、黃昏、清晨</li>
+    <li><strong>室內 / 室外</strong>：INT、EXT、INT/EXT</li>
+    <li><strong>出場角色</strong>：用逗號分隔多個角色名稱</li>
+    <li><strong>場景功能</strong>：這場戲推進了什麼故事</li>
+    <li><strong>衝突</strong>：場景中的核心張力或衝突</li>
+    <li><strong>備註</strong>：任何補充說明</li>
+  </ul>
+
+  <h3>導入劇本</h3>
+  <p>分場卡建立後，點擊卡片上的 <strong>⬇ 導入劇本</strong> 按鈕，系統會自動在劇本中插入：</p>
+  <ul>
+    <li>標準格式的場景標題行（如 INT. 咖啡館 - 夜）</li>
+    <li>一行空白動作描述，供你直接開始填寫</li>
+    <li>若有角色，自動加入第一個角色名稱與空白對白行</li>
+  </ul>
+  <p>導入後，分場卡與劇本場景之間建立連結，卡片上會顯示「已導入劇本」標記。修改分場卡不會自動改動劇本，修改劇本也不會覆寫分場卡，兩者保持獨立。</p>
+
+  <h3>拖曳排序</h3>
+  <p>在左側分場卡列表中，將滑鼠移到任意一張卡片上，游標會變成抓取手形。<strong>按住滑鼠左鍵直接拖動</strong>即可調整順序。拖動時會看到橘色指示線顯示放置位置。要移到最後一張卡片後面，拖到列表底部的空白虛線區放手即可。</p>
+
+  <h3>依分場卡順序重排劇本</h3>
+  <p>拖曳重新排序分場卡後，若想讓劇本的場景順序也同步更新，點擊分場卡列表底部出現的 <strong>↕ 依分場卡順序重排劇本</strong> 按鈕。系統會將所有已連結的場景群組（包含其後的動作、對白等段落）依照分場卡的新順序重新排列。</p>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-body">
+      <strong>重排前請先確認</strong>
+      重排劇本是一個較大的操作，系統會跳出確認視窗說明影響範圍。重排後無法自動撤銷，建議先用「⬇ 備份 App」儲存一個備份版本。
+    </div>
+  </div>
+
+  <h3>右鍵選單</h3>
+  <p>在分場卡上按右鍵（或長按）可快速選擇：導入劇本、編輯、刪除。</p>
+</div>
+
+<!-- ── 6. 角色資料庫 ── -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <span class="section-icon">👤</span>
+    <div class="section-title">角色資料庫</div>
+  </div>
+
+  <p>切換到左側「角色」頁籤，可以為每個主要角色建立獨立的資料卡。</p>
+
+  <h3>建立角色卡</h3>
+  <p>點擊右上角 <strong>＋</strong> 按鈕，填寫角色資料：</p>
+  <ul>
+    <li><strong>姓名</strong>：角色全名，會自動抓取首字作為頭像縮寫</li>
+    <li><strong>年齡</strong>：年齡或年齡範圍</li>
+    <li><strong>身分 / 職業</strong>：角色的社會身份</li>
+    <li><strong>性格特質</strong>：核心性格描述</li>
+    <li><strong>角色弧線</strong>：這個角色在故事中的成長或轉變</li>
+    <li><strong>備註</strong>：其他補充說明</li>
+  </ul>
+
+  <p>右側「統計」頁籤中也會自動統計每個角色的台詞出現次數，方便檢視各角色的戲份分佈。</p>
+</div>
+
+<!-- ── 7. 創作筆記 ── -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <span class="section-icon">📝</span>
+    <div class="section-title">創作筆記</div>
+  </div>
+
+  <p>切換到左側「筆記」頁籤，可以記錄任何與劇本相關的靈感、研究資料或創作備忘。</p>
+  <p>每則筆記有標題與內容兩個欄位，支援自由文字輸入。點擊任一筆記卡片可開啟編輯，也可以在編輯視窗中刪除該筆記。</p>
+
+  <div class="callout note">
+    <span class="callout-icon">📌</span>
+    <div class="callout-body">
+      <strong>使用建議</strong>
+      筆記適合用來放：故事主題與核心問題、參考影片或書籍摘要、橋段靈感、角色背景故事、對白草稿、修改紀錄等。
+    </div>
+  </div>
+</div>
+
+<!-- ── 8. 參考資料 ── -->
+<div class="section" id="s8">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <span class="section-icon">📂</span>
+    <div class="section-title">參考資料上傳</div>
+  </div>
+
+  <p>切換到左側「資料」頁籤，可以上傳任何與劇本創作相關的參考文件。</p>
+
+  <h3>支援的檔案格式</h3>
+  <ul>
+    <li><strong>圖片</strong>：JPG、PNG、GIF、WEBP 等（角色參考圖、場景 moodboard、服裝道具參考）</li>
+    <li><strong>PDF</strong>：論文、劇本參考、資料手冊</li>
+    <li><strong>Word 文件</strong>：.doc、.docx</li>
+    <li><strong>試算表</strong>：.xlsx、.csv</li>
+    <li><strong>簡報</strong>：.pptx</li>
+    <li><strong>網頁</strong>：.html、.htm</li>
+    <li><strong>純文字</strong>：.txt、.md（Markdown）</li>
+  </ul>
+
+  <h3>上傳方式</h3>
+  <ul>
+    <li><strong>拖曳上傳</strong>：直接從桌面或 Finder 把檔案拖進「資料」頁籤的虛線放置區</li>
+    <li><strong>點擊上傳</strong>：點擊放置區，或點右上角 ＋ 按鈕，選擇檔案</li>
+  </ul>
+
+  <p>圖片檔案會顯示縮圖預覽，其他格式顯示對應 icon 與檔案大小。點擊任一檔案可在新分頁開啟預覽，右側 ✕ 可移除。</p>
+
+  <div class="callout info">
+    <span class="callout-icon">ℹ️</span>
+    <div class="callout-body">
+      <strong>注意：參考資料儲存於瀏覽器記憶體</strong>
+      上傳的參考資料存在目前瀏覽器的工作記憶體中，關閉或重新整理頁面後會清除。如需永久保存，請在關閉前點「⬇ 備份 App」下載整個 HTML 檔案，但請注意大型檔案可能使備份檔案大幅增加。
+    </div>
+  </div>
+</div>
+
+<!-- ── 9. 右側預覽與統計 ── -->
+<div class="section" id="s9">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <span class="section-icon">👁</span>
+    <div class="section-title">右側預覽與統計</div>
+  </div>
+
+  <h3>即時預覽</h3>
+  <p>右側「預覽」頁籤以白底黑字、Courier 等寬字型模擬正式劇本頁面，每次輸入後約 0.3 秒自動更新，讓你隨時確認排版效果。劇本標題也會同步顯示在預覽頂部。</p>
+
+  <h3>劇本統計</h3>
+  <p>「統計」頁籤顯示：</p>
+  <ul>
+    <li>場景數、總行數、總字數、對白行數</li>
+    <li>角色台詞次數排行（依對白行數統計）</li>
+    <li>預估頁數（以每頁 50 行估算）</li>
+  </ul>
+
+  <h3>格式說明</h3>
+  <p>「格式說明」頁籤提供 Fountain 標記對照表，以及與本編輯器匯出格式相容的第三方劇本軟體列表，供未來換用專業工具時參考。</p>
+</div>
+
+<!-- ── 10. 匯出與備份 ── -->
+<div class="section" id="s10">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <span class="section-icon">💾</span>
+    <div class="section-title">匯出與備份</div>
+  </div>
+
+  <p>工具列右側提供四種匯出方式，各有不同用途：</p>
+
+  <h3>⬇ Fountain（.fountain）</h3>
+  <p>匯出符合 <strong>Fountain 1.1</strong> 國際標準的純文字格式，可直接匯入以下專業劇本軟體，格式零失真還原：</p>
+  <ul>
+    <li>Highland 2（Mac）</li>
+    <li>WriterDuet（網頁版）</li>
+    <li>Slugline、Logline、FadeIn</li>
+    <li>Final Draft（透過轉換工具）</li>
+  </ul>
+
+  <h3>⬇ Word（.docx）</h3>
+  <p>匯出符合好萊塢標準的 Word 文件，格式規格如下：</p>
+  <ul>
+    <li>紙張：US Letter（8.5 × 11 吋）</li>
+    <li>字型：Courier New 12pt</li>
+    <li>左邊距 1.5 吋、右 / 上 / 下邊距各 1 吋</li>
+    <li>角色名縮排至頁面 3.7 吋處</li>
+    <li>對白左縮排 0.5 吋、右縮排 1.5 吋</li>
+  </ul>
+
+  <div class="callout info">
+    <span class="callout-icon">ℹ️</span>
+    <div class="callout-body">
+      <strong>Word 匯出需要網路連線</strong>
+      Word 匯出功能使用 docx.js 函式庫（從 CDN 載入，約 500KB），按下按鈕時需要網路連線。按鈕顯示「⏳ 生成中…」表示正在處理，完成後自動下載。
+    </div>
+  </div>
+
+  <h3>⬇ 備份 App（.html）</h3>
+  <p>將整個劇本工坊應用程式連同目前所有資料（專案、劇本內容、分場卡、角色、筆記）一起打包成單一 HTML 檔案下載。這是最重要的備份方式——<strong>建議每次重要修改後都下載一份</strong>。備份檔案可直接用瀏覽器打開，完全離線可用。</p>
+
+  <h3>🖨 列印 / 匯出 PDF</h3>
+  <p>呼叫瀏覽器的列印對話框。在對話框中選擇「另存 PDF」即可匯出 PDF 檔案，格式採用好萊塢標準頁邊距（左 1.5 吋、右 1 吋）。列印時左側欄、右側欄、工具列等介面元素全部隱藏，只輸出劇本正文。</p>
+</div>
+
+<!-- ── 11. 快捷鍵速查 ── -->
+<div class="section" id="s11">
+  <div class="section-header">
+    <div class="section-num">11</div>
+    <span class="section-icon">⌨️</span>
+    <div class="section-title">快捷鍵速查表</div>
+  </div>
+
+  <h3>編輯區快捷鍵</h3>
+  <table class="shortcut-table">
+    <tr><th style="width:42%">按鍵</th><th>功能</th></tr>
+    <tr><td><kbd>Enter</kbd></td><td>智慧換行（依格式自動判斷下一行類型）</td></tr>
+    <tr><td><kbd>Tab</kbd></td><td>將目前行切換到下一種格式（循環）</td></tr>
+    <tr><td><kbd>Shift</kbd> + <kbd>Tab</kbd></td><td>切換到上一種格式（反向循環）</td></tr>
+    <tr><td><kbd>Backspace</kbd>（空行時）</td><td>刪除當前空白行，游標移到上一行</td></tr>
+    <tr><td><kbd>↑</kbd> / <kbd>↓</kbd></td><td>在上下行之間移動游標</td></tr>
+    <tr><td><kbd>Alt</kbd> + <kbd>T</kbd></td><td>循環切換場景標題的時間（日→夜→黃昏→清晨），僅在場景標題行有效</td></tr>
+  </table>
+
+  <h3>Tab 格式循環順序</h3>
+  <table class="shortcut-table">
+    <tr><th>按下 Tab 的順序</th></tr>
+    <tr><td>動作描述 → 角色名稱 → 語氣說明 → 對白 → 轉場 → 場景標題 → 動作描述 …</td></tr>
+  </table>
+
+  <h3>通用操作</h3>
+  <table class="shortcut-table">
+    <tr><th style="width:42%">操作</th><th>方法</th></tr>
+    <tr><td>複製 / 貼上文字</td><td><kbd>Cmd/Ctrl</kbd> + <kbd>C</kbd> / <kbd>V</kbd>（標準瀏覽器操作）</td></tr>
+    <tr><td>選取文字</td><td>滑鼠拖曳或 <kbd>Shift</kbd> + 方向鍵</td></tr>
+    <tr><td>全選</td><td><kbd>Cmd/Ctrl</kbd> + <kbd>A</kbd></td></tr>
+    <tr><td>收合左側欄</td><td>點擊工具列最右側的 ◀ 按鈕</td></tr>
+    <tr><td>收合右側欄</td><td>點擊工具列最右側的 ▶ 按鈕</td></tr>
+    <tr><td>跳至特定場景</td><td>點擊左側「場景」頁籤中的場景項目</td></tr>
+  </table>
+</div>
+
+<!-- ── 12. 常見問題 ── -->
+<div class="section" id="s12">
+  <div class="section-header">
+    <div class="section-num">12</div>
+    <span class="section-icon">❓</span>
+    <div class="section-title">常見問題</div>
+  </div>
+
+  <h3>Q：資料會自動儲存嗎？</h3>
+  <p>目前版本的資料存在瀏覽器的工作記憶體中，<strong>關閉或重新整理頁面後資料會消失</strong>。請養成定期點擊「⬇ 備份 App」下載 HTML 備份檔的習慣，每次工作結束都下載一份是最安全的做法。</p>
+
+  <h3>Q：備份的 HTML 檔如何繼續編輯？</h3>
+  <p>用瀏覽器（建議 Chrome 或 Safari）直接打開備份的 .html 檔即可，所有功能完整保留，完全離線可用。</p>
+
+  <h3>Q：為什麼 Word 匯出按鈕沒反應？</h3>
+  <p>Word 匯出需要網路連線以載入函式庫。請確認網路連線正常，然後重新整理頁面再試。若仍有問題，可改用「列印 PDF」作為替代。</p>
+
+  <h3>Q：可以在手機上使用嗎？</h3>
+  <p>可以開啟，但本編輯器主要為桌機設計，在小螢幕上三欄佈局會比較擁擠。建議在 iPad 或電腦上使用以獲得最佳體驗。</p>
+
+  <h3>Q：Fountain 格式是什麼？可以貼到 Word 嗎？</h3>
+  <p>Fountain 是一種以純文字書寫劇本的開放標準格式，副檔名為 .fountain，可用任何文字編輯器開啟。若要貼入 Word，直接開啟 .fountain 檔複製內容即可，但格式需要手動重排。建議直接使用本編輯器的 Word 匯出功能以保留完整格式。</p>
+
+  <h3>Q：分場卡與劇本的連結是什麼意思？</h3>
+  <p>當你從分場卡「導入劇本」後，這張分場卡的 ID 會記錄在對應的場景標題行中，場景標題行也會回記分場卡的 ID。這個雙向連結讓「依分場卡順序重排劇本」功能得以正確找到並移動對應的場景群組。連結是單純的資料標記，不會讓兩者的文字內容互相影響。</p>
+
+  <h3>Q：可以同時管理多個劇本專案嗎？</h3>
+  <p>可以。點擊頂部工具列的 ＋ 按鈕可新增劇本專案，透過左側的專案下拉選單切換。每個專案的劇本、分場卡、角色、筆記完全獨立。備份時，所有專案的資料都會一起打包進備份 HTML 檔中。</p>
+</div>
+
+<div class="divider"></div>
+
+<div class="footer">
+  雪雪劇本工坊 Pro &nbsp;·&nbsp; 繁體中文劇本編輯器 &nbsp;·&nbsp; Fountain 1.1 相容<br>
+  單一 HTML 檔案 · 無需安裝 · 完全離線可用
+</div>
+
+</div>
+</body>
+</html>
