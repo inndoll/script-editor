@@ -243,6 +243,21 @@ kbd{
 .int-chip:hover{border-color:var(--amber);color:var(--amber);background:var(--amber-l)}
 .int-chip.active{background:var(--red-l);color:var(--red);border-color:#D08080;font-weight:700}
 .int-sep{font-size:10px;color:var(--border2);user-select:none;line-height:1}
+
+/* Time-of-day chips — amber/gold tones to distinguish from INT/EXT */
+.time-chip{
+  padding:2px 7px;border-radius:10px;font-size:9px;font-weight:700;
+  border:1px solid var(--border2);background:var(--bg3);color:var(--ink3);
+  cursor:pointer;transition:all 0.12s;letter-spacing:0.5px;font-family:'Noto Sans TC',sans-serif;
+  line-height:1.4;
+}
+.time-chip:hover{border-color:var(--amber2);color:var(--amber);background:var(--amber-l)}
+.time-chip.active{background:var(--amber-l);color:var(--amber);border-color:var(--amber2);font-weight:700}
+.scene-time-wrap{
+  display:none;align-items:center;gap:3px;padding:3px 0 2px 0;flex-shrink:0;
+}
+.sl[data-scene="1"] .scene-time-wrap{display:flex}
+.chip-group-sep{width:1px;height:14px;background:var(--border);margin:0 4px;flex-shrink:0}
 #script-title-block{
   margin-bottom:24px;padding-bottom:18px;
   border-bottom:2px solid var(--border);
@@ -403,6 +418,7 @@ kbd{
 .ctx-item.danger{color:var(--red)}
 .ctx-item.danger:hover{background:var(--red-l)}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
 </head>
 <body>
 
@@ -439,6 +455,7 @@ kbd{
   <!-- Right side buttons -->
   <div class="tbar-group">
     <button class="tbtn danger" onclick="exportFountain()">⬇ Fountain</button>
+    <button class="tbtn" style="color:var(--blue);border-color:#9AB8E0;background:var(--blue-l)" onclick="exportDocx()">⬇ Word (.docx)</button>
     <button class="tbtn" onclick="exportHtml()">⬇ 備份 App</button>
     <button class="tbtn primary" onclick="window.print()">🖨 列印 PDF</button>
     <div class="sep"></div>
@@ -536,9 +553,10 @@ kbd{
       <span class="mode-pill m-action" id="mode-pill">動作</span>
       <div class="sep" style="margin:0 4px"></div>
       <span class="tbar-hint">
-        <kbd>Tab</kbd> 下一種格式
-        <kbd>Shift+Tab</kbd> 上一種格式
-        <kbd>Enter</kbd> 智慧換行
+        <kbd>Tab</kbd> 下一種格式　
+        <kbd>Shift+Tab</kbd> 上一種格式　
+        <kbd>Enter</kbd> 智慧換行　
+        <kbd>Alt+T</kbd> 切換時間（場景行）
       </span>
     </div>
     <div id="editor-scroll">
@@ -755,24 +773,63 @@ function setInterior(i, interior){
   const prefix = interior==='INT/EXT' ? 'INT/EXT. ' : interior+'. ';
   b.text = prefix + rest;
 
-  // Update the contenteditable content
   const el = document.getElementById('line-'+i);
-  if(el){
-    el.textContent = b.text;
-    placeCaretEnd(el);
-  }
+  if(el){ el.textContent = b.text; placeCaretEnd(el); }
 
-  // Update chip active states
   const row = document.getElementById('row-'+i);
   if(row){
     row.querySelectorAll('.int-chip').forEach(chip=>{
       chip.classList.toggle('active', chip.textContent.trim()===interior);
     });
+    // time chips unchanged — re-sync against updated text
+    const time = parseTime(b.text);
+    row.querySelectorAll('.time-chip').forEach(chip=>{
+      chip.classList.toggle('active', chip.dataset.time===time);
+    });
   }
   scheduleUpdate();
 }
 
-function renderLines(){
+// ── Time-of-day helpers ─────────────────────────
+const TIME_OPTIONS = ['日','夜','黃昏','清晨'];
+const TIME_CYCLE_HOTKEY = 'Alt+T'; // shown in tooltip
+
+// Parse time suffix after ' - ' in scene heading
+function parseTime(text){
+  const m = (text||'').match(/[-－]\s*(日|夜|黃昏|清晨)\s*$/);
+  return m ? m[1] : '';
+}
+
+// Strip existing time suffix from scene heading
+function stripTime(text){
+  return (text||'').replace(/\s*[-－]\s*(日|夜|黃昏|清晨)\s*$/, '').trimEnd();
+}
+
+// Set or replace time suffix, keep interior + location intact
+function setTime(i, time){
+  const blocks = getBlocks();
+  const b = blocks[i];
+  const base = stripTime(b.text);           // e.g. "INT. 咖啡館"
+  b.text = base + (time ? ' - ' + time : '');
+
+  const el = document.getElementById('line-'+i);
+  if(el){ el.textContent = b.text; placeCaretEnd(el); }
+
+  // Sync chip highlights
+  const row = document.getElementById('row-'+i);
+  if(row) row.querySelectorAll('.time-chip').forEach(chip=>{
+    chip.classList.toggle('active', chip.dataset.time === time);
+  });
+  scheduleUpdate();
+}
+
+// Cycle to next time option (for Alt+T shortcut)
+function cycleTime(i){
+  const cur = parseTime(getBlocks()[i].text);
+  const idx = TIME_OPTIONS.indexOf(cur);
+  const next = TIME_OPTIONS[(idx+1) % TIME_OPTIONS.length];
+  setTime(i, next);
+}
   const blocks = getBlocks();
   const container = document.getElementById('lines-container');
 
@@ -784,6 +841,7 @@ function renderLines(){
   container.innerHTML = blocks.map((b,i) => {
     const isScene = b.type === 'scene';
     const interior = parseInterior(b.text); // 'INT' | 'EXT' | 'INT/EXT' | ''
+    const time     = parseTime(b.text);     // '日' | '夜' | '黃昏' | '清晨' | ''
 
     const intChips = isScene ? `
       <div class="scene-int-wrap">
@@ -795,6 +853,12 @@ function renderLines(){
         <span class="int-sep">/</span>
         <button class="int-chip${interior==='INT/EXT'?' active':''}"
           onclick="setInterior(${i},'INT/EXT')" title="內外景">INT/EXT</button>
+        <span class="chip-group-sep"></span>
+        ${TIME_OPTIONS.map(t=>`
+          <button class="time-chip${time===t?' active':''}"
+            data-time="${t}"
+            onclick="setTime(${i},'${t}')"
+            title="${t}（Alt+T 循環切換）">${t}</button>`).join('')}
       </div>` : '';
 
     return `
@@ -919,19 +983,32 @@ function onLineFocus(i){
 
 function onLineInput(i,el){
   getBlocks()[i].text = el.innerText.replace(/\n/g,' ');
-  // Keep INT/EXT chips in sync if this is a scene line
+  // Keep scene chips in sync when user types manually
   if(getBlocks()[i].type==='scene'){
-    const interior = parseInterior(getBlocks()[i].text);
     const row = document.getElementById('row-'+i);
-    if(row) row.querySelectorAll('.int-chip').forEach(chip=>{
-      chip.classList.toggle('active', chip.textContent.trim()===interior);
-    });
+    if(row){
+      const interior = parseInterior(getBlocks()[i].text);
+      const time     = parseTime(getBlocks()[i].text);
+      row.querySelectorAll('.int-chip').forEach(chip=>{
+        chip.classList.toggle('active', chip.textContent.trim()===interior);
+      });
+      row.querySelectorAll('.time-chip').forEach(chip=>{
+        chip.classList.toggle('active', chip.dataset.time===time);
+      });
+    }
   }
   scheduleUpdate();
 }
 
 function onLineKey(e,i){
   const blocks = getBlocks();
+
+  // Alt+T — cycle time-of-day on scene heading lines
+  if(e.altKey && e.key.toLowerCase()==='t'){
+    e.preventDefault();
+    if(blocks[i].type==='scene') cycleTime(i);
+    return;
+  }
 
   if(e.key==='Tab'){
     e.preventDefault();
@@ -1483,6 +1560,181 @@ function exportHtml(){
   const blob=new Blob([document.documentElement.outerHTML],{type:'text/html;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='雪雪劇本工坊Pro_'+new Date().toISOString().slice(0,10)+'.html';a.click();
+}
+
+// ─────────────────────────────────────────────
+//  WORD (.docx) EXPORT — Hollywood format
+//  US Letter, Courier Prime 12pt
+//  Margins: Left 1.5in, Right 1in, Top/Bottom 1in
+//  Character: indent 3.7in   Dialogue: 2in–6in
+//  Parenthetical: 2.5in–5.5in   Transition: right-align
+// ─────────────────────────────────────────────
+async function exportDocx(){
+  const btnEl = document.querySelector('[onclick="exportDocx()"]');
+  const origText = btnEl.textContent;
+  btnEl.textContent = '⏳ 生成中…';
+  btnEl.disabled = true;
+
+  try {
+    const { Document, Packer, Paragraph, TextRun, AlignmentType,
+            PageOrientation, BorderStyle, UnderlineType } = docx;
+
+    const proj  = DB.projects.find(p=>p.id===getProject());
+    const titleVal   = document.getElementById('script-title-input')?.value  || proj?.name || '劇本';
+    const subtitleVal= document.getElementById('script-subtitle-input')?.value || '';
+    const blocks = getBlocks();
+    const dateStr = new Date().toLocaleDateString('zh-TW');
+
+    // DXA helpers (1 inch = 1440 DXA)
+    const IN = v => Math.round(v * 1440);
+
+    // Hollywood page: Letter, Left 1.5in R 1in T 1in B 1in
+    const pageProps = {
+      page: {
+        size: { width: IN(8.5), height: IN(11) },
+        margin: { top: IN(1), right: IN(1), bottom: IN(1), left: IN(1.5) }
+      }
+    };
+
+    // Base run style — Courier Prime falls back to Courier New
+    const baseRun = (text, opts={}) => new TextRun({
+      text,
+      font: 'Courier Prime',
+      size: 24, // 12pt = 24 half-points
+      ...opts
+    });
+
+    const children = [];
+
+    // ── Title page ──────────────────────────────
+    children.push(
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: IN(2.5), after: 0 },
+        children: [baseRun(titleVal.toUpperCase(), { bold: true, size: 28 })]
+      })
+    );
+    if(subtitleVal){
+      children.push(
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: IN(0.15), after: 0 },
+          children: [baseRun(subtitleVal, { size: 22 })]
+        })
+      );
+    }
+    children.push(
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: IN(0.3), after: 0 },
+        children: [baseRun(dateStr, { size: 20 })]
+      })
+    );
+    // Blank lines before script body
+    children.push(new Paragraph({ spacing:{ before:0,after:0 }, children:[baseRun('')] }));
+    children.push(new Paragraph({ spacing:{ before:0,after:0 }, children:[baseRun('')] }));
+    children.push(new Paragraph({
+      border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '888888', space: 6 } },
+      spacing: { before: 0, after: IN(0.5) },
+      children: [baseRun('')]
+    }));
+
+    // ── Script body ──────────────────────────────
+    blocks.forEach(b => {
+      const t = (b.text || '').trim();
+      if(!t){
+        children.push(new Paragraph({ spacing:{before:0,after:0}, children:[baseRun('')] }));
+        return;
+      }
+
+      switch(b.type){
+
+        case 'scene':
+          // Scene heading: ALL CAPS, underline, top margin
+          children.push(new Paragraph({
+            spacing: { before: IN(0.33), after: IN(0.17) },
+            children: [baseRun(t.toUpperCase(), {
+              bold: true,
+              underline: { type: UnderlineType.SINGLE }
+            })]
+          }));
+          break;
+
+        case 'action':
+          // Action: full width, normal
+          children.push(new Paragraph({
+            spacing: { before: 0, after: IN(0.17) },
+            children: [baseRun(t)]
+          }));
+          break;
+
+        case 'character':
+          // Character cue: centred at ~3.7in from left margin
+          // Left margin is already 1.5in; indent 2.2in more = 3.7in total
+          children.push(new Paragraph({
+            indent: { left: IN(2.2) },
+            spacing: { before: IN(0.17), after: 0 },
+            children: [baseRun(t.toUpperCase(), { bold: true })]
+          }));
+          break;
+
+        case 'parenthetical': {
+          // Parenthetical: 2.5in from page left = 1in indent from left margin
+          const inner = t.replace(/^[(（]/,'').replace(/[)）]$/,'');
+          children.push(new Paragraph({
+            indent: { left: IN(1), right: IN(1.5) },
+            spacing: { before: 0, after: 0 },
+            children: [baseRun(`(${inner})`, { italics: true })]
+          }));
+          break;
+        }
+
+        case 'dialogue':
+          // Dialogue: 2in from page left = 0.5in indent; right margin at 6in = 1.5in right indent
+          children.push(new Paragraph({
+            indent: { left: IN(0.5), right: IN(1) },
+            spacing: { before: 0, after: IN(0.17) },
+            children: [baseRun(t)]
+          }));
+          break;
+
+        case 'transition':
+          // Transition: right-aligned, ALL CAPS, top margin
+          children.push(new Paragraph({
+            alignment: AlignmentType.RIGHT,
+            spacing: { before: IN(0.17), after: IN(0.17) },
+            children: [baseRun(
+              t.toUpperCase().endsWith(':') ? t.toUpperCase() : t.toUpperCase()+':',
+              { bold: true }
+            )]
+          }));
+          break;
+
+        default:
+          children.push(new Paragraph({ children: [baseRun(t)] }));
+      }
+    });
+
+    const doc = new Document({
+      creator: '雪雪劇本工坊 Pro',
+      title: titleVal,
+      description: subtitleVal,
+      sections: [{ properties: pageProps, children }]
+    });
+
+    const buffer = await Packer.toBlob(doc);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(buffer);
+    a.download = titleVal + '_' + new Date().toISOString().slice(0,10) + '.docx';
+    a.click();
+
+  } catch(err){
+    alert('Word 匯出失敗：' + err.message + '\n\n請確認網路連線（需載入 docx.js 函式庫）');
+    console.error(err);
+  } finally {
+    btnEl.textContent = origText;
+    btnEl.disabled = false;
+  }
 }
 
 // ═══════════════════════════════════════════════
