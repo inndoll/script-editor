@@ -1566,170 +1566,146 @@ function exportHtml(){
 //  Parenthetical: 2.5in–5.5in   Transition: right-align
 // ─────────────────────────────────────────────
 async function exportDocx(){
+  // Check library loaded
+  if(typeof window.docx === 'undefined'){
+    alert('docx.js 函式庫尚未載入完成。\n請確認網路連線後重新整理頁面再試。');
+    return;
+  }
+
   const btnEl = document.querySelector('[onclick="exportDocx()"]');
-  const origText = btnEl.textContent;
-  btnEl.textContent = '⏳ 生成中…';
-  btnEl.disabled = true;
+  const origText = btnEl ? btnEl.textContent : '';
+  if(btnEl){ btnEl.textContent = '⏳ 生成中…'; btnEl.disabled = true; }
 
   try {
-    const { Document, Packer, Paragraph, TextRun, AlignmentType,
-            PageOrientation, BorderStyle, UnderlineType } = docx;
+    var D = window.docx;
+    var Document = D.Document;
+    var Packer = D.Packer;
+    var Paragraph = D.Paragraph;
+    var TextRun = D.TextRun;
+    var AlignmentType = D.AlignmentType;
+    var BorderStyle = D.BorderStyle;
+    var UnderlineType = D.UnderlineType;
 
-    const proj  = DB.projects.find(p=>p.id===getProject());
-    const titleVal   = document.getElementById('script-title-input')?.value  || proj?.name || '劇本';
-    const subtitleVal= document.getElementById('script-subtitle-input')?.value || '';
-    const blocks = getBlocks();
-    const dateStr = new Date().toLocaleDateString('zh-TW');
+    var proj = DB.projects.find(function(p){ return p.id===getProject(); });
+    var titleEl = document.getElementById('script-title-input');
+    var subEl   = document.getElementById('script-subtitle-input');
+    var titleVal   = (titleEl && titleEl.value) ? titleEl.value : (proj ? proj.name : '劇本');
+    var subtitleVal= (subEl && subEl.value) ? subEl.value : '';
+    var blocks = getBlocks();
+    var dateStr = new Date().toLocaleDateString('zh-TW');
 
-    // DXA helpers (1 inch = 1440 DXA)
-    const IN = v => Math.round(v * 1440);
+    // DXA: 1 inch = 1440 twips
+    function IN(v){ return Math.round(v * 1440); }
 
-    // Hollywood page: Letter, Left 1.5in R 1in T 1in B 1in
-    const pageProps = {
+    function baseRun(text, opts){
+      var cfg = { text: text, font: 'Courier New', size: 24 };
+      if(opts) Object.keys(opts).forEach(function(k){ cfg[k] = opts[k]; });
+      return new TextRun(cfg);
+    }
+
+    var pageProps = {
       page: {
         size: { width: IN(8.5), height: IN(11) },
         margin: { top: IN(1), right: IN(1), bottom: IN(1), left: IN(1.5) }
       }
     };
 
-    // Base run style — Courier Prime falls back to Courier New
-    const baseRun = (text, opts={}) => new TextRun({
-      text,
-      font: 'Courier Prime',
-      size: 24, // 12pt = 24 half-points
-      ...opts
-    });
+    var children = [];
 
-    const children = [];
-
-    // ── Title page ──────────────────────────────
-    children.push(
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { before: IN(2.5), after: 0 },
-        children: [baseRun(titleVal.toUpperCase(), { bold: true, size: 28 })]
-      })
-    );
-    if(subtitleVal){
-      children.push(
-        new Paragraph({
-          alignment: AlignmentType.CENTER,
-          spacing: { before: IN(0.15), after: 0 },
-          children: [baseRun(subtitleVal, { size: 22 })]
-        })
-      );
-    }
-    children.push(
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { before: IN(0.3), after: 0 },
-        children: [baseRun(dateStr, { size: 20 })]
-      })
-    );
-    // Blank lines before script body
-    children.push(new Paragraph({ spacing:{ before:0,after:0 }, children:[baseRun('')] }));
-    children.push(new Paragraph({ spacing:{ before:0,after:0 }, children:[baseRun('')] }));
+    // ── Title block ──────────────────────────────
     children.push(new Paragraph({
-      border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '888888', space: 6 } },
+      alignment: AlignmentType.CENTER,
+      spacing: { before: IN(2.5), after: 0 },
+      children: [baseRun(titleVal.toUpperCase(), { bold: true, size: 32 })]
+    }));
+    if(subtitleVal){
+      children.push(new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: IN(0.2), after: 0 },
+        children: [baseRun(subtitleVal, { size: 22 })]
+      }));
+    }
+    children.push(new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: IN(0.25), after: 0 },
+      children: [baseRun(dateStr, { size: 20 })]
+    }));
+    children.push(new Paragraph({ spacing:{ before: IN(0.3), after: IN(0.3) }, children:[baseRun('')] }));
+    children.push(new Paragraph({
+      border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: 'AAAAAA', space: 4 } },
       spacing: { before: 0, after: IN(0.5) },
       children: [baseRun('')]
     }));
 
     // ── Script body ──────────────────────────────
-    blocks.forEach(b => {
-      const t = (b.text || '').trim();
+    blocks.forEach(function(b){
+      var t = (b.text || '').trim();
       if(!t){
         children.push(new Paragraph({ spacing:{before:0,after:0}, children:[baseRun('')] }));
         return;
       }
-
-      switch(b.type){
-
-        case 'scene':
-          // Scene heading: ALL CAPS, underline, top margin
-          children.push(new Paragraph({
-            spacing: { before: IN(0.33), after: IN(0.17) },
-            children: [baseRun(t.toUpperCase(), {
-              bold: true,
-              underline: { type: UnderlineType.SINGLE }
-            })]
-          }));
-          break;
-
-        case 'action':
-          // Action: full width, normal
-          children.push(new Paragraph({
-            spacing: { before: 0, after: IN(0.17) },
-            children: [baseRun(t)]
-          }));
-          break;
-
-        case 'character':
-          // Character cue: centred at ~3.7in from left margin
-          // Left margin is already 1.5in; indent 2.2in more = 3.7in total
-          children.push(new Paragraph({
-            indent: { left: IN(2.2) },
-            spacing: { before: IN(0.17), after: 0 },
-            children: [baseRun(t.toUpperCase(), { bold: true })]
-          }));
-          break;
-
-        case 'parenthetical': {
-          // Parenthetical: 2.5in from page left = 1in indent from left margin
-          const inner = t.replace(/^[(（]/,'').replace(/[)）]$/,'');
-          children.push(new Paragraph({
-            indent: { left: IN(1), right: IN(1.5) },
-            spacing: { before: 0, after: 0 },
-            children: [baseRun(`(${inner})`, { italics: true })]
-          }));
-          break;
-        }
-
-        case 'dialogue':
-          // Dialogue: 2in from page left = 0.5in indent; right margin at 6in = 1.5in right indent
-          children.push(new Paragraph({
-            indent: { left: IN(0.5), right: IN(1) },
-            spacing: { before: 0, after: IN(0.17) },
-            children: [baseRun(t)]
-          }));
-          break;
-
-        case 'transition':
-          // Transition: right-aligned, ALL CAPS, top margin
-          children.push(new Paragraph({
-            alignment: AlignmentType.RIGHT,
-            spacing: { before: IN(0.17), after: IN(0.17) },
-            children: [baseRun(
-              t.toUpperCase().endsWith(':') ? t.toUpperCase() : t.toUpperCase()+':',
-              { bold: true }
-            )]
-          }));
-          break;
-
-        default:
-          children.push(new Paragraph({ children: [baseRun(t)] }));
+      if(b.type === 'scene'){
+        children.push(new Paragraph({
+          spacing: { before: IN(0.33), after: IN(0.1) },
+          children: [baseRun(t.toUpperCase(), { bold: true, underline: { type: UnderlineType.SINGLE } })]
+        }));
+      } else if(b.type === 'action'){
+        children.push(new Paragraph({
+          spacing: { before: 0, after: IN(0.17) },
+          children: [baseRun(t)]
+        }));
+      } else if(b.type === 'character'){
+        children.push(new Paragraph({
+          indent: { left: IN(2.2) },
+          spacing: { before: IN(0.17), after: 0 },
+          children: [baseRun(t.toUpperCase(), { bold: true })]
+        }));
+      } else if(b.type === 'parenthetical'){
+        var inner = t.replace(/^[(（]/,'').replace(/[)）]$/,'');
+        children.push(new Paragraph({
+          indent: { left: IN(1.2), right: IN(1.5) },
+          spacing: { before: 0, after: 0 },
+          children: [baseRun('(' + inner + ')', { italics: true })]
+        }));
+      } else if(b.type === 'dialogue'){
+        children.push(new Paragraph({
+          indent: { left: IN(0.5), right: IN(1.5) },
+          spacing: { before: 0, after: IN(0.17) },
+          children: [baseRun(t)]
+        }));
+      } else if(b.type === 'transition'){
+        var tText = t.toUpperCase();
+        if(!tText.endsWith(':')) tText = tText + ':';
+        children.push(new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          spacing: { before: IN(0.17), after: IN(0.17) },
+          children: [baseRun(tText, { bold: true })]
+        }));
+      } else {
+        children.push(new Paragraph({ children: [baseRun(t)] }));
       }
     });
 
-    const doc = new Document({
+    var doc = new Document({
       creator: '雪雪劇本工坊 Pro',
       title: titleVal,
       description: subtitleVal,
-      sections: [{ properties: pageProps, children }]
+      sections: [{ properties: pageProps, children: children }]
     });
 
-    const buffer = await Packer.toBlob(doc);
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(buffer);
+    var blob = await Packer.toBlob(doc);
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
     a.download = titleVal + '_' + new Date().toISOString().slice(0,10) + '.docx';
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
 
   } catch(err){
-    alert('Word 匯出失敗：' + err.message + '\n\n請確認網路連線（需載入 docx.js 函式庫）');
-    console.error(err);
+    alert('Word 匯出失敗：' + err.message);
+    console.error('exportDocx error:', err);
   } finally {
-    btnEl.textContent = origText;
-    btnEl.disabled = false;
+    if(btnEl){ btnEl.textContent = origText; btnEl.disabled = false; }
   }
 }
 
