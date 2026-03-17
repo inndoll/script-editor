@@ -441,12 +441,15 @@ kbd{
   /* Scene card chips don't print */
   .int-chip,.time-chip,.chip-group-sep,.int-sep{display:none!important}
 
-  /* Watermark — bottom-right of every page, very light */
+  /* Watermark — bottom center, minimal and professional */
   #editor-page::after{
-    content:'雪雪劇本工坊 Pro · 版權所有';
-    position:fixed;bottom:0.42in;right:0.55in;
-    font-family:'Noto Sans TC',sans-serif;font-size:8pt;
-    color:rgba(0,0,0,0.15);letter-spacing:2px;pointer-events:none;
+    content:'雪雪劇本工坊 Pro（免費版）· 繁體中文劇本編輯器';
+    position:fixed;
+    bottom:0.38in;left:0;right:0;
+    text-align:center;
+    font-family:'Noto Sans TC',sans-serif;font-size:7pt;
+    color:rgba(0,0,0,0.12);letter-spacing:1.5px;
+    pointer-events:none;
   }
 }
 
@@ -2384,14 +2387,28 @@ async function exportDocx(){
       return new TextRun(cfg);
     }
 
-    // ── Footer: centred page number + watermark ──
+    // ── Footer: page number (centre) + watermark (smaller, centre, below) ──
     var footer = new Footer({
       children: [
+        // Line 1: page number centred
         new Paragraph({
           alignment: AlignmentType.CENTER,
+          spacing: { before: 0, after: 0 },
           children: [
-            new TextRun({ children: [PageNumber.CURRENT], font: 'Courier New', size: 20 }),
-            new TextRun({ text: '        雪雪劇本工坊 Pro · 版權所有', font: 'Noto Sans TC', size: 16, color: 'CCCCCC' })
+            new TextRun({ children: [PageNumber.CURRENT], font: 'Courier New', size: 20 })
+          ]
+        }),
+        // Line 2: watermark — very small, centre, light grey
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 0, after: 0 },
+          children: [
+            new TextRun({
+              text: '雪雪劇本工坊 Pro（免費版）· 繁體中文劇本編輯器',
+              font: 'Noto Sans TC',
+              size: 14,        // 7pt — intentionally small
+              color: 'CCCCCC' // light grey, non-intrusive
+            })
           ]
         })
       ]
