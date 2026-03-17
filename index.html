@@ -600,10 +600,10 @@ kbd{
   <div class="sep"></div>
 
   <!-- Project selector -->
-  <select id="project-select" class="form-select" style="width:160px;padding:4px 8px;font-size:12px">
-    <option>無題劇本 #1</option>
-  </select>
-  <button class="icon-btn" title="新增專案" onclick="newProject()">＋</button>
+  <select id="project-select" class="form-select" style="width:160px;padding:4px 8px;font-size:12px"></select>
+  <button class="tbtn" style="color:var(--green);border-color:#8AC4A0;background:var(--green-l);font-weight:600" title="建立新劇本專案" onclick="newProject()">＋ 新劇本</button>
+  <button class="icon-btn" title="重新命名目前劇本" onclick="renameProject()" style="font-size:13px">✏</button>
+  <button class="icon-btn" title="刪除目前劇本" onclick="deleteProject()" style="font-size:13px;color:var(--red)">🗑</button>
 
   <div class="sep"></div>
 
@@ -927,6 +927,7 @@ kbd{
 </div>
 
 <script>
+
 // ═══════════════════════════════════════════════
 //  DATA MODEL
 // ═══════════════════════════════════════════════
@@ -2220,25 +2221,76 @@ function toggleRight(){
 //  PROJECT
 // ═══════════════════════════════════════════════
 function newProject(){
-  const name=prompt('新劇本專案名稱：');
-  if(!name)return;
-  const id='p'+Date.now();
-  DB.projects.push({id,name});
-  DB.scripts[id]={id:'s'+Date.now(),projectId:id,blocks:[
-    {id:uid(),type:'scene',text:'INT. 場景一 - 日',linkedCardId:null},
-    {id:uid(),type:'action',text:''},
+  const name = prompt('新劇本名稱：', '無題劇本 #'+(DB.projects.length+1));
+  if(!name || !name.trim()) return;
+  const id = 'p'+Date.now();
+  DB.projects.push({id, name: name.trim()});
+  DB.scripts[id] = {id:'s'+Date.now(), projectId:id, blocks:[
+    {id:uid(), type:'scene', text:'INT. 場景一 - 日', linkedCardId:null},
+    {id:uid(), type:'action', text:''},
   ]};
-  DB.sceneCards[id]=[];DB.characters[id]=[];DB.notes[id]=[];
-  DB.activeProject=id;
-  const sel=document.getElementById('project-select');
-  sel.innerHTML=DB.projects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
-  sel.value=id;
-  document.getElementById('sb-project').textContent=name;
+  DB.sceneCards[id] = [];
+  DB.characters[id] = [];
+  DB.notes[id] = [];
+  DB.activeProject = id;
+  syncProjectSelector();
+  document.getElementById('sb-project').textContent = name.trim();
+  // Clear title fields for fresh start
+  var ti = document.getElementById('script-title-input');
+  var si = document.getElementById('script-subtitle-input');
+  if(ti) ti.value = '';
+  if(si) si.value = '';
   renderAll();
+  debouncedSave();
+  // Focus title input to hint user to name their script
+  setTimeout(function(){ if(ti) ti.focus(); }, 100);
 }
+
+function renameProject(){
+  var proj = DB.projects.find(function(p){ return p.id===getProject(); });
+  if(!proj) return;
+  var name = prompt('劇本名稱：', proj.name);
+  if(!name || !name.trim() || name.trim()===proj.name) return;
+  proj.name = name.trim();
+  syncProjectSelector();
+  document.getElementById('sb-project').textContent = name.trim();
+  debouncedSave();
+}
+
+function deleteProject(){
+  if(DB.projects.length <= 1){
+    alert('至少需要保留一個劇本專案，無法刪除。');
+    return;
+  }
+  var proj = DB.projects.find(function(p){ return p.id===getProject(); });
+  if(!proj) return;
+  if(!confirm('確定要刪除「' + proj.name + '」嗎？\n這個劇本的所有內容（分場卡、角色、筆記）都會一起刪除，且無法復原。')) return;
+  var id = proj.id;
+  DB.projects = DB.projects.filter(function(p){ return p.id!==id; });
+  delete DB.scripts[id];
+  delete DB.sceneCards[id];
+  delete DB.characters[id];
+  delete DB.notes[id];
+  DB.activeProject = DB.projects[0].id;
+  syncProjectSelector();
+  document.getElementById('sb-project').textContent = DB.projects[0].name;
+  renderAll();
+  debouncedSave();
+}
+
+function syncProjectSelector(){
+  var sel = document.getElementById('project-select');
+  if(!sel) return;
+  sel.innerHTML = DB.projects.map(function(p){
+    return '<option value="'+p.id+'">'+esc(p.name)+'</option>';
+  }).join('');
+  sel.value = DB.activeProject;
+}
+
 document.getElementById('project-select').addEventListener('change',function(){
-  DB.activeProject=this.value;
-  document.getElementById('sb-project').textContent=DB.projects.find(p=>p.id===this.value)?.name||'';
+  DB.activeProject = this.value;
+  var proj = DB.projects.find(function(p){ return p.id===DB.activeProject; });
+  document.getElementById('sb-project').textContent = proj ? proj.name : '';
   renderAll();
 });
 
@@ -2627,11 +2679,10 @@ function assetDrop(e){
   document.getElementById('asset-dropzone').classList.remove('drag-over');
   if(e.dataTransfer.files.length>0) handleAssetFiles(e.dataTransfer.files);
 }
-</script>
 
-<script>
+
 // ═══════════════════════════════════════════════
-//  LOCALSTORAGE AUTOSAVE
+//  LOCALSTORAGE AUTOSAVE + VERSION HISTORY
 // ═══════════════════════════════════════════════
 var LS_KEY       = 'xiaoyeEditor_v1';
 var LS_HIST_KEY  = 'xiaoyeHistory_v1';
@@ -2639,13 +2690,13 @@ var LS_TITLE_KEY = 'xiaoyeTitle_v1';
 var MAX_HISTORY  = 50;
 var _saveDebounce = null;
 var _histDebounce = null;
+var _historyList  = [];
+var _lastSnapshotLen = 0;
 
-// ── Serialize / restore ──────────────────────────
 function saveToStorage(){
   try {
     var payload = JSON.stringify(DB);
     localStorage.setItem(LS_KEY, payload);
-    // Also save title fields
     var titleEl = document.getElementById('script-title-input');
     var subEl   = document.getElementById('script-subtitle-input');
     localStorage.setItem(LS_TITLE_KEY, JSON.stringify({
@@ -2661,32 +2712,18 @@ function saveToStorage(){
 function loadFromStorage(){
   try {
     var raw = localStorage.getItem(LS_KEY);
-    if(raw){
-      var saved = JSON.parse(raw);
-      Object.assign(DB, saved);
-    }
-  } catch(e) {
-    console.warn('loadFromStorage error:', e);
-  }
+    if(raw){ Object.assign(DB, JSON.parse(raw)); }
+  } catch(e){ console.warn('loadFromStorage error:', e); }
 }
 
-// Called after renderAll() on init — syncs DOM elements that need the page rendered first
 function restoreDomFromStorage(){
   try {
-    // Project selector
-    var sel = document.getElementById('project-select');
-    if(sel){
-      sel.innerHTML = DB.projects.map(function(p){
-        return '<option value="'+p.id+'">'+esc(p.name)+'</option>';
-      }).join('');
-      sel.value = DB.activeProject;
-    }
+    syncProjectSelector();
     var sbp = document.getElementById('sb-project');
     if(sbp){
       var ap = DB.projects.find(function(p){ return p.id===DB.activeProject; });
       if(ap) sbp.textContent = ap.name;
     }
-    // Title fields
     var raw = localStorage.getItem(LS_KEY);
     if(raw){
       var titleData = localStorage.getItem(LS_TITLE_KEY);
@@ -2699,9 +2736,7 @@ function restoreDomFromStorage(){
       }
       setSaveIndicator('✦ 已從上次記錄恢復');
     }
-  } catch(e) {
-    console.warn('restoreDomFromStorage error:', e);
-  }
+  } catch(e){ console.warn('restoreDomFromStorage error:', e); }
 }
 
 function setSaveIndicator(msg){
@@ -2711,52 +2746,20 @@ function setSaveIndicator(msg){
   el.style.color = msg.includes('⚠') ? 'var(--red)' : 'var(--teal)';
 }
 
-// Debounced autosave — called from scheduleUpdate
 function debouncedSave(){
   clearTimeout(_saveDebounce);
   _saveDebounce = setTimeout(saveToStorage, 1500);
 }
 
-// ── Patch scheduleUpdate to trigger autosave ────
-var _origScheduleUpdate = scheduleUpdate;
-scheduleUpdate = function(){
-  _origScheduleUpdate();
-  debouncedSave();
-};
-
-// Also save on renderAll (catches bulk ops like import/reorder)
-var _origRenderAll = renderAll;
-renderAll = function(){
-  _origRenderAll();
-  debouncedSave();
-};
-
-// ═══════════════════════════════════════════════
-//  VERSION HISTORY
-// ═══════════════════════════════════════════════
-var _historyList = [];   // [{ts, label, snapshot}]
-
-// Load history from localStorage on boot
-(function(){
-  try {
-    var raw = localStorage.getItem(LS_HIST_KEY);
-    if(raw) _historyList = JSON.parse(raw);
-  } catch(e){ _historyList = []; }
-})();
-
 function saveVersion(label){
-  var snapshot = JSON.stringify(DB);
-  var titleEl = document.getElementById('script-title-input');
   var ts = new Date().toLocaleString('zh-TW');
-  _historyList.unshift({ ts: ts, label: label || '手動快照', snapshot: snapshot });
+  _historyList.unshift({ ts: ts, label: label || '手動快照', snapshot: JSON.stringify(DB) });
   if(_historyList.length > MAX_HISTORY) _historyList = _historyList.slice(0, MAX_HISTORY);
   try { localStorage.setItem(LS_HIST_KEY, JSON.stringify(_historyList)); } catch(e){}
   renderHistoryPanel();
   setSaveIndicator('✦ 已儲存版本：' + (label||'快照'));
 }
 
-// Auto-snapshot on major ops (debounced, only when content really changes)
-var _lastSnapshotLen = 0;
 function autoSnapshot(label){
   clearTimeout(_histDebounce);
   _histDebounce = setTimeout(function(){
@@ -2765,37 +2768,19 @@ function autoSnapshot(label){
       _lastSnapshotLen = cur.length;
       saveVersion(label);
     }
-  }, 4000);  // 4 seconds after last change
+  }, 4000);
 }
-
-// Patch renderAll to trigger auto-snapshot
-var _origRenderAll2 = renderAll;
-renderAll = function(){
-  _origRenderAll2();
-  autoSnapshot('自動快照');
-};
 
 function restoreVersion(idx){
   var entry = _historyList[idx];
   if(!entry) return;
-  var ts = entry.ts;
-  if(!confirm('確定要回溯到「' + entry.label + '（' + ts + '）」嗎？\n目前的內容會先自動存成一個新的快照。')) return;
-  // Save current as snapshot before restoring
+  if(!confirm('確定要回溯到「' + entry.label + '（' + entry.ts + '）」嗎？\n目前的內容會先自動存成一個新的快照。')) return;
   saveVersion('回溯前備份');
   try {
-    var saved = JSON.parse(entry.snapshot);
-    Object.assign(DB, saved);
-    // Sync title fields
-    var titleData = localStorage.getItem(LS_TITLE_KEY);
-    if(titleData){
-      var td = JSON.parse(titleData);
-      var ti = document.getElementById('script-title-input');
-      var si = document.getElementById('script-subtitle-input');
-      if(ti) ti.value = td.title || '';
-      if(si) si.value = td.subtitle || '';
-    }
+    Object.assign(DB, JSON.parse(entry.snapshot));
+    restoreDomFromStorage();
     renderAll();
-    setSaveIndicator('✦ 已回溯至：' + ts);
+    setSaveIndicator('✦ 已回溯至：' + entry.ts);
   } catch(e){ alert('回溯失敗：' + e.message); }
 }
 
@@ -2816,46 +2801,58 @@ function renderHistoryPanel(){
   el.innerHTML = _historyList.map(function(v, i){
     return '<div style="padding:7px 8px;border:1px solid var(--border);border-radius:6px;margin-bottom:5px;background:var(--bg)">'
       + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px">'
-      + '<div>'
-      + '<div style="font-size:11px;font-weight:600;color:var(--ink2)">' + esc(v.label) + '</div>'
-      + '<div style="font-size:10px;color:var(--ink4);margin-top:1px">' + esc(v.ts) + '</div>'
-      + '</div>'
+      + '<div><div style="font-size:11px;font-weight:600;color:var(--ink2)">' + esc(v.label) + '</div>'
+      + '<div style="font-size:10px;color:var(--ink4);margin-top:1px">' + esc(v.ts) + '</div></div>'
       + '<button onclick="restoreVersion('+i+')" style="flex-shrink:0;padding:3px 8px;border:1px solid var(--border2);border-radius:4px;background:var(--bg);cursor:pointer;font-size:10px;color:var(--teal);font-family:\'Noto Sans TC\',sans-serif;white-space:nowrap" onmouseover="this.style.background=\'var(--teal-l)\'" onmouseout="this.style.background=\'var(--bg)\'">↩ 回溯</button>'
       + '</div></div>';
   }).join('');
 }
 
-// Manual save button via keyboard shortcut Cmd/Ctrl+S
+// Keyboard shortcuts — safe to bind at parse time (no dependency on renderAll)
 document.addEventListener('keydown', function(e){
-  // Ctrl/Cmd + S → manual save
   if((e.metaKey || e.ctrlKey) && e.key === 's'){
     e.preventDefault();
     saveVersion('手動存檔 ⌘S');
     saveToStorage();
     return;
   }
-  // Ctrl/Cmd + Z → undo (only when focus is inside the editor)
   if((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z'){
-    var focused = document.activeElement;
-    if(focused && focused.classList.contains('sl-content')){
-      e.preventDefault();
-      doUndo();
+    if(document.activeElement && document.activeElement.classList.contains('sl-content')){
+      e.preventDefault(); doUndo();
     }
     return;
   }
-  // Ctrl/Cmd + Y  or  Ctrl/Cmd + Shift + Z → redo
   if((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))){
-    var focused2 = document.activeElement;
-    if(focused2 && focused2.classList.contains('sl-content')){
-      e.preventDefault();
-      doRedo();
+    if(document.activeElement && document.activeElement.classList.contains('sl-content')){
+      e.preventDefault(); doRedo();
     }
     return;
   }
 });
-</script>
 
-<script>
+// ── INIT: all scripts parsed, DOM ready ──────────────────────────────
+window.addEventListener('DOMContentLoaded', function(){
+  // Load history
+  try {
+    var raw = localStorage.getItem(LS_HIST_KEY);
+    if(raw) _historyList = JSON.parse(raw);
+  } catch(e){ _historyList = []; }
+
+  // Patch scheduleUpdate and renderAll (now safe — all functions defined)
+  var _origSU = scheduleUpdate;
+  scheduleUpdate = function(){ _origSU(); debouncedSave(); };
+  var _origRA = renderAll;
+  renderAll = function(){ _origRA(); debouncedSave(); autoSnapshot('自動快照'); };
+
+  // Boot sequence
+  loadFromStorage();
+  renderAll();
+  restoreDomFromStorage();
+  renderHistoryPanel();
+});
+
+
+
 // ═══════════════════════════════════════════════
 //  SMART IMPORT MODAL
 // ═══════════════════════════════════════════════
@@ -3052,33 +3049,8 @@ window.addEventListener('DOMContentLoaded', function(){
   restoreDomFromStorage(); // sync project selector + title fields
   renderHistoryPanel();   // populate history tab
 });
-</script>
 
-<!-- ── GUIDE MODAL ─────────────────────────────── -->
-<div id="guide-overlay" onclick="guideOverlayClick(event)">
-  <div id="guide-box">
-    <div id="guide-hdr">
-      <span class="guide-logo">雪雪劇本工坊 Pro</span>
-      <span class="guide-title">使用指南</span>
-      <button id="guide-close" onclick="closeGuide()" title="關閉">✕</button>
-    </div>
-    <div id="guide-nav">
-      <button class="active" onclick="showGuideSection(0,this)">介面總覽</button>
-      <button onclick="showGuideSection(1,this)">開始寫劇本</button>
-      <button onclick="showGuideSection(2,this)">六種段落格式</button>
-      <button onclick="showGuideSection(3,this)">場景標題工具列</button>
-      <button onclick="showGuideSection(4,this)">分場卡系統</button>
-      <button onclick="showGuideSection(5,this)">角色與筆記</button>
-      <button onclick="showGuideSection(6,this)">參考資料</button>
-      <button onclick="showGuideSection(7,this)">匯出與備份</button>
-      <button onclick="showGuideSection(8,this)">快捷鍵總覽</button>
-      <button onclick="showGuideSection(9,this)">常見問題</button>
-    </div>
-    <div id="guide-body"></div>
-  </div>
-</div>
 
-<script>
 // ── Guide content sections ──────────────────────
 var GUIDE_SECTIONS = [
 
@@ -3305,6 +3277,7 @@ document.getElementById('guide-body').innerHTML = GUIDE_SECTIONS[0];
 document.addEventListener('keydown', function(e){
   if(e.key === 'Escape') closeGuide();
 });
+
 </script>
 </body>
 </html>
