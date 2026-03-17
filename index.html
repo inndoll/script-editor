@@ -2627,13 +2627,6 @@ function assetDrop(e){
   document.getElementById('asset-dropzone').classList.remove('drag-over');
   if(e.dataTransfer.files.length>0) handleAssetFiles(e.dataTransfer.files);
 }
-
-// ═══════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════
-loadFromStorage();   // restore DB data synchronously
-renderAll();         // render with correct data
-restoreDomFromStorage(); // sync DOM elements (selector, title fields)
 </script>
 
 <script>
@@ -2860,9 +2853,6 @@ document.addEventListener('keydown', function(e){
     return;
   }
 });
-
-// Init history panel on load
-renderHistoryPanel();
 </script>
 
 <script>
@@ -3052,6 +3042,16 @@ function confirmImport(){
   var msg = '✓ 已匯入 ' + newBlocks.length + ' 行。\n辨識結果僅供初步整理，請用工具列或 Tab 鍵手動校正任何格式。';
   setTimeout(function(){ alert(msg); }, 150);
 }
+
+// ═══════════════════════════════════════════════
+//  INIT — runs after ALL script blocks are parsed
+// ═══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', function(){
+  loadFromStorage();      // restore DB data into memory
+  renderAll();            // render editor with correct data
+  restoreDomFromStorage(); // sync project selector + title fields
+  renderHistoryPanel();   // populate history tab
+});
 </script>
 
 <!-- ── GUIDE MODAL ─────────────────────────────── -->
