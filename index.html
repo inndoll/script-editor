@@ -372,22 +372,74 @@ kbd{
 
 /* Print */
 @media print{
-  #topbar,#left,#right,#statusbar,.editor-toolbar,.add-line-row,.sl-num,.sl-type-wrap{display:none!important}
+  #topbar,#left,#right,#statusbar,.editor-toolbar,.add-line-row,
+  .sl-num,.sl-type-wrap,.scene-int-wrap,.scene-time-wrap{display:none!important}
   #main{display:block!important}
   #center{display:block!important;overflow:visible!important}
   #editor-scroll{overflow:visible!important;padding:0!important}
-  #editor-page{max-width:none!important}
-  #script-title-block{text-align:center;margin-bottom:36pt}
-  #script-title-input,#script-subtitle-input{font-size:16pt;display:block;width:100%}
-  .sl-num,.sl-type-badge{display:none!important}
+  #editor-page{max-width:none!important;padding:0!important}
+  #script-title-block{text-align:center;margin-bottom:36pt;padding-bottom:12pt;border-bottom:1pt solid #999}
+  #script-title-input{font-size:18pt;font-weight:700;display:block;width:100%;text-align:center;border:none;background:transparent;font-family:'Courier Prime',Courier,monospace}
+  #script-subtitle-input{font-size:12pt;display:block;width:100%;text-align:center;border:none;background:transparent;font-family:'Courier Prime',Courier,monospace;color:#555}
   .sl-content{border:none!important;background:none!important;font-family:'Courier Prime',Courier,monospace!important;font-size:12pt!important;line-height:1.5!important;padding:0!important;display:block!important;color:#000!important}
-  @page{margin:1in 1in 1in 1.5in;size:letter}
-  .sl-content[data-type="scene"]{font-weight:700!important;text-transform:uppercase!important;margin:20pt 0 8pt!important;border:none!important}
-  .sl-content[data-type="action"]{margin-bottom:10pt!important}
-  .sl-content[data-type="character"]{padding-left:3.5in!important;text-align:left!important;font-weight:700!important;margin-top:10pt!important;text-transform:uppercase!important;letter-spacing:0!important}
-  .sl-content[data-type="dialogue"]{padding-left:2in!important;padding-right:2in!important;margin-bottom:8pt!important}
-  .sl-content[data-type="parenthetical"]{padding-left:2.5in!important;padding-right:2.5in!important;font-style:italic!important}
-  .sl-content[data-type="transition"]{text-align:right!important;font-weight:700!important;margin:10pt 0!important;text-transform:uppercase!important}
+
+  /* Page setup: Hollywood margins, page numbers via @page bottom-center */
+  @page{
+    size:letter;
+    margin:1in 1in 0.75in 1.5in;
+  }
+  @page :first {
+    margin-bottom: 0.75in;
+  }
+
+  /* Page number: inject via a fixed footer element rendered once per page.
+     The most cross-browser reliable approach is @page margin boxes. */
+  @page {
+    @bottom-center {
+      content: counter(page);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 11pt;
+      color: #000;
+    }
+  }
+
+  /* Scene counter — increments on every scene heading */
+  #editor-page{ counter-reset: scene-num 0; }
+  .sl-content[data-type="scene"]{
+    counter-increment: scene-num;
+    font-weight:700!important;
+    text-transform:uppercase!important;
+    margin:18pt 0 6pt!important;
+    border:none!important;
+    page-break-after: avoid;
+  }
+  /* Scene number prefix: "A1. " style */
+  .sl-content[data-type="scene"]::before{
+    content: counter(scene-num) ".  ";
+    font-weight:700;
+    font-family:'Courier Prime',Courier,monospace;
+  }
+  .sl-content[data-type="action"]{margin-bottom:10pt!important;page-break-inside:avoid}
+  .sl-content[data-type="character"]{
+    padding-left:3.5in!important;text-align:left!important;
+    font-weight:700!important;margin-top:10pt!important;
+    text-transform:uppercase!important;letter-spacing:0!important;
+    page-break-after:avoid!important;
+  }
+  .sl-content[data-type="dialogue"]{
+    padding-left:2in!important;padding-right:2in!important;margin-bottom:8pt!important;
+  }
+  .sl-content[data-type="parenthetical"]{
+    padding-left:2.5in!important;padding-right:2.5in!important;
+    font-style:italic!important;page-break-after:avoid!important;
+  }
+  .sl-content[data-type="transition"]{
+    text-align:right!important;font-weight:700!important;
+    margin:10pt 0!important;text-transform:uppercase!important;
+  }
+
+  /* Scene card chips don't print */
+  .int-chip,.time-chip,.chip-group-sep,.int-sep{display:none!important}
 }
 
 /* Misc */
@@ -1980,6 +2032,9 @@ async function exportDocx(){
     var AlignmentType = D.AlignmentType;
     var BorderStyle = D.BorderStyle;
     var UnderlineType = D.UnderlineType;
+    var Footer = D.Footer;
+    var PageNumber = D.PageNumber;
+    var NumberFormat = D.NumberFormat;
 
     var proj = DB.projects.find(function(p){ return p.id===getProject(); });
     var titleEl = document.getElementById('script-title-input');
@@ -1989,7 +2044,6 @@ async function exportDocx(){
     var blocks = getBlocks();
     var dateStr = new Date().toLocaleDateString('zh-TW');
 
-    // DXA: 1 inch = 1440 twips
     function IN(v){ return Math.round(v * 1440); }
 
     function baseRun(text, opts){
@@ -1998,10 +2052,23 @@ async function exportDocx(){
       return new TextRun(cfg);
     }
 
+    // ── Footer: centred page number ──────────────
+    var footer = new Footer({
+      children: [
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [
+            new TextRun({ children: [PageNumber.CURRENT], font: 'Courier New', size: 20 })
+          ]
+        })
+      ]
+    });
+
     var pageProps = {
       page: {
         size: { width: IN(8.5), height: IN(11) },
-        margin: { top: IN(1), right: IN(1), bottom: IN(1), left: IN(1.5) }
+        margin: { top: IN(1), right: IN(1), bottom: IN(1.0), left: IN(1.5) },
+        pageNumbers: { start: 1, formatType: NumberFormat ? NumberFormat.DECIMAL : undefined }
       }
     };
 
@@ -2032,7 +2099,8 @@ async function exportDocx(){
       children: [baseRun('')]
     }));
 
-    // ── Script body ──────────────────────────────
+    // ── Script body — count scene numbers ───────
+    var sceneNum = 0;
     blocks.forEach(function(b){
       var t = (b.text || '').trim();
       if(!t){
@@ -2040,9 +2108,15 @@ async function exportDocx(){
         return;
       }
       if(b.type === 'scene'){
+        sceneNum++;
+        // Scene number appears on both left (before heading) and right margin (standard Hollywood)
+        var sceneLabel = sceneNum + '.';
         children.push(new Paragraph({
           spacing: { before: IN(0.33), after: IN(0.1) },
-          children: [baseRun(t.toUpperCase(), { bold: true, underline: { type: UnderlineType.SINGLE } })]
+          children: [
+            baseRun(sceneLabel + '  ', { bold: true, size: 24 }),
+            baseRun(t.toUpperCase(), { bold: true, underline: { type: UnderlineType.SINGLE } })
+          ]
         }));
       } else if(b.type === 'action'){
         children.push(new Paragraph({
@@ -2085,7 +2159,11 @@ async function exportDocx(){
       creator: '雪雪劇本工坊 Pro',
       title: titleVal,
       description: subtitleVal,
-      sections: [{ properties: pageProps, children: children }]
+      sections: [{
+        properties: pageProps,
+        footers: { default: footer },
+        children: children
+      }]
     });
 
     var blob = await Packer.toBlob(doc);
