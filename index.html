@@ -434,6 +434,41 @@ kbd{
 .ctx-item.danger{color:var(--red)}
 .ctx-item.danger:hover{background:var(--red-l)}
 
+/* ── IMPORT MODAL ────────────────────────────── */
+#import-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.52);z-index:1500;align-items:center;justify-content:center;padding:20px}
+#import-overlay.open{display:flex}
+#import-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius3);width:760px;max-width:96vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.25)}
+.import-hdr{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg2);flex-shrink:0}
+.import-hdr h2{font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;color:var(--ink);flex:1}
+.import-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg3);flex-shrink:0}
+.import-tab{flex:1;padding:9px;border:none;background:none;cursor:pointer;font-size:12px;font-family:'Noto Sans TC',sans-serif;color:var(--ink3);border-bottom:2px solid transparent;font-weight:500;transition:all 0.12s}
+.import-tab.active{color:var(--amber);border-bottom-color:var(--amber);background:var(--bg2)}
+.import-pane{display:none;padding:18px 20px;flex:1;overflow-y:auto}.import-pane.active{display:flex;flex-direction:column;gap:12px}
+.import-dropzone{border:2px dashed var(--border2);border-radius:var(--radius2);padding:28px 20px;text-align:center;cursor:pointer;transition:all 0.15s;background:var(--bg)}
+.import-dropzone:hover,.import-dropzone.dragover{border-color:var(--amber);background:var(--amber-l)}
+.import-dropzone .dz-icon{font-size:28px;margin-bottom:8px;display:block;opacity:0.6}
+.import-dropzone .dz-main{font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:4px}
+.import-dropzone .dz-sub{font-size:11px;color:var(--ink3)}
+.import-textarea{width:100%;border:1px solid var(--border2);border-radius:var(--radius2);padding:10px 12px;font-family:'Noto Serif TC',serif;font-size:13px;color:var(--ink);background:var(--bg);resize:vertical;min-height:180px;outline:none;line-height:1.75}
+.import-textarea:focus{border-color:var(--amber)}
+.import-hint{font-size:11px;color:var(--ink3);line-height:1.7;padding:8px 10px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border)}
+/* Preview table */
+#import-preview-wrap{display:none;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:var(--radius2);overflow:hidden;max-height:320px;overflow-y:auto}
+.ipr-row{display:grid;grid-template-columns:36px 120px 1fr;align-items:stretch;border-bottom:1px solid var(--border);font-size:12px}
+.ipr-row:last-child{border-bottom:none}
+.ipr-row:nth-child(even){background:var(--bg2)}
+.ipr-num{padding:7px 6px;text-align:right;color:var(--ink4);font-family:monospace;font-size:10px;border-right:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end}
+.ipr-type{padding:5px 6px;border-right:1px solid var(--border);display:flex;align-items:center}
+.ipr-type select{width:100%;border:1px solid transparent;border-radius:4px;background:transparent;font-size:10px;font-family:'Noto Sans TC',sans-serif;color:var(--ink2);cursor:pointer;padding:2px 2px;outline:none}
+.ipr-type select:hover{border-color:var(--border2)}
+.ipr-type select:focus{border-color:var(--amber);background:var(--bg)}
+.ipr-text{padding:6px 8px;color:var(--ink2);word-break:break-all;display:flex;align-items:center;line-height:1.5}
+.import-footer{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:space-between;align-items:center;background:var(--bg2);flex-shrink:0}
+.import-footer-note{font-size:11px;color:var(--ink3)}
+.import-progress{font-size:11px;color:var(--teal);font-weight:500}
+/* type colour dots in select */
+.ipr-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px}
+
 /* ── GUIDE MODAL ─────────────────────────────── */
 #guide-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;padding:20px}
 #guide-overlay.open{display:flex}
@@ -487,6 +522,7 @@ kbd{
 .g-wf-arr{display:flex;align-items:center;font-size:16px;color:var(--border2);flex:0 0 auto}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 </head>
 <body>
 
@@ -522,6 +558,7 @@ kbd{
 
   <!-- Right side buttons -->
   <div class="tbar-group">
+    <button class="tbtn" style="color:var(--green);border-color:#8AC4A0;background:var(--green-l)" onclick="openImportModal()">⬆ 匯入劇本</button>
     <button class="tbtn danger" onclick="exportFountain()">⬇ Fountain</button>
     <button class="tbtn" style="color:var(--blue);border-color:#9AB8E0;background:var(--blue-l)" onclick="exportDocx()">⬇ Word (.docx)</button>
     <button class="tbtn" onclick="exportHtml()">⬇ 備份 App</button>
@@ -738,6 +775,70 @@ kbd{
   <div class="ctx-item" onclick="ctxAction('edit')">✏ 編輯</div>
   <div class="divider"></div>
   <div class="ctx-item danger" onclick="ctxAction('delete')">✕ 刪除</div>
+</div>
+
+<!-- ── IMPORT MODAL ──────────────────────────── -->
+<div id="import-overlay" onclick="importOverlayClick(event)">
+  <div id="import-box">
+    <div class="import-hdr">
+      <h2>⬆ 智慧匯入劇本</h2>
+      <button class="icon-btn" onclick="closeImportModal()" style="font-size:15px">✕</button>
+    </div>
+    <div class="import-tabs">
+      <button class="import-tab active" id="itab-text" onclick="switchImportTab('text',this)">📋 貼上純文字</button>
+      <button class="import-tab" id="itab-docx" onclick="switchImportTab('docx',this)">📄 上傳 Word 檔（.docx）</button>
+    </div>
+
+    <!-- 純文字 pane -->
+    <div class="import-pane active" id="ipane-text">
+      <textarea class="import-textarea" id="import-textarea" placeholder="在此貼上劇本純文字內容…
+
+支援格式：
+• 每行一個段落
+• 系統會自動辨識場景標題、動作、角色、對白等類型
+• 辨識結果可在下方預覽中手動修正"></textarea>
+      <div class="import-hint">
+        💡 辨識規則：含 INT / EXT / 內景 / 外景 的短行→場景標題　全大寫短行→角色名稱　括號開頭→語氣說明　FADE / CUT / 切至→轉場　其餘→動作描述或對白<br>
+        辨識結果僅供初步整理，匯入後仍可用工具列或 Tab 鍵手動修正任何一行的格式。
+      </div>
+      <button class="tbtn primary" onclick="analyseText()" style="align-self:flex-start">🔍 自動辨識段落類型</button>
+    </div>
+
+    <!-- Word 上傳 pane -->
+    <div class="import-pane" id="ipane-docx">
+      <div class="import-dropzone" id="docx-dropzone"
+        onclick="document.getElementById('docx-file-input').click()"
+        ondragover="docxDragOver(event)" ondragleave="docxDragLeave(event)" ondrop="docxDrop(event)">
+        <span class="dz-icon">📄</span>
+        <div class="dz-main">拖曳 .docx 檔至此，或點擊選擇檔案</div>
+        <div class="dz-sub">支援 Microsoft Word .docx 格式</div>
+      </div>
+      <input type="file" id="docx-file-input" accept=".docx" style="display:none" onchange="handleDocxFile(this.files[0])">
+      <div class="import-hint" id="docx-status">等待選擇檔案……</div>
+    </div>
+
+    <!-- 預覽區（兩個 pane 共用） -->
+    <div id="import-preview-section" style="display:none;padding:0 20px 16px;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0">
+        <span style="font-size:12px;font-weight:600;color:var(--ink2)">辨識結果預覽 <span id="import-count" style="color:var(--ink3);font-weight:400"></span></span>
+        <span style="font-size:11px;color:var(--ink3)">可直接修改每行的格式類型，再按「匯入劇本」</span>
+      </div>
+      <div id="import-preview-wrap"></div>
+    </div>
+
+    <div class="import-footer">
+      <span class="import-footer-note" id="import-footer-note">請先選擇匯入方式並辨識段落類型</span>
+      <div style="display:flex;gap:8px">
+        <select id="import-mode-select" class="form-select" style="font-size:11px;padding:4px 8px;width:auto">
+          <option value="replace">取代目前劇本</option>
+          <option value="append">附加到劇本末尾</option>
+          <option value="cursor">插入游標位置</option>
+        </select>
+        <button class="tbtn" onclick="closeImportModal()">取消</button>
+        <button class="tbtn primary" id="import-confirm-btn" onclick="confirmImport()" disabled style="opacity:0.4">匯入劇本</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -2103,6 +2204,195 @@ function assetDrop(e){
 //  INIT
 // ═══════════════════════════════════════════════
 renderAll();
+</script>
+
+<script>
+// ═══════════════════════════════════════════════
+//  SMART IMPORT MODAL
+// ═══════════════════════════════════════════════
+
+var _importBlocks = [];
+
+function openImportModal(){
+  _importBlocks = [];
+  document.getElementById('import-textarea').value = '';
+  document.getElementById('docx-status').textContent = '等待選擇檔案……';
+  document.getElementById('import-preview-section').style.display = 'none';
+  document.getElementById('import-preview-wrap').innerHTML = '';
+  document.getElementById('import-confirm-btn').disabled = true;
+  document.getElementById('import-confirm-btn').style.opacity = '0.4';
+  document.getElementById('import-footer-note').textContent = '請先選擇匯入方式並辨識段落類型';
+  document.getElementById('docx-file-input').value = '';
+  switchImportTab('text', document.getElementById('itab-text'));
+  document.getElementById('import-overlay').classList.add('open');
+}
+function closeImportModal(){
+  document.getElementById('import-overlay').classList.remove('open');
+}
+function importOverlayClick(e){
+  if(e.target === document.getElementById('import-overlay')) closeImportModal();
+}
+function switchImportTab(name, btn){
+  document.querySelectorAll('.import-tab').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('.import-pane').forEach(function(p){ p.classList.remove('active'); });
+  btn.classList.add('active');
+  document.getElementById('ipane-'+name).classList.add('active');
+}
+
+// ── Rule-based classifier ────────────────────────
+var SCENE_RE   = /^(INT|EXT|INT\/EXT|I\/E|內景|外景|室內|室外)[.\s\/]/i;
+var SCENE_BODY = /\b(INT|EXT|內景|外景)\b.{0,30}(日|夜|黃昏|清晨|DAY|NIGHT|DUSK|DAWN)/i;
+var TRANS_RE   = /^(FADE\s*(IN|OUT|TO)|CUT\s*TO|DISSOLVE\s*TO|SMASH\s*CUT|MATCH\s*CUT|切至|轉場|淡出|淡入)[:\s]*/i;
+var PAREN_RE   = /^[(（].{0,50}[)）]\s*$/;
+
+function classifyLine(text, prevType){
+  var t = text.trim();
+  if(!t) return null;
+  if(TRANS_RE.test(t)) return 'transition';
+  if(SCENE_RE.test(t) || SCENE_BODY.test(t)) return 'scene';
+  if(PAREN_RE.test(t)) return 'parenthetical';
+  // All-caps short line → character cue
+  var up = t.toUpperCase();
+  if(t === up && t.length <= 32 && !/[。，、：；！？,.?!「」『』]/.test(t) && /[A-Z\u4e00-\u9fff]/.test(t)){
+    return 'character';
+  }
+  // Context: after character/paren/dialogue → dialogue
+  if(prevType === 'character' || prevType === 'parenthetical' || prevType === 'dialogue'){
+    return 'dialogue';
+  }
+  return 'action';
+}
+
+function textToBlocks(rawText){
+  var lines = rawText.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+  var result = [];
+  var prevType = null;
+  lines.forEach(function(line){
+    var t = line.trim();
+    if(!t){ prevType = null; return; }
+    var type = classifyLine(t, prevType);
+    if(!type) return;
+    result.push({ id: uid(), type: type, text: t, linkedCardId: null });
+    prevType = type;
+  });
+  return result;
+}
+
+// ── Pure-text pane ───────────────────────────────
+function analyseText(){
+  var raw = document.getElementById('import-textarea').value;
+  if(!raw.trim()){ alert('請先貼上劇本文字內容。'); return; }
+  var blocks = textToBlocks(raw);
+  if(blocks.length === 0){ alert('未能辨識出任何段落，請確認內容格式。'); return; }
+  _importBlocks = blocks;
+  renderImportPreview(blocks);
+}
+
+// ── Word (.docx) pane ────────────────────────────
+function docxDragOver(e){
+  e.preventDefault();
+  document.getElementById('docx-dropzone').classList.add('dragover');
+}
+function docxDragLeave(e){
+  document.getElementById('docx-dropzone').classList.remove('dragover');
+}
+function docxDrop(e){
+  e.preventDefault();
+  document.getElementById('docx-dropzone').classList.remove('dragover');
+  var file = e.dataTransfer.files[0];
+  if(file) handleDocxFile(file);
+}
+function handleDocxFile(file){
+  if(!file) return;
+  if(!file.name.match(/\.docx$/i)){ alert('請上傳 .docx 格式的 Word 檔案。'); return; }
+  var status = document.getElementById('docx-status');
+  status.textContent = '⏳ 正在讀取 ' + file.name + ' ……';
+  if(typeof mammoth === 'undefined'){
+    status.textContent = '❌ mammoth.js 尚未載入，請確認網路連線後重新整理頁面。';
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    mammoth.extractRawText({ arrayBuffer: ev.target.result })
+      .then(function(result){
+        var text = result.value;
+        if(!text.trim()){ status.textContent = '⚠️ 無法從此檔案讀取到文字，可能是加密或圖片型文件。'; return; }
+        var lineCount = text.split('\n').filter(function(l){ return l.trim(); }).length;
+        status.textContent = '✓ 已讀取「' + file.name + '」，共 ' + lineCount + ' 行，辨識中……';
+        var blocks = textToBlocks(text);
+        _importBlocks = blocks;
+        renderImportPreview(blocks);
+      })
+      .catch(function(err){ status.textContent = '❌ 讀取失敗：' + err.message; });
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── Preview table ────────────────────────────────
+var IMP_COLORS = {
+  scene:'var(--red)', action:'var(--ink2)', character:'var(--teal)',
+  dialogue:'var(--amber)', parenthetical:'var(--blue)', transition:'#6A3A8A'
+};
+var BLOCK_TYPES_ALL = ['scene','action','character','dialogue','parenthetical','transition'];
+var TYPE_LABELS_ALL = {scene:'場景標題',action:'動作描述',character:'角色名稱',dialogue:'對白',parenthetical:'語氣說明',transition:'轉場'};
+
+function renderImportPreview(blocks){
+  var wrap = document.getElementById('import-preview-wrap');
+  var html = '';
+  blocks.forEach(function(b, i){
+    var opts = BLOCK_TYPES_ALL.map(function(t){
+      return '<option value="'+t+'"'+(t===b.type?' selected':'')+'>'+(TYPE_LABELS_ALL[t]||t)+'</option>';
+    }).join('');
+    html += '<div class="ipr-row">'
+      + '<span class="ipr-num">'+(i+1)+'</span>'
+      + '<span class="ipr-type"><select onchange="updateImportType('+i+',this.value)">'+opts+'</select></span>'
+      + '<span class="ipr-text" id="ipr-txt-'+i+'" style="color:'+(IMP_COLORS[b.type]||'var(--ink2)')+'">'+escI(b.text)+'</span>'
+      + '</div>';
+  });
+  wrap.innerHTML = html;
+  document.getElementById('import-preview-section').style.display = 'flex';
+  document.getElementById('import-count').textContent = '（共 '+blocks.length+' 行）';
+  document.getElementById('import-confirm-btn').disabled = false;
+  document.getElementById('import-confirm-btn').style.opacity = '1';
+  document.getElementById('import-footer-note').textContent = '✓ 辨識完成，確認格式後按「匯入劇本」';
+}
+function escI(t){ return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function updateImportType(i, newType){
+  if(_importBlocks[i]) _importBlocks[i].type = newType;
+  var el = document.getElementById('ipr-txt-'+i);
+  if(el) el.style.color = IMP_COLORS[newType] || 'var(--ink2)';
+}
+
+// ── Confirm and merge ────────────────────────────
+function confirmImport(){
+  if(!_importBlocks || _importBlocks.length === 0){ alert('沒有可匯入的段落，請先執行辨識。'); return; }
+  // Sync any manual select changes
+  document.querySelectorAll('.ipr-row').forEach(function(row, i){
+    var sel = row.querySelector('select');
+    if(sel && _importBlocks[i]) _importBlocks[i].type = sel.value;
+  });
+
+  var mode = document.getElementById('import-mode-select').value;
+  var newBlocks = _importBlocks.slice();
+
+  if(mode === 'replace'){
+    if(!confirm('確定要取代目前劇本全部內容嗎？（建議先下載備份 App）')) return;
+    DB.scripts[getProject()].blocks = newBlocks;
+  } else if(mode === 'append'){
+    newBlocks.forEach(function(b){ getBlocks().push(b); });
+  } else {
+    // insert at cursor
+    var at = (activeLineIdx !== null) ? activeLineIdx + 1 : getBlocks().length;
+    newBlocks.slice().reverse().forEach(function(b){ getBlocks().splice(at, 0, b); });
+  }
+
+  closeImportModal();
+  renderAll();
+
+  var msg = '✓ 已匯入 ' + newBlocks.length + ' 行。\n辨識結果僅供初步整理，請用工具列或 Tab 鍵手動校正任何格式。';
+  setTimeout(function(){ alert(msg); }, 150);
+}
 </script>
 
 <!-- ── GUIDE MODAL ─────────────────────────────── -->
