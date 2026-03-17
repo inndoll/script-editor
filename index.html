@@ -1564,6 +1564,29 @@ function placeCaretEnd(el){
   r.selectNodeContents(el);r.collapse(false);s.removeAllRanges();s.addRange(r);
 }
 
+// Select all text across all script lines (for Ctrl+A when not inside a line)
+function selectAllScriptText(){
+  var lines = document.querySelectorAll('.sl-content');
+  if(lines.length === 0) return;
+
+  var sel = window.getSelection();
+  sel.removeAllRanges();
+
+  var range = document.createRange();
+  range.setStart(lines[0], 0);
+
+  // Set end to last text node of last line
+  var lastLine = lines[lines.length - 1];
+  range.setEnd(lastLine, lastLine.childNodes.length);
+
+  sel.addRange(range);
+
+  // Visually highlight all rows
+  document.querySelectorAll('.sl').forEach(function(row){
+    row.classList.add('focused');
+  });
+}
+
 function toggleTypeDropdown(e, i){
   e.stopPropagation();
   // Close all other dropdowns
@@ -2877,6 +2900,18 @@ document.addEventListener('keydown', function(e){
   if((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))){
     if(document.activeElement && document.activeElement.classList.contains('sl-content')){
       e.preventDefault(); doRedo();
+    }
+    return;
+  }
+  // Ctrl/Cmd + A — select all script lines when cursor is NOT inside a line
+  if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a'){
+    var active = document.activeElement;
+    var inEditorLine = active && active.classList.contains('sl-content');
+    var inTitleInput = active && (active.id === 'script-title-input' || active.id === 'script-subtitle-input');
+    // Only intercept when focus is NOT already in a specific line or title field
+    if(!inEditorLine && !inTitleInput){
+      e.preventDefault();
+      selectAllScriptText();
     }
     return;
   }
