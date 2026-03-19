@@ -181,10 +181,41 @@ kbd{
 }
 .sl:hover{background:rgba(184,122,0,0.05)}
 .sl.focused{background:rgba(184,122,0,0.07)}
-.sl-num{
-  width:30px;font-size:9px;color:var(--ink4);font-family:monospace;
-  text-align:right;padding-right:8px;flex-shrink:0;user-select:none;padding-top:5px;
+.sl.sl-selected{background:rgba(184,122,0,0.13)!important;outline:1px solid var(--amber2)}
+/* Checkbox column — hidden until multi-select mode */
+.sl-check{
+  width:22px;flex-shrink:0;display:flex;align-items:flex-start;padding-top:5px;
+  justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.12s;
 }
+.sl-check input[type=checkbox]{width:13px;height:13px;cursor:pointer;accent-color:var(--amber)}
+body.multiselect-mode .sl-check{opacity:1;pointer-events:auto}
+body.multiselect-mode .sl-num{display:none}
+/* Multi-select action bar */
+#multiselect-bar{
+  display:none;position:sticky;top:0;z-index:100;
+  background:var(--amber);color:#fff;
+  padding:7px 14px;border-radius:6px;margin:0 0 8px;
+  align-items:center;gap:10px;font-size:12px;font-weight:600;
+  box-shadow:0 2px 12px rgba(184,122,0,0.3);
+}
+#multiselect-bar.open{display:flex}
+#multiselect-bar .ms-count{flex:1;font-size:12px}
+#multiselect-bar button{
+  padding:4px 10px;border:1px solid rgba(255,255,255,0.5);border-radius:5px;
+  background:rgba(255,255,255,0.15);color:#fff;cursor:pointer;font-size:11px;
+  font-family:'Noto Sans TC',sans-serif;font-weight:600;transition:all 0.12s;white-space:nowrap;
+}
+#multiselect-bar button:hover{background:rgba(255,255,255,0.3)}
+#multiselect-bar button.ms-danger{border-color:rgba(255,100,100,0.6);background:rgba(200,0,0,0.25)}
+#multiselect-bar button.ms-danger:hover{background:rgba(200,0,0,0.45)}
+#multiselect-bar select{
+  padding:3px 6px;border:1px solid rgba(255,255,255,0.5);border-radius:5px;
+  background:rgba(255,255,255,0.15);color:#fff;font-size:11px;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;
+}
+#multiselect-bar select option{background:var(--amber);color:#fff}
+/* Toggle button in toolbar */
+#ms-toggle-btn.active{background:var(--amber-l)!important;color:var(--amber)!important;border-color:var(--amber)!important;font-weight:700!important}
 /* Clickable type badge / dropdown */
 .sl-type-wrap{
   width:68px;flex-shrink:0;padding-top:2px;position:relative;
@@ -375,7 +406,8 @@ kbd{
 /* Print */
 @media print{
   #topbar,#left,#right,#statusbar,.editor-toolbar,.add-line-row,
-  .sl-num,.sl-type-wrap,.scene-int-wrap,.scene-time-wrap{display:none!important}
+  .sl-num,.sl-type-wrap,.scene-int-wrap,.scene-time-wrap,
+  .sl-check,#multiselect-bar,#ms-toggle-btn{display:none!important}
   #main{display:block!important}
   #center{display:block!important;overflow:visible!important}
   #editor-scroll{overflow:visible!important;padding:0!important}
@@ -807,6 +839,27 @@ kbd{
         <kbd>Enter</kbd> 智慧換行　
         <kbd>Alt+T</kbd> 切換時間（場景行）
       </span>
+      <button id="ms-toggle-btn" class="tbtn" onclick="toggleMultiSelect()"
+        title="多行選取模式：勾選多行後可一次刪除、改格式、上移或下移"
+        style="margin-left:auto;font-size:10px;padding:3px 8px">☑ 多行選取</button>
+    </div>
+    <!-- Multi-select action bar -->
+    <div id="multiselect-bar">
+      <span class="ms-count" id="ms-count-label">已選取 0 行</span>
+      <button onclick="msSelectAll()">全選</button>
+      <select id="ms-type-select" title="一次改變所有選取行的格式">
+        <option value="">改格式…</option>
+        <option value="scene">場景標題</option>
+        <option value="action">動作描述</option>
+        <option value="character">角色名稱</option>
+        <option value="dialogue">對白</option>
+        <option value="parenthetical">語氣說明</option>
+        <option value="transition">轉場</option>
+      </select>
+      <button onclick="msMoveUp()">↑ 上移</button>
+      <button onclick="msMoveDown()">↓ 下移</button>
+      <button class="ms-danger" onclick="msDeleteSelected()">✕ 刪除選取行</button>
+      <button onclick="toggleMultiSelect()" style="background:rgba(255,255,255,0.2)">完成</button>
     </div>
     <div id="editor-scroll">
       <div id="editor-page">
@@ -1321,6 +1374,7 @@ function renderLines(){
     });
 
     return '<div class="sl' + (activeLineIdx===i?' focused':'') + '" id="row-'+i+'" data-idx="'+i+'"' + (isScene?' data-scene="1"':'') + '>'
+      + '<span class="sl-check"><input type="checkbox" onchange="msToggleLine('+i+',this)" onclick="event.stopPropagation()" id="chk-'+i+'"></span>'
       + '<span class="sl-num">' + (i+1) + '</span>'
       + '<div class="sl-type-wrap" id="typewrap-'+i+'">'
       + '<button class="sl-type-btn t-'+b.type+'" id="typebtn-'+i+'" onclick="toggleTypeDropdown(event,'+i+')" title="點擊切換格式（或按 Tab 鍵）">' + (TYPE_LABELS[b.type]||b.type) + '</button>'
@@ -1709,6 +1763,162 @@ function selectAllScriptText(){
     row.classList.add('focused');
   });
 }
+
+// ══════════════════════════════════════════════
+//  MULTI-SELECT SYSTEM
+// ══════════════════════════════════════════════
+var _msActive = false;
+var _msSelected = new Set(); // Set of selected line indices
+
+function toggleMultiSelect(){
+  _msActive = !_msActive;
+  _msSelected.clear();
+  document.body.classList.toggle('multiselect-mode', _msActive);
+  var btn = document.getElementById('ms-toggle-btn');
+  if(btn) btn.classList.toggle('active', _msActive);
+  var bar = document.getElementById('multiselect-bar');
+  if(bar) bar.classList.toggle('open', _msActive);
+  // Reset all checkboxes and highlights
+  document.querySelectorAll('.sl-check input[type=checkbox]').forEach(function(cb){
+    cb.checked = false;
+  });
+  document.querySelectorAll('.sl').forEach(function(row){
+    row.classList.remove('sl-selected');
+  });
+  document.getElementById('ms-type-select').value = '';
+  msUpdateBar();
+}
+
+function msToggleLine(i, cb){
+  if(cb.checked){
+    _msSelected.add(i);
+    var row = document.getElementById('row-'+i);
+    if(row) row.classList.add('sl-selected');
+  } else {
+    _msSelected.delete(i);
+    var row2 = document.getElementById('row-'+i);
+    if(row2) row2.classList.remove('sl-selected');
+  }
+  msUpdateBar();
+}
+
+function msUpdateBar(){
+  var label = document.getElementById('ms-count-label');
+  if(label) label.textContent = '已選取 ' + _msSelected.size + ' 行';
+  // Reset format dropdown after each action
+  var sel = document.getElementById('ms-type-select');
+  if(sel) sel.value = '';
+}
+
+function msSelectAll(){
+  var blocks = getBlocks();
+  blocks.forEach(function(b, i){
+    _msSelected.add(i);
+    var cb = document.getElementById('chk-'+i);
+    if(cb) cb.checked = true;
+    var row = document.getElementById('row-'+i);
+    if(row) row.classList.add('sl-selected');
+  });
+  msUpdateBar();
+}
+
+function msDeleteSelected(){
+  if(_msSelected.size === 0){ alert('請先勾選要刪除的行。'); return; }
+  if(!confirm('確定要刪除選取的 ' + _msSelected.size + ' 行嗎？')) return;
+  snapshotUndo();
+  var blocks = getBlocks();
+  var sorted = Array.from(_msSelected).sort(function(a,b){ return b-a; }); // delete from bottom up
+  sorted.forEach(function(i){
+    if(i >= 0 && i < blocks.length) blocks.splice(i, 1);
+  });
+  _msSelected.clear();
+  activeLineIdx = Math.max(0, (activeLineIdx||0) - sorted.filter(function(i){ return i <= (activeLineIdx||0); }).length);
+  renderLines();
+  scheduleUpdate();
+  msUpdateBar();
+}
+
+function msMoveUp(){
+  if(_msSelected.size === 0){ alert('請先勾選要移動的行。'); return; }
+  snapshotUndo();
+  var blocks = getBlocks();
+  var sorted = Array.from(_msSelected).sort(function(a,b){ return a-b; });
+  if(sorted[0] === 0) return; // already at top
+  var newSelected = new Set();
+  sorted.forEach(function(i){
+    if(i > 0 && !_msSelected.has(i-1)){
+      var tmp = blocks[i-1];
+      blocks[i-1] = blocks[i];
+      blocks[i] = tmp;
+      newSelected.add(i-1);
+    } else {
+      newSelected.add(i);
+    }
+  });
+  _msSelected = newSelected;
+  renderLines();
+  // Restore checkboxes
+  _msSelected.forEach(function(i){
+    var cb = document.getElementById('chk-'+i);
+    if(cb){ cb.checked = true; }
+    var row = document.getElementById('row-'+i);
+    if(row) row.classList.add('sl-selected');
+  });
+  scheduleUpdate();
+  msUpdateBar();
+}
+
+function msMoveDown(){
+  if(_msSelected.size === 0){ alert('請先勾選要移動的行。'); return; }
+  snapshotUndo();
+  var blocks = getBlocks();
+  var sorted = Array.from(_msSelected).sort(function(a,b){ return b-a; }); // process from bottom
+  if(sorted[0] === blocks.length-1) return; // already at bottom
+  var newSelected = new Set();
+  sorted.forEach(function(i){
+    if(i < blocks.length-1 && !_msSelected.has(i+1)){
+      var tmp = blocks[i+1];
+      blocks[i+1] = blocks[i];
+      blocks[i] = tmp;
+      newSelected.add(i+1);
+    } else {
+      newSelected.add(i);
+    }
+  });
+  _msSelected = newSelected;
+  renderLines();
+  _msSelected.forEach(function(i){
+    var cb = document.getElementById('chk-'+i);
+    if(cb){ cb.checked = true; }
+    var row = document.getElementById('row-'+i);
+    if(row) row.classList.add('sl-selected');
+  });
+  scheduleUpdate();
+  msUpdateBar();
+}
+
+// Format select change handler (wired via onchange in HTML)
+document.addEventListener('change', function(e){
+  if(e.target && e.target.id === 'ms-type-select'){
+    var newType = e.target.value;
+    if(!newType || _msSelected.size === 0) return;
+    snapshotUndo();
+    var blocks = getBlocks();
+    _msSelected.forEach(function(i){
+      if(blocks[i]) blocks[i].type = newType;
+    });
+    renderLines();
+    // Restore selection highlights after render
+    _msSelected.forEach(function(i){
+      var cb = document.getElementById('chk-'+i);
+      if(cb){ cb.checked = true; }
+      var row = document.getElementById('row-'+i);
+      if(row) row.classList.add('sl-selected');
+    });
+    scheduleUpdate();
+    msUpdateBar();
+  }
+});
 
 function toggleTypeDropdown(e, i){
   e.stopPropagation();
