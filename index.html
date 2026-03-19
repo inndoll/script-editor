@@ -46,6 +46,8 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans TC',sans-serif;back
 .sep{width:1px;height:22px;background:var(--border);flex-shrink:0}
 .tbar-group{display:flex;gap:5px;align-items:center}
 .tbar-spacer{flex:1}
+.fmt-toggle{font-size:11px;padding:3px 8px;border-radius:4px;transition:all 0.12s}
+.fmt-toggle.active{background:var(--red-l);color:var(--red);border-color:#D08080;font-weight:700}
 .tbtn{
   padding:5px 11px;border:1px solid var(--border2);border-radius:var(--radius);
   background:var(--bg);cursor:pointer;font-family:'Noto Sans TC',sans-serif;
@@ -438,6 +440,24 @@ kbd{
     margin:10pt 0!important;text-transform:uppercase!important;
   }
 
+  /* Taiwan format print overrides */
+  body.tw-print .sl-content[data-type="scene"]{text-transform:none!important}
+  body.tw-print .sl-content[data-type="character"]{
+    padding-left:0!important;text-align:left!important;
+    text-transform:none!important;font-weight:400!important;margin-top:6pt!important;
+    display:inline!important;
+  }
+  body.tw-print .sl-content[data-type="character"]::after{content:'：';}
+  body.tw-print .sl-content[data-type="parenthetical"]{
+    padding-left:0!important;padding-right:0!important;font-style:normal!important;
+    display:inline!important;
+  }
+  body.tw-print .sl-content[data-type="dialogue"]{
+    padding-left:0!important;padding-right:0!important;margin-bottom:0!important;
+    display:inline!important;
+  }
+  body.tw-print .sl{display:block!important;margin-bottom:0!important}
+
   /* Scene card chips don't print */
   .int-chip,.time-chip,.chip-group-sep,.int-sep{display:none!important}
 
@@ -624,6 +644,7 @@ kbd{
   <select id="project-select" class="form-select" style="width:160px;padding:4px 8px;font-size:12px"></select>
   <button class="tbtn" style="color:var(--green);border-color:#8AC4A0;background:var(--green-l);font-weight:600" title="建立新劇本專案" onclick="newProject()">＋ 新劇本</button>
   <button class="icon-btn" title="重新命名目前劇本" onclick="renameProject()" style="font-size:13px">✏</button>
+  <button class="icon-btn" title="專案設定（格式等）" onclick="openProjectSettings()" style="font-size:13px">⚙</button>
   <button class="icon-btn" title="刪除目前劇本" onclick="deleteProject()" style="font-size:13px;color:var(--red)">🗑</button>
 
   <div class="sep"></div>
@@ -640,6 +661,14 @@ kbd{
 
   <div class="tbar-spacer"></div>
 
+  <!-- Format mode toggle -->
+  <div class="tbar-group">
+    <span style="font-size:10px;color:var(--ink3);letter-spacing:0.5px">劇本格式</span>
+    <button id="fmt-toggle-hw" class="tbtn fmt-toggle active" onclick="setScriptFormat('hollywood')" title="好萊塢格式：INT./EXT. 地點 - 時間">好萊塢</button>
+    <button id="fmt-toggle-tw" class="tbtn fmt-toggle" onclick="setScriptFormat('taiwan')" title="台灣格式：內景／外景 地點 時間">台灣</button>
+  </div>
+  <div class="sep"></div>
+
   <!-- Right side buttons -->
   <div class="tbar-group">
     <button class="tbtn" style="color:var(--green);border-color:#8AC4A0;background:var(--green-l)" onclick="openImportModal()">⬆ 匯入劇本</button>
@@ -650,7 +679,7 @@ kbd{
       ⬆ 還原備份
       <input type="file" accept=".json" style="display:none" onchange="importJson(this)">
     </label>
-    <button class="tbtn primary" onclick="window.print()">🖨 列印 PDF</button>
+    <button class="tbtn primary" onclick="printScript()">🖨 列印 PDF</button>
     <div class="sep"></div>
     <button class="tbtn" title="使用指南" onclick="openGuide()">使用指南</button>
     <button class="icon-btn" title="收合左側欄" onclick="toggleLeft()">◀</button>
@@ -1033,6 +1062,7 @@ let DB = {
   scripts: {
     p_sample: {
       id:'s_sample', projectId:'p_sample',
+      format: 'hollywood',
       blocks: [
         {id:'bs1',type:'scene',text:'INT. 咖啡館 - 日',linkedCardId:'sc_s1'},
         {id:'bs2',type:'action',text:'燈光昏黃的咖啡館。雪雪坐在窗邊，面前放著一杯還在冒煙的拿鐵。她的筆記本攤開，空白的頁面像是一個沉默的指控。'},
@@ -1057,6 +1087,7 @@ let DB = {
     },
     p1: {
       id:'s1', projectId:'p1',
+      format: 'hollywood',
       blocks: [
         {id:'b1',type:'scene',text:'INT. 場景一 - 日',linkedCardId:null},
         {id:'b2',type:'action',text:'在這裡開始寫你的故事……'},
@@ -1112,6 +1143,8 @@ function uid(){ return 'id_'+(++blockCounter)+'_'+Date.now(); }
 function esc(t){ return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function getProject(){ return DB.activeProject; }
 function getScript(){ return DB.scripts[getProject()]; }
+function getFormat(){ return (getScript().format)||'hollywood'; }
+function isTaiwan(){ return getFormat()==='taiwan'; }
 function getBlocks(){ return getScript().blocks; }
 function getCards(){ return DB.sceneCards[getProject()]||[]; }
 function getChars(){ return DB.characters[getProject()]||[]; }
@@ -1128,28 +1161,62 @@ function renderAll(){
   renderNotes();
   updatePreview();
   updateStats();
+  syncFormatToggle();
 }
 
-// Parse INT/EXT prefix from scene heading text
+// ── Script format toggle ─────────────────────────
+function setScriptFormat(fmt){
+  getScript().format = fmt;
+  // Update toggle button highlights
+  document.getElementById('fmt-toggle-hw').classList.toggle('active', fmt==='hollywood');
+  document.getElementById('fmt-toggle-tw').classList.toggle('active', fmt==='taiwan');
+  renderLines();
+  scheduleUpdate();
+}
+
+function syncFormatToggle(){
+  var fmt = getFormat();
+  var hw = document.getElementById('fmt-toggle-hw');
+  var tw = document.getElementById('fmt-toggle-tw');
+  if(hw) hw.classList.toggle('active', fmt==='hollywood');
+  if(tw) tw.classList.toggle('active', fmt==='taiwan');
+}
+
+// Parse INT/EXT prefix from scene heading text (supports both Hollywood and Taiwan format)
 function parseInterior(text){
-  const t = (text||'').trim().toUpperCase();
-  if(t.startsWith('INT/EXT')||t.startsWith('INT./EXT.')) return 'INT/EXT';
-  if(t.startsWith('EXT')) return 'EXT';
-  if(t.startsWith('INT')) return 'INT';
+  const t = (text||'').trim();
+  const up = t.toUpperCase();
+  // Hollywood
+  if(up.startsWith('INT/EXT')||up.startsWith('INT./EXT.')) return 'INT/EXT';
+  if(up.startsWith('EXT')) return 'EXT';
+  if(up.startsWith('INT')) return 'INT';
+  // Taiwan
+  if(t.startsWith('內外景')) return 'INT/EXT';
+  if(t.startsWith('外景')) return 'EXT';
+  if(t.startsWith('內景')) return 'INT';
   return '';
 }
 
-// Strip existing INT/EXT prefix from text, return the rest
+// Strip existing INT/EXT prefix (Hollywood or Taiwan) from text
 function stripInterior(text){
-  return (text||'').replace(/^(INT\.\/EXT\.|INT\/EXT|INT\.|EXT\.|INT|EXT)\s*/i,'').trimStart();
+  return (text||'')
+    .replace(/^(INT\.\/EXT\.|INT\/EXT|INT\.|EXT\.|INT|EXT)\s*/i,'')
+    .replace(/^(內外景|外景|內景)\s*/,'')
+    .trimStart();
 }
 
-// Set interior prefix on a scene line, preserving the rest of the text
+// Set interior prefix on a scene line
 function setInterior(i, interior){
   const blocks = getBlocks();
   const b = blocks[i];
   const rest = stripInterior(b.text);
-  const prefix = interior==='INT/EXT' ? 'INT/EXT. ' : interior+'. ';
+  var prefix;
+  if(isTaiwan()){
+    const map = {'INT':'內景','EXT':'外景','INT/EXT':'內外景'};
+    prefix = (map[interior]||'內景') + ' ';
+  } else {
+    prefix = interior==='INT/EXT' ? 'INT/EXT. ' : interior+'. ';
+  }
   b.text = prefix + rest;
 
   const el = document.getElementById('line-'+i);
@@ -1158,9 +1225,8 @@ function setInterior(i, interior){
   const row = document.getElementById('row-'+i);
   if(row){
     row.querySelectorAll('.int-chip').forEach(chip=>{
-      chip.classList.toggle('active', chip.textContent.trim()===interior);
+      chip.classList.toggle('active', chip.dataset.interior===interior);
     });
-    // time chips unchanged — re-sync against updated text
     const time = parseTime(b.text);
     row.querySelectorAll('.time-chip').forEach(chip=>{
       chip.classList.toggle('active', chip.dataset.time===time);
@@ -1171,30 +1237,30 @@ function setInterior(i, interior){
 
 // ── Time-of-day helpers ─────────────────────────
 const TIME_OPTIONS = ['日','夜','黃昏','清晨'];
-const TIME_CYCLE_HOTKEY = 'Alt+T'; // shown in tooltip
+const TIME_CYCLE_HOTKEY = 'Alt+T';
 
-// Parse time suffix after ' - ' in scene heading
+// Parse time suffix — supports both " - 日" (Hollywood) and " 日" (Taiwan)
 function parseTime(text){
-  const m = (text||'').match(/[-－]\s*(日|夜|黃昏|清晨)\s*$/);
+  const m = (text||'').match(/(?:[-－]\s*)?(日|夜|黃昏|清晨)\s*$/);
   return m ? m[1] : '';
 }
 
-// Strip existing time suffix from scene heading
+// Strip existing time suffix
 function stripTime(text){
-  return (text||'').replace(/\s*[-－]\s*(日|夜|黃昏|清晨)\s*$/, '').trimEnd();
+  return (text||'').replace(/\s*[-－]?\s*(日|夜|黃昏|清晨)\s*$/, '').trimEnd();
 }
 
-// Set or replace time suffix, keep interior + location intact
+// Set or replace time suffix
 function setTime(i, time){
   const blocks = getBlocks();
   const b = blocks[i];
-  const base = stripTime(b.text);           // e.g. "INT. 咖啡館"
-  b.text = base + (time ? ' - ' + time : '');
+  const base = stripTime(b.text);
+  const sep = isTaiwan() ? ' ' : ' - ';
+  b.text = base + (time ? sep + time : '');
 
   const el = document.getElementById('line-'+i);
   if(el){ el.textContent = b.text; placeCaretEnd(el); }
 
-  // Sync chip highlights
   const row = document.getElementById('row-'+i);
   if(row) row.querySelectorAll('.time-chip').forEach(chip=>{
     chip.classList.toggle('active', chip.dataset.time === time);
@@ -1227,12 +1293,16 @@ function renderLines(){
     // Build INT/EXT + time chips using string concat (avoid nested template literals)
     let intChips = '';
     if(isScene){
+      const tw = isTaiwan();
       let chips = '<div class="scene-int-wrap">';
-      chips += '<button class="int-chip' + (interior==='INT'?' active':'') + '" onclick="setInterior('+i+',\'INT\')" title="室內景">INT</button>';
-      chips += '<span class="int-sep">/</span>';
-      chips += '<button class="int-chip' + (interior==='EXT'?' active':'') + '" onclick="setInterior('+i+',\'EXT\')" title="室外景">EXT</button>';
-      chips += '<span class="int-sep">/</span>';
-      chips += '<button class="int-chip' + (interior==='INT/EXT'?' active':'') + '" onclick="setInterior('+i+',\'INT/EXT\')" title="內外景">INT/EXT</button>';
+      const intOpts = tw
+        ? [['INT','內景'],['EXT','外景'],['INT/EXT','內外景']]
+        : [['INT','INT'],['EXT','EXT'],['INT/EXT','INT/EXT']];
+      intOpts.forEach(function(pair, idx){
+        const val = pair[0], label = pair[1];
+        chips += '<button class="int-chip' + (interior===val?' active':'') + '" data-interior="' + val + '" onclick="setInterior('+i+',\''+val+'\')" title="' + label + '">' + label + '</button>';
+        if(idx < intOpts.length-1) chips += '<span class="int-sep">/</span>';
+      });
       chips += '<span class="chip-group-sep"></span>';
       TIME_OPTIONS.forEach(function(t){
         chips += '<button class="time-chip' + (time===t?' active':'') + '" data-time="' + t + '" onclick="setTime(' + i + ',\'' + t + '\')" title="' + t + '（Alt+T 循環切換）">' + t + '</button>';
@@ -1655,9 +1725,10 @@ function setLineTypeAt(i, type){
   const blocks = getBlocks();
   blocks[i].type = type;
 
-  // Auto-prefix scene lines with INT. if no prefix exists yet
+  // Auto-prefix scene lines with INT./內景 if no prefix exists yet
   if(type==='scene' && !parseInterior(blocks[i].text)){
-    blocks[i].text = 'INT. ' + (blocks[i].text||'').trimStart();
+    const autoPrefix = isTaiwan() ? '內景 ' : 'INT. ';
+    blocks[i].text = autoPrefix + (blocks[i].text||'').trimStart();
   }
 
   const el = document.getElementById('line-'+i);
@@ -2353,7 +2424,8 @@ function newProject(){
   if(!name || !name.trim()) return;
   const id = 'p'+Date.now();
   DB.projects.push({id, name: name.trim()});
-  DB.scripts[id] = {id:'s'+Date.now(), projectId:id, blocks:[
+  // Default format = hollywood; user can change via toolbar or project settings
+  DB.scripts[id] = {id:'s'+Date.now(), projectId:id, format:'hollywood', blocks:[
     {id:uid(), type:'scene', text:'INT. 場景一 - 日', linkedCardId:null},
     {id:uid(), type:'action', text:''},
   ]};
@@ -2363,15 +2435,76 @@ function newProject(){
   DB.activeProject = id;
   syncProjectSelector();
   document.getElementById('sb-project').textContent = name.trim();
-  // Clear title fields for fresh start
   var ti = document.getElementById('script-title-input');
   var si = document.getElementById('script-subtitle-input');
   if(ti) ti.value = '';
   if(si) si.value = '';
   renderAll();
   debouncedSave();
-  // Focus title input to hint user to name their script
-  setTimeout(function(){ if(ti) ti.focus(); }, 100);
+  // Open project settings so user can set format right away
+  openProjectSettings();
+  setTimeout(function(){ if(ti) ti.focus(); }, 300);
+}
+
+// ── Project Settings Modal ───────────────────────
+function openProjectSettings(){
+  var proj = DB.projects.find(function(p){ return p.id===getProject(); });
+  if(!proj) return;
+  var fmt = getFormat();
+  var hasContent = getBlocks().filter(function(b){ return b.text.trim(); }).length > 2;
+
+  var body = '<div style="display:flex;flex-direction:column;gap:16px">'
+
+    // Format selection
+    + '<div>'
+    + '<div style="font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">劇本格式</div>'
+    + '<div style="display:flex;flex-direction:column;gap:8px">'
+    + '<label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;padding:10px 12px;border-radius:8px;border:2px solid '+(fmt==='hollywood'?'var(--amber)':'var(--border)')+'background:var(--bg);transition:all 0.15s" id="ps-hw-label">'
+    + '<input type="radio" name="ps-format" value="hollywood" '+(fmt==='hollywood'?'checked':'')+' onchange="psFormatChange(this)" style="margin-top:2px;flex-shrink:0">'
+    + '<div><div style="font-weight:700;font-size:13px;color:var(--ink)">好萊塢格式</div>'
+    + '<div style="font-size:11px;color:var(--ink3);margin-top:2px">INT. 地點 - 日／夜　場景標題全大寫<br>角色名稱置中縮排，對白有縮排</div></div>'
+    + '</label>'
+    + '<label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;padding:10px 12px;border-radius:8px;border:2px solid '+(fmt==='taiwan'?'var(--amber)':'var(--border)')+'background:var(--bg);transition:all 0.15s" id="ps-tw-label">'
+    + '<input type="radio" name="ps-format" value="taiwan" '+(fmt==='taiwan'?'checked':'')+' onchange="psFormatChange(this)" style="margin-top:2px;flex-shrink:0">'
+    + '<div><div style="font-weight:700;font-size:13px;color:var(--ink)">台灣格式（優良電影劇本獎）</div>'
+    + '<div style="font-size:11px;color:var(--ink3);margin-top:2px">內景 地點 夜　角色名稱：對白在同一行<br>語氣說明放在對白同行括號內</div></div>'
+    + '</label>'
+    + '</div>'
+    + '</div>'
+
+    // Convert warning
+    + (hasContent
+      ? '<div style="background:var(--amber-l);border:1px solid var(--amber2);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--ink2);line-height:1.7">'
+      + '⚠️ <strong>切換格式不會自動轉換已輸入的場景標題文字</strong>——例如「INT. 咖啡館 - 夜」不會自動變成「內景 咖啡館 夜」。'
+      + '切換後請手動修正場景標題，或點擊行首的室內外按鈕重新設定。</div>'
+      : '')
+
+    + '</div>';
+
+  var footer = '<button class="tbtn" onclick="closeModal()">取消</button>'
+    + '<button class="tbtn primary" onclick="applyProjectSettings()">套用設定</button>';
+
+  document.getElementById('modal-title').textContent = '⚙ 專案設定';
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('modal-footer').innerHTML = footer;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function psFormatChange(radio){
+  // Highlight selected label
+  document.getElementById('ps-hw-label').style.borderColor = radio.value==='hollywood' ? 'var(--amber)' : 'var(--border)';
+  document.getElementById('ps-tw-label').style.borderColor = radio.value==='taiwan'    ? 'var(--amber)' : 'var(--border)';
+}
+
+function applyProjectSettings(){
+  var sel = document.querySelector('input[name="ps-format"]:checked');
+  if(sel){
+    getScript().format = sel.value;
+    syncFormatToggle();
+    renderLines();
+    scheduleUpdate();
+  }
+  closeModal();
 }
 
 function renameProject(){
@@ -2431,18 +2564,61 @@ function toFountain(){
   const subtitleEl = document.getElementById('script-subtitle-input');
   const title = titleEl?.value || proj?.name || '劇本';
   const subtitle = subtitleEl?.value || '';
+  const tw = isTaiwan();
   let o=`Title: ${title}\n`;
   if(subtitle) o+=`Credit: ${subtitle}\n`;
   o+=`Author: 小葉\nDraft date: ${new Date().toISOString().slice(0,10)}\n\n`;
-  getBlocks().forEach(b=>{
-    const t=(b.text||'').trim();if(!t){o+='\n';return;}
-    if(b.type==='scene') o+='\n'+t.toUpperCase()+'\n\n';
-    else if(b.type==='action') o+=t+'\n\n';
-    else if(b.type==='character') o+='\n'+t.toUpperCase()+'\n';
-    else if(b.type==='dialogue') o+=t+'\n\n';
-    else if(b.type==='parenthetical') o+='('+t.replace(/^[(（]/,'').replace(/[)）]$/,'')+')\n';
-    else if(b.type==='transition') o+='\n> '+(t.toUpperCase().endsWith(':')?t.toUpperCase():t.toUpperCase()+':')+'\n\n';
-  });
+
+  if(tw){
+    // Taiwan format: merge character + parenthetical + dialogue into one line
+    var blocks = getBlocks();
+    var i = 0;
+    var sceneNum = 0;
+    while(i < blocks.length){
+      var b = blocks[i];
+      var t = (b.text||'').trim();
+      if(!t){ o+='\n'; i++; continue; }
+      if(b.type==='scene'){
+        sceneNum++;
+        o += '\n' + sceneNum + '. ' + t + '\n\n';
+      } else if(b.type==='action'){
+        o += t + '\n\n';
+      } else if(b.type==='character'){
+        // Collect: character + optional parenthetical + dialogue
+        var charName = t;
+        var paren = '';
+        var dial = '';
+        if(i+1 < blocks.length && blocks[i+1].type==='parenthetical'){
+          i++;
+          paren = '（' + (blocks[i].text||'').replace(/^[(（]/,'').replace(/[)）]$/,'') + '）';
+        }
+        if(i+1 < blocks.length && blocks[i+1].type==='dialogue'){
+          i++;
+          dial = (blocks[i].text||'').trim();
+        }
+        o += charName + '：' + paren + dial + '\n';
+      } else if(b.type==='dialogue'){
+        // Orphan dialogue (no character before it)
+        o += t + '\n';
+      } else if(b.type==='parenthetical'){
+        o += '（' + t.replace(/^[(（]/,'').replace(/[)）]$/,'') + '）\n';
+      } else if(b.type==='transition'){
+        o += '\n' + t + '\n\n';
+      }
+      i++;
+    }
+  } else {
+    // Hollywood format (original)
+    getBlocks().forEach(b=>{
+      const t=(b.text||'').trim();if(!t){o+='\n';return;}
+      if(b.type==='scene') o+='\n'+t.toUpperCase()+'\n\n';
+      else if(b.type==='action') o+=t+'\n\n';
+      else if(b.type==='character') o+='\n'+t.toUpperCase()+'\n';
+      else if(b.type==='dialogue') o+=t+'\n\n';
+      else if(b.type==='parenthetical') o+='('+t.replace(/^[(（]/,'').replace(/[)）]$/,'')+')\n';
+      else if(b.type==='transition') o+='\n> '+(t.toUpperCase().endsWith(':')?t.toUpperCase():t.toUpperCase()+':')+'\n\n';
+    });
+  }
   return o;
 }
 function exportFountain(){
@@ -2450,6 +2626,14 @@ function exportFountain(){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download=(DB.projects.find(p=>p.id===getProject())?.name||'劇本')+'_'+new Date().toISOString().slice(0,10)+'.fountain';
   a.click();
+}
+
+function printScript(){
+  if(isTaiwan()) document.body.classList.add('tw-print');
+  else document.body.classList.remove('tw-print');
+  window.print();
+  // Remove class after print dialog closes
+  setTimeout(function(){ document.body.classList.remove('tw-print'); }, 1000);
 }
 function exportJson(){
   var proj = DB.projects.find(function(p){ return p.id===getProject(); });
@@ -2629,61 +2813,118 @@ async function exportDocx(){
       children: [baseRun('')]
     }));
 
-    // ── Script body — count scene numbers ───────
+    // ── Script body ──────────────────────────────
     var sceneNum = 0;
-    blocks.forEach(function(b){
-      var t = (b.text || '').trim();
-      if(!t){
-        children.push(new Paragraph({ spacing:{before:0,after:0}, children:[baseRun('')] }));
-        return;
+    var tw = isTaiwan();
+
+    if(tw){
+      // Taiwan format: character + parenthetical + dialogue merged into one line
+      var bi = 0;
+      while(bi < blocks.length){
+        var b = blocks[bi];
+        var t = (b.text || '').trim();
+        if(!t){
+          children.push(new Paragraph({ spacing:{before:0,after:0}, children:[baseRun('')] }));
+          bi++; continue;
+        }
+        if(b.type === 'scene'){
+          sceneNum++;
+          children.push(new Paragraph({
+            spacing: { before: IN(0.33), after: IN(0.1) },
+            children: [baseRun(sceneNum + '. ' + t, { bold: true })]
+          }));
+        } else if(b.type === 'action'){
+          children.push(new Paragraph({
+            spacing: { before: 0, after: IN(0.17) },
+            children: [baseRun(t)]
+          }));
+        } else if(b.type === 'character'){
+          // Merge: character + optional parenthetical + dialogue → 角色：（語氣）對白
+          var charName = t;
+          var paren = '';
+          var dial = '';
+          if(bi+1 < blocks.length && blocks[bi+1].type === 'parenthetical'){
+            bi++;
+            paren = '（' + (blocks[bi].text||'').replace(/^[(（]/,'').replace(/[)）]$/,'') + '）';
+          }
+          if(bi+1 < blocks.length && blocks[bi+1].type === 'dialogue'){
+            bi++;
+            dial = (blocks[bi].text||'').trim();
+          }
+          children.push(new Paragraph({
+            spacing: { before: IN(0.1), after: IN(0.1) },
+            children: [baseRun(charName + '：' + paren + dial)]
+          }));
+        } else if(b.type === 'dialogue'){
+          // Orphan dialogue
+          children.push(new Paragraph({
+            spacing: { before: 0, after: IN(0.1) },
+            children: [baseRun(t)]
+          }));
+        } else if(b.type === 'transition'){
+          children.push(new Paragraph({
+            spacing: { before: IN(0.17), after: IN(0.17) },
+            children: [baseRun(t)]
+          }));
+        } else {
+          children.push(new Paragraph({ children: [baseRun(t)] }));
+        }
+        bi++;
       }
-      if(b.type === 'scene'){
-        sceneNum++;
-        // Scene number appears on both left (before heading) and right margin (standard Hollywood)
-        var sceneLabel = sceneNum + '.';
-        children.push(new Paragraph({
-          spacing: { before: IN(0.33), after: IN(0.1) },
-          children: [
-            baseRun(sceneLabel + '  ', { bold: true, size: 24 }),
-            baseRun(t.toUpperCase(), { bold: true, underline: { type: UnderlineType.SINGLE } })
-          ]
-        }));
-      } else if(b.type === 'action'){
-        children.push(new Paragraph({
-          spacing: { before: 0, after: IN(0.17) },
-          children: [baseRun(t)]
-        }));
-      } else if(b.type === 'character'){
-        children.push(new Paragraph({
-          indent: { left: IN(2.2) },
-          spacing: { before: IN(0.17), after: 0 },
-          children: [baseRun(t.toUpperCase(), { bold: true })]
-        }));
-      } else if(b.type === 'parenthetical'){
-        var inner = t.replace(/^[(（]/,'').replace(/[)）]$/,'');
-        children.push(new Paragraph({
-          indent: { left: IN(1.2), right: IN(1.5) },
-          spacing: { before: 0, after: 0 },
-          children: [baseRun('(' + inner + ')', { italics: true })]
-        }));
-      } else if(b.type === 'dialogue'){
-        children.push(new Paragraph({
-          indent: { left: IN(0.5), right: IN(1.5) },
-          spacing: { before: 0, after: IN(0.17) },
-          children: [baseRun(t)]
-        }));
-      } else if(b.type === 'transition'){
-        var tText = t.toUpperCase();
-        if(!tText.endsWith(':')) tText = tText + ':';
-        children.push(new Paragraph({
-          alignment: AlignmentType.RIGHT,
-          spacing: { before: IN(0.17), after: IN(0.17) },
-          children: [baseRun(tText, { bold: true })]
-        }));
-      } else {
-        children.push(new Paragraph({ children: [baseRun(t)] }));
-      }
-    });
+    } else {
+      // Hollywood format
+      blocks.forEach(function(b){
+        var t = (b.text || '').trim();
+        if(!t){
+          children.push(new Paragraph({ spacing:{before:0,after:0}, children:[baseRun('')] }));
+          return;
+        }
+        if(b.type === 'scene'){
+          sceneNum++;
+          children.push(new Paragraph({
+            spacing: { before: IN(0.33), after: IN(0.1) },
+            children: [
+              baseRun(sceneNum + '.  ', { bold: true }),
+              baseRun(t.toUpperCase(), { bold: true, underline: { type: UnderlineType.SINGLE } })
+            ]
+          }));
+        } else if(b.type === 'action'){
+          children.push(new Paragraph({
+            spacing: { before: 0, after: IN(0.17) },
+            children: [baseRun(t)]
+          }));
+        } else if(b.type === 'character'){
+          children.push(new Paragraph({
+            indent: { left: IN(2.2) },
+            spacing: { before: IN(0.17), after: 0 },
+            children: [baseRun(t.toUpperCase(), { bold: true })]
+          }));
+        } else if(b.type === 'parenthetical'){
+          var inner = t.replace(/^[(（]/,'').replace(/[)）]$/,'');
+          children.push(new Paragraph({
+            indent: { left: IN(1.2), right: IN(1.5) },
+            spacing: { before: 0, after: 0 },
+            children: [baseRun('(' + inner + ')', { italics: true })]
+          }));
+        } else if(b.type === 'dialogue'){
+          children.push(new Paragraph({
+            indent: { left: IN(0.5), right: IN(1.5) },
+            spacing: { before: 0, after: IN(0.17) },
+            children: [baseRun(t)]
+          }));
+        } else if(b.type === 'transition'){
+          var tText = t.toUpperCase();
+          if(!tText.endsWith(':')) tText = tText + ':';
+          children.push(new Paragraph({
+            alignment: AlignmentType.RIGHT,
+            spacing: { before: IN(0.17), after: IN(0.17) },
+            children: [baseRun(tText, { bold: true })]
+          }));
+        } else {
+          children.push(new Paragraph({ children: [baseRun(t)] }));
+        }
+      });
+    }
 
     var doc = new Document({
       creator: '小葉劇本工坊',
