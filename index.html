@@ -1196,7 +1196,19 @@ function uid(){ return 'id_'+(++blockCounter)+'_'+Date.now(); }
 function esc(t){ return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function getProject(){ return DB.activeProject; }
 function getScript(){ return DB.scripts[getProject()]; }
-function getFormat(){ return (getScript().format)||'hollywood'; }
+function getFormat(){
+  var script = getScript();
+  // If format is not set, auto-detect from scene headings
+  if(!script.format){
+    var blocks = script.blocks || [];
+    var sceneBlocks = blocks.filter(function(b){ return b.type==='scene' && b.text; });
+    var hasTaiwan = sceneBlocks.some(function(b){
+      return /^(內景|外景|內外景)/.test(b.text.trim());
+    });
+    script.format = hasTaiwan ? 'taiwan' : 'hollywood';
+  }
+  return script.format;
+}
 function isTaiwan(){ return getFormat()==='taiwan'; }
 function getBlocks(){ return getScript().blocks; }
 function getCards(){ return DB.sceneCards[getProject()]||[]; }
@@ -2792,7 +2804,12 @@ function toFountain(){
         sceneNum++;
         o += '\n' + sceneNum + '. ' + t + '\n\n';
       } else if(b.type==='action'){
-        o += t + '\n\n';
+        // Detect inline dialogue: "角色名稱：對白"
+        var tfm = t.match(/^([^：:]{1,20})[：:](.+)$/);
+        if(tfm){
+          var tfc = tfm[1].trim(); var tfd = tfm[2].trim();
+          o += tfc + '：' + tfd + '\n';
+        } else { o += t + '\n\n'; }
       } else if(b.type==='character'){
         // Collect: character + optional parenthetical + dialogue
         var charName = t;
@@ -2822,7 +2839,17 @@ function toFountain(){
     getBlocks().forEach(b=>{
       const t=(b.text||'').trim();if(!t){o+='\n';return;}
       if(b.type==='scene') o+='\n'+t.toUpperCase()+'\n\n';
-      else if(b.type==='action') o+=t+'\n\n';
+      else if(b.type==='action'){
+        // Detect inline dialogue: "角色名稱：對白"
+        var fm = t.match(/^([^：:]{1,20})[：:](.+)$/);
+        if(fm){
+          var fc = fm[1].trim(); var fd = fm[2].trim();
+          o += '\n' + fc.toUpperCase() + '\n';
+          var fp = fd.match(/^[（(]([^）)]{0,40})[）)](.*)/);
+          if(fp){ o += '(' + fp[1].trim() + ')\n'; fd = fp[2].trim(); }
+          if(fd) o += fd + '\n\n';
+        } else { o+=t+'\n\n'; }
+      }
       else if(b.type==='character') o+='\n'+t.toUpperCase()+'\n';
       else if(b.type==='dialogue') o+=t+'\n\n';
       else if(b.type==='parenthetical') o+='('+t.replace(/^[(（]/,'').replace(/[)）]$/,'')+')\n';
@@ -3044,10 +3071,21 @@ async function exportDocx(){
             children: [baseRun(sceneNum + '. ' + t, { bold: true })]
           }));
         } else if(b.type === 'action'){
-          children.push(new Paragraph({
-            spacing: { before: 0, after: IN(0.17) },
-            children: [baseRun(t)]
-          }));
+          // Detect inline dialogue: "角色名稱：對白" or "角色名稱：（語氣）對白"
+          var twInlineMatch = t.match(/^([^：:]{1,20})[：:](.+)$/);
+          if(twInlineMatch){
+            var twChar = twInlineMatch[1].trim();
+            var twDial = twInlineMatch[2].trim();
+            children.push(new Paragraph({
+              spacing: { before: IN(0.1), after: IN(0.1) },
+              children: [baseRun(twChar + '：' + twDial)]
+            }));
+          } else {
+            children.push(new Paragraph({
+              spacing: { before: 0, after: IN(0.17) },
+              children: [baseRun(t)]
+            }));
+          }
         } else if(b.type === 'character'){
           // Merge: character + optional parenthetical + dialogue → 角色：（語氣）對白
           var charName = t;
@@ -3099,10 +3137,47 @@ async function exportDocx(){
             ]
           }));
         } else if(b.type === 'action'){
-          children.push(new Paragraph({
-            spacing: { before: 0, after: IN(0.17) },
-            children: [baseRun(t)]
-          }));
+          // Detect inline dialogue: "角色名稱：對白" or "角色名稱：（語氣）對白"
+          var inlineMatch = t.match(/^([^：:]{1,20})[：:](.+)$/);
+          if(inlineMatch){
+            var charPart = inlineMatch[1].trim();
+            var dialPart = inlineMatch[2].trim();
+            // Character name line
+            children.push(new Paragraph({
+              indent: { left: IN(2.2) },
+              spacing: { before: IN(0.17), after: 0 },
+              children: [baseRun(charPart.toUpperCase(), { bold: true })]
+            }));
+            // Check if dialPart starts with parenthetical
+            var parenMatch = dialPart.match(/^[（(]([^）)]{0,40})[）)](.*)/);
+            if(parenMatch){
+              var parenText = parenMatch[1].trim();
+              var restDial = parenMatch[2].trim();
+              children.push(new Paragraph({
+                indent: { left: IN(1.2), right: IN(1.5) },
+                spacing: { before: 0, after: 0 },
+                children: [baseRun('(' + parenText + ')', { italics: true })]
+              }));
+              if(restDial){
+                children.push(new Paragraph({
+                  indent: { left: IN(0.5), right: IN(1.5) },
+                  spacing: { before: 0, after: IN(0.17) },
+                  children: [baseRun(restDial)]
+                }));
+              }
+            } else {
+              children.push(new Paragraph({
+                indent: { left: IN(0.5), right: IN(1.5) },
+                spacing: { before: 0, after: IN(0.17) },
+                children: [baseRun(dialPart)]
+              }));
+            }
+          } else {
+            children.push(new Paragraph({
+              spacing: { before: 0, after: IN(0.17) },
+              children: [baseRun(t)]
+            }));
+          }
         } else if(b.type === 'character'){
           children.push(new Paragraph({
             indent: { left: IN(2.2) },
