@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>雪雪劇本工坊 Pro</title>
+<title>小葉劇本工坊</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
@@ -443,7 +443,7 @@ kbd{
 
   /* Watermark — bottom center, minimal and professional */
   #editor-page::after{
-    content:'雪雪劇本工坊 Pro（免費版）· 繁體中文劇本編輯器';
+    content:'小葉劇本工坊（免費版）· 繁體中文劇本編輯器';
     position:fixed;
     bottom:0.38in;left:0;right:0;
     text-align:center;
@@ -594,7 +594,7 @@ kbd{
 <!-- ── TOPBAR ─────────────────────────────────── -->
 <div id="topbar">
   <div style="display:flex;align-items:baseline;gap:6px">
-    <span class="logo">雪雪劇本工坊 Pro</span>
+    <span class="logo">小葉劇本工坊</span>
     <span class="logo-sub">Pro</span>
   </div>
   <div class="sep"></div>
@@ -931,7 +931,7 @@ kbd{
 <div id="guide-overlay" onclick="guideOverlayClick(event)">
   <div id="guide-box">
     <div id="guide-hdr">
-      <span class="guide-logo">雪雪劇本工坊 Pro</span>
+      <span class="guide-logo">小葉劇本工坊</span>
       <span class="guide-title">使用指南</span>
       <button id="guide-close" onclick="closeGuide()" title="關閉">✕</button>
     </div>
@@ -2380,7 +2380,7 @@ function toFountain(){
   const subtitle = subtitleEl?.value || '';
   let o=`Title: ${title}\n`;
   if(subtitle) o+=`Credit: ${subtitle}\n`;
-  o+=`Author: 雪雪\nDraft date: ${new Date().toISOString().slice(0,10)}\n\n`;
+  o+=`Author: 小葉\nDraft date: ${new Date().toISOString().slice(0,10)}\n\n`;
   getBlocks().forEach(b=>{
     const t=(b.text||'').trim();if(!t){o+='\n';return;}
     if(b.type==='scene') o+='\n'+t.toUpperCase()+'\n\n';
@@ -2404,7 +2404,7 @@ function exportJson(){
   var subEl   = document.getElementById('script-subtitle-input');
   var payload = {
     _version: 1,
-    _app: '雪雪劇本工坊 Pro',
+    _app: '小葉劇本工坊',
     _exported: new Date().toISOString(),
     _title:    titleEl ? titleEl.value : '',
     _subtitle: subEl   ? subEl.value   : '',
@@ -2413,7 +2413,7 @@ function exportJson(){
   var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json;charset=utf-8'});
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = (proj ? proj.name : '雪雪劇本工坊 Pro') + '_備份_' + new Date().toISOString().slice(0,10) + '.json';
+  a.download = (proj ? proj.name : '小葉劇本工坊') + '_備份_' + new Date().toISOString().slice(0,10) + '.json';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -2430,7 +2430,7 @@ function importJson(input){
       // Support both raw DB dump and wrapped format
       var data = payload.db || payload;
       if(!data.projects || !data.scripts){
-        alert('這個 JSON 檔案格式不符合雪雪劇本工坊 Pro的備份格式，無法還原。');
+        alert('這個 JSON 檔案格式不符合小葉劇本工坊的備份格式，無法還原。');
         return;
       }
       var projName = payload._title || (data.projects[0] && data.projects[0].name) || '還原的專案';
@@ -2461,7 +2461,7 @@ function importJson(input){
       saveVersion('從 JSON 備份還原');
       alert('✓ 已成功還原備份！\n共 ' + DB.projects.length + ' 個專案。');
     } catch(err){
-      alert('還原失敗：' + err.message + '\n\n請確認這是雪雪劇本工坊 Pro匯出的 JSON 備份檔。');
+      alert('還原失敗：' + err.message + '\n\n請確認這是小葉劇本工坊匯出的 JSON 備份檔。');
     }
   };
   reader.readAsText(file, 'utf-8');
@@ -2531,7 +2531,7 @@ async function exportDocx(){
           spacing: { before: 0, after: 0 },
           children: [
             new TextRun({
-              text: '雪雪劇本工坊 Pro（免費版）· 繁體中文劇本編輯器',
+              text: '小葉劇本工坊（免費版）· 繁體中文劇本編輯器',
               font: 'Noto Sans TC',
               size: 14,        // 7pt — intentionally small
               color: 'CCCCCC' // light grey, non-intrusive
@@ -2633,7 +2633,7 @@ async function exportDocx(){
     });
 
     var doc = new Document({
-      creator: '雪雪劇本工坊 Pro',
+      creator: '小葉劇本工坊',
       title: titleVal,
       description: subtitleVal,
       sections: [{
@@ -3146,7 +3146,7 @@ var GUIDE_SECTIONS = [
 
 // 0 — 介面總覽
 '<h2>🗂 介面總覽</h2>'
-+'<p>雪雪劇本工坊 Pro 採用<strong>三欄式</strong>佈局，讓你在同一個畫面中同時處理劇本內容、專案資料與格式預覽。</p>'
++'<p>小葉劇本工坊採用<strong>三欄式</strong>佈局，讓你在同一個畫面中同時處理劇本內容、專案資料與格式預覽。</p>'
 +'<h3>頂部工具列（左→右）</h3>'
 +'<ul>'
 +'<li><strong>專案選單</strong>：切換劇本專案</li>'
@@ -3297,7 +3297,7 @@ var GUIDE_SECTIONS = [
 +'<h3>⬇ Word（.docx）</h3>'
 +'<p>好萊塢標準版面：US Letter 紙張、Courier New 12pt、左邊距 1.5 吋。場景編號、角色縮排、對白格式全自動套用。需網路連線載入函式庫。</p>'
 +'<h3>🖨 列印 / 匯出 PDF</h3>'
-+'<p>呼叫瀏覽器列印對話框，選「另存 PDF」。每頁底部中央自動加上頁碼，場景標題前自動加上場次編號。浮水印「雪雪劇本工坊 Pro」出現在每頁底部。</p>'
++'<p>呼叫瀏覽器列印對話框，選「另存 PDF」。每頁底部中央自動加上頁碼，場景標題前自動加上場次編號。浮水印「小葉劇本工坊」出現在每頁底部。</p>'
 +'<h3>⬇ 備份 JSON</h3>'
 +'<p>下載包含<strong>所有專案</strong>完整資料的 .json 備份檔。換電腦時用「⬆ 還原備份」一鍵還原。</p>'
 +'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body"><strong>建議定期備份</strong>重要修改後點一次「⬇ 備份 JSON」，存到雲端硬碟或 Email 給自己。LocalStorage 自動儲存只保護同一台電腦同一瀏覽器。</div></div>',
