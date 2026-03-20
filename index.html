@@ -695,7 +695,28 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 .g-wf-sub{color:var(--ink3);font-size:10px}
 .g-wf-arr{display:flex;align-items:center;font-size:16px;color:var(--border2);flex:0 0 auto}
 
-/* ── WELCOME MODAL ───────────────────────────── */
+/* ── READONLY MODE ───────────────────────────── */
+#readonly-banner{
+  display:none;position:fixed;top:0;left:0;right:0;z-index:5000;
+  background:var(--teal);color:#fff;
+  padding:8px 20px;font-size:12px;font-weight:600;
+  display:none;align-items:center;gap:10px;
+  font-family:'Noto Sans TC',sans-serif;
+  box-shadow:0 2px 8px rgba(0,0,0,0.2);
+}
+#readonly-banner.show{display:flex}
+#readonly-banner .rb-title{flex:1;font-size:13px}
+#readonly-banner .rb-note{font-size:11px;opacity:0.85;font-weight:400}
+#readonly-banner a{color:#fff;text-decoration:underline;cursor:pointer;font-size:11px}
+body.readonly-mode .sl-content{pointer-events:none!important}
+body.readonly-mode .add-line-row{display:none!important}
+body.readonly-mode .editor-toolbar{display:none!important}
+body.readonly-mode #multiselect-bar{display:none!important}
+body.readonly-mode #topbar .tbtn:not(#readonly-open-btn){
+  pointer-events:none;opacity:0.4;
+}
+body.readonly-mode #topbar .tbar-group:first-of-type{display:none}
+body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
 #welcome-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;align-items:center;justify-content:center;padding:20px}
 #welcome-overlay.open{display:flex}
 #welcome-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius3);width:480px;max-width:95vw;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.28)}
@@ -718,8 +739,18 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 </style>
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 </head>
 <body>
+
+<!-- ── READONLY BANNER ────────────────────────── -->
+<div id="readonly-banner">
+  <span>👁 唯讀模式</span>
+  <span class="rb-title" id="rb-title">劇本標題</span>
+  <span id="rb-version" style="font-size:11px;background:rgba(255,255,255,0.2);padding:2px 7px;border-radius:10px;font-weight:700"></span>
+  <span class="rb-note">此為劇本快照，不會隨劇本自動更新</span>
+  <a onclick="exitReadonly()">退出唯讀</a>
+</div>
 
 <div id="shell">
 
@@ -774,6 +805,7 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
     <button class="tbtn primary" onclick="printScript()">🖨 列印 PDF</button>
     <div class="sep"></div>
     <button class="tbtn" title="使用指南" onclick="openGuide()">使用指南</button>
+    <button class="tbtn" style="color:var(--teal);border-color:#8ACAC0;background:var(--teal-l)" onclick="shareScript()" title="產生唯讀分享連結，收到連結的人可以閱讀但不能編輯">🔗 分享連結</button>
     <button class="icon-btn" title="收合左側欄" onclick="toggleLeft()">◀</button>
     <button class="icon-btn" title="收合右側欄" onclick="toggleRight()">▶</button>
   </div>
@@ -832,6 +864,14 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
           onclick="extractScenesFromScript()"
           title="掃描劇本主文中所有場景標題行，自動建立對應的分場卡">
           ＋ 從劇本主文導入分場
+        </button>
+        <button
+          style="width:100%;padding:6px;border:1px solid #C9A0DC;border-radius:6px;background:#F5EEF8;color:#7B4EA0;font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all 0.15s"
+          onmouseover="this.style.background='#7B4EA0';this.style.color='#fff'"
+          onmouseout="this.style.background='#F5EEF8';this.style.color='#7B4EA0'"
+          onclick="exportBreakdown()"
+          title="匯出分場文件（含場次表格與分場描述），可交給寫手參考">
+          ⬇ 匯出分場文件
         </button>
       </div>
     </div>
@@ -1107,15 +1147,17 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
     <div id="guide-nav">
       <button class="active" onclick="showGuideSection(0,this)">介面總覽</button>
       <button onclick="showGuideSection(1,this)">專案管理</button>
-      <button onclick="showGuideSection(2,this)">六種段落格式</button>
-      <button onclick="showGuideSection(3,this)">場景標題工具</button>
-      <button onclick="showGuideSection(4,this)">分場卡系統</button>
-      <button onclick="showGuideSection(5,this)">角色與筆記</button>
-      <button onclick="showGuideSection(6,this)">匯入劇本</button>
-      <button onclick="showGuideSection(7,this)">匯出與備份</button>
-      <button onclick="showGuideSection(8,this)">自動儲存與版本</button>
-      <button onclick="showGuideSection(9,this)">快捷鍵總覽</button>
-      <button onclick="showGuideSection(10,this)">常見問題</button>
+      <button onclick="showGuideSection(2,this)">三種劇本格式</button>
+      <button onclick="showGuideSection(3,this)">六種段落格式</button>
+      <button onclick="showGuideSection(4,this)">場景標題工具</button>
+      <button onclick="showGuideSection(5,this)">分場卡系統</button>
+      <button onclick="showGuideSection(6,this)">角色與筆記</button>
+      <button onclick="showGuideSection(7,this)">匯入劇本</button>
+      <button onclick="showGuideSection(8,this)">匯出與備份</button>
+      <button onclick="showGuideSection(9,this)">分享連結</button>
+      <button onclick="showGuideSection(10,this)">自動儲存與版本</button>
+      <button onclick="showGuideSection(11,this)">快捷鍵總覽</button>
+      <button onclick="showGuideSection(12,this)">常見問題</button>
     </div>
     <div id="guide-body"></div>
   </div>
@@ -2237,6 +2279,13 @@ function openCardModal(title, cardData, isNew){
     <div class="form-row"><label>場景功能</label><textarea class="form-textarea" id="cf-purpose" rows="2">${esc(cardData.purpose||'')}</textarea></div>
     <div class="form-row"><label>衝突</label><textarea class="form-textarea" id="cf-conflict" rows="2">${esc(cardData.conflict||'')}</textarea></div>
     <div class="form-row"><label>備註</label><textarea class="form-textarea" id="cf-notes" rows="2">${esc(cardData.notes||'')}</textarea></div>
+    <div class="form-row">
+      <label style="display:flex;align-items:center;gap:6px">
+        分場描述
+        <span style="font-size:10px;color:var(--ink3);font-weight:400">（供分場文件匯出用，可寫故事概要、場景氛圍、戲劇節點等）</span>
+      </label>
+      <textarea class="form-textarea" id="cf-breakdown" rows="4" placeholder="在此描述這場戲的故事內容、情緒走向、重要戲劇節點……&#10;這段文字將出現在分場文件中，供寫手參考完成完整劇本。">${esc(cardData.breakdown||'')}</textarea>
+    </div>
   `;
   document.getElementById('modal-footer').innerHTML = `
     <button class="tbtn" onclick="closeModal()">取消</button>
@@ -2262,6 +2311,7 @@ function saveCard(id, isNew){
     purpose: document.getElementById('cf-purpose').value,
     conflict: document.getElementById('cf-conflict').value,
     notes: document.getElementById('cf-notes').value,
+    breakdown: document.getElementById('cf-breakdown').value,
     linkedBlockId: isNew?null:(cards.find(c=>c.id===id)||{}).linkedBlockId||null,
   };
   if(isNew){
@@ -3105,6 +3155,206 @@ function importJson(input){
 //  Character: indent 3.7in   Dialogue: 2in–6in
 //  Parenthetical: 2.5in–5.5in   Transition: right-align
 // ─────────────────────────────────────────────
+async function exportBreakdown(){
+  if(typeof window.docx === 'undefined'){
+    alert('分場文件匯出需要網路連線載入 docx.js 函式庫。\n請確認網路連線後重新整理頁面再試。');
+    return;
+  }
+  var btnEl = document.querySelector('[onclick="exportBreakdown()"]');
+  var origText = btnEl ? btnEl.textContent : '';
+  if(btnEl){ btnEl.textContent = '⏳ 生成中…'; btnEl.disabled = true; }
+
+  try {
+    var D = window.docx;
+    var Document = D.Document;
+    var Packer = D.Packer;
+    var Paragraph = D.Paragraph;
+    var TextRun = D.TextRun;
+    var Table = D.Table;
+    var TableRow = D.TableRow;
+    var TableCell = D.TableCell;
+    var AlignmentType = D.AlignmentType;
+    var BorderStyle = D.BorderStyle;
+    var WidthType = D.WidthType;
+
+    var proj = DB.projects.find(function(p){ return p.id===getProject(); });
+    var titleEl = document.getElementById('script-title-input');
+    var subEl   = document.getElementById('script-subtitle-input');
+    var titleVal    = (titleEl && titleEl.value) ? titleEl.value : (proj ? proj.name : '劇本');
+    var subtitleVal = (subEl  && subEl.value)  ? subEl.value   : '';
+    var cards   = getCards();
+    var blocks  = getBlocks();
+    var dateStr = new Date().toLocaleDateString('zh-TW');
+
+    function IN(v){ return Math.round(v * 1440); }
+    function baseRun(text, opts){
+      var cfg = { text: text||'', font: 'Noto Sans TC', size: 22 };
+      if(opts) Object.keys(opts).forEach(function(k){ cfg[k]=opts[k]; });
+      return new TextRun(cfg);
+    }
+
+    // Helper: build the scene table (場次/時間/場景/人物)
+    function makeSceneTable(num, time, interior, location, characters){
+      var intLabel = interior==='INT' ? '內景' : interior==='EXT' ? '外景' : '內外景';
+      var sceneName = intLabel + ' ' + (location||'');
+      var charStr = (characters||[]).join('、') || '—';
+      var border = { style: BorderStyle.SINGLE, size: 4, color: '888888' };
+      var allBorders = { top:border, bottom:border, left:border, right:border, insideH:border, insideV:border };
+
+      function cell(text, opts){
+        return new TableCell({
+          borders: allBorders,
+          width: opts && opts.width ? { size: opts.width, type: WidthType.DXA } : undefined,
+          shading: opts && opts.header ? { fill: 'EEEEEE' } : undefined,
+          children: [new Paragraph({
+            alignment: AlignmentType.LEFT,
+            children: [new TextRun({ text: text||'', font: 'Noto Sans TC', size: 20,
+              bold: !!(opts && opts.bold) })]
+          })]
+        });
+      }
+
+      return new Table({
+        width: { size: 9360, type: WidthType.DXA },
+        rows: [
+          new TableRow({ children: [
+            cell('場次', {header:true, bold:true, width:800}),
+            cell(String(num||''), {width:1200}),
+            cell('時間', {header:true, bold:true, width:800}),
+            cell(time||'', {width:800}),
+            cell('場景', {header:true, bold:true, width:800}),
+            cell(sceneName, {width:4960}),
+          ]}),
+          new TableRow({ children: [
+            cell('人物', {header:true, bold:true, width:800}),
+            new TableCell({
+              borders: allBorders,
+              columnSpan: 5,
+              children: [new Paragraph({
+                children: [new TextRun({ text: charStr, font:'Noto Sans TC', size:20 })]
+              })]
+            })
+          ]})
+        ]
+      });
+    }
+
+    var children = [];
+
+    // Title block
+    children.push(new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: IN(0.5), after: 0 },
+      children: [baseRun(titleVal, { bold: true, size: 32 })]
+    }));
+    if(subtitleVal){
+      children.push(new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: IN(0.15), after: 0 },
+        children: [baseRun(subtitleVal, { size: 22 })]
+      }));
+    }
+    children.push(new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: IN(0.15), after: IN(0.3) },
+      children: [baseRun('分場文件　' + dateStr, { size: 18, color: '888888' })]
+    }));
+    children.push(new Paragraph({
+      border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: 'AAAAAA', space: 4 } },
+      spacing: { before: 0, after: IN(0.4) },
+      children: [baseRun('')]
+    }));
+
+    // For each scene block, find matching card or parse from text
+    var sceneNum = 0;
+    blocks.forEach(function(b){
+      if(b.type !== 'scene') return;
+      sceneNum++;
+      var t = (b.text||'').trim();
+
+      // Find linked card or auto-parse
+      var card = cards.find(function(c){ return c.linkedBlockId === b.id || c.id === b.linkedCardId; });
+      var num      = card ? card.num      : sceneNum;
+      var time     = card ? card.time     : parseTime(t) || '—';
+      var interior = card ? card.interior : parseInterior(t) || 'INT';
+      var location = card ? card.location : stripInterior(stripTime(t)).trim() || t;
+      var chars    = card ? (card.characters||[]) : [];
+      var bdText   = card ? (card.breakdown||'') : '';
+
+      // Scene table
+      children.push(makeSceneTable(num, time, interior, location, chars));
+      children.push(new Paragraph({ spacing:{ before:0, after:IN(0.1) }, children:[baseRun('')] }));
+
+      // Breakdown description
+      if(bdText.trim()){
+        bdText.split('\n').forEach(function(line){
+          children.push(new Paragraph({
+            spacing: { before: 0, after: IN(0.08) },
+            children: [baseRun(line.trim())]
+          }));
+        });
+      } else {
+        children.push(new Paragraph({
+          spacing: { before: 0, after: IN(0.08) },
+          children: [baseRun('（尚未填寫分場描述）', { color: 'AAAAAA', italics: true })]
+        }));
+      }
+      children.push(new Paragraph({ spacing:{ before:0, after:IN(0.35) }, children:[baseRun('')] }));
+    });
+
+    // If no scene blocks, show all cards
+    if(sceneNum === 0){
+      cards.forEach(function(card){
+        children.push(makeSceneTable(card.num, card.time, card.interior, card.location, card.characters));
+        children.push(new Paragraph({ spacing:{before:0, after:IN(0.1)}, children:[baseRun('')] }));
+        var bdText = card.breakdown || '';
+        if(bdText.trim()){
+          bdText.split('\n').forEach(function(line){
+            children.push(new Paragraph({
+              spacing: { before:0, after:IN(0.08) },
+              children: [baseRun(line.trim())]
+            }));
+          });
+        } else {
+          children.push(new Paragraph({
+            spacing: { before:0, after:IN(0.08) },
+            children: [baseRun('（尚未填寫分場描述）', { color:'AAAAAA', italics:true })]
+          }));
+        }
+        children.push(new Paragraph({ spacing:{before:0, after:IN(0.35)}, children:[baseRun('')] }));
+      });
+    }
+
+    var doc = new Document({
+      creator: '小葉劇本工坊',
+      title: titleVal + '分場文件',
+      sections:[{
+        properties:{
+          page:{
+            size:{ width:IN(8.5), height:IN(11) },
+            margin:{ top:IN(1), right:IN(1), bottom:IN(1), left:IN(1.5) }
+          }
+        },
+        children: children
+      }]
+    });
+
+    var blob = await Packer.toBlob(doc);
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = titleVal + '_分場文件_' + new Date().toISOString().slice(0,10) + '.docx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+  } catch(err){
+    alert('分場文件匯出失敗：' + err.message);
+    console.error('exportBreakdown error:', err);
+  } finally {
+    if(btnEl){ btnEl.textContent = origText; btnEl.disabled = false; }
+  }
+}
+
 async function exportDocx(){
   // Check library loaded
   if(typeof window.docx === 'undefined'){
@@ -3980,6 +4230,8 @@ window.addEventListener('DOMContentLoaded', function(){
   if(gb) gb.innerHTML = GUIDE_SECTIONS[0];
   // Show welcome modal on first visit
   showWelcomeIfNeeded();
+  // Check if opened via share link
+  checkShareHash();
 });
 
 
@@ -3992,67 +4244,91 @@ var GUIDE_SECTIONS = [
 +'<h3>頂部工具列（左→右）</h3>'
 +'<ul>'
 +'<li><strong>專案選單</strong>：切換劇本專案</li>'
-+'<li><strong>＋ 新劇本</strong>：建立全新空白劇本專案</li>'
-+'<li><strong>✏</strong>：重新命名目前劇本</li>'
-+'<li><strong>🗑</strong>：刪除目前劇本（至少保留一個）</li>'
++'<li><strong>＋ 新劇本 / ✏ / ⚙ / 🗑</strong>：新增、重新命名、專案設定（含格式選擇）、刪除</li>'
 +'<li><strong>六種格式按鈕</strong>：游標所在行的格式會高亮顯示</li>'
++'<li><strong>劇本格式切換</strong>：好萊塢 / 優劇 / 電視劇，可隨時切換</li>'
 +'<li><strong>⬆ 匯入劇本</strong>：貼上純文字或上傳 Word 檔自動辨識格式</li>'
-+'<li><strong>⬇ Fountain / Word / 備份 JSON</strong>：各種匯出格式</li>'
-+'<li><strong>⬆ 還原備份</strong>：從 JSON 備份檔還原所有資料</li>'
++'<li><strong>⬇ Fountain / Word / 備份 JSON</strong>：各種匯出</li>'
++'<li><strong>⬆ 還原備份</strong>：從 JSON 備份檔還原</li>'
 +'<li><strong>🖨 列印 PDF</strong>：好萊塢標準格式列印</li>'
++'<li><strong>🔗 分享連結</strong>：產生唯讀快照連結</li>'
 +'<li><strong>使用指南</strong>：開啟本視窗</li>'
 +'<li><strong>◀ ▶</strong>：收合 / 展開左右側欄</li>'
 +'</ul>'
 +'<h3>左側資料欄（五個頁籤）</h3>'
 +'<ul>'
-+'<li><strong>場景</strong>：自動列出劇本中所有場景標題，點擊跳轉</li>'
-+'<li><strong>分場卡</strong>：管理場景詳細資料，可拖曳排序、導入劇本</li>'
-+'<li><strong>角色</strong>：建立角色資料卡</li>'
-+'<li><strong>筆記</strong>：自由記錄靈感與備忘</li>'
-+'<li><strong>資料</strong>：上傳圖片、PDF 等參考文件（支援拖曳）</li>'
++'<li><strong>場景</strong>：自動列出所有場景標題，點擊跳轉</li>'
++'<li><strong>分場卡</strong>：管理場景詳細資料，可拖曳排序、匯出分場文件</li>'
++'<li><strong>角色</strong>：角色資料卡</li>'
++'<li><strong>筆記</strong>：創作備忘</li>'
++'<li><strong>資料</strong>：上傳圖片、PDF 等參考文件</li>'
 +'</ul>'
 +'<h3>中央編輯區</h3>'
-+'<p>頂端輸入劇本標題與副標題，下方逐行輸入劇本內容。每行左側有行號與可點擊的格式標籤按鈕。</p>'
++'<p>所見即所得排版——編輯區的樣子就接近最終輸出的格式。頂端輸入標題，下方逐行輸入劇本。左側可拖曳分隔線調整欄寬。</p>'
 +'<h3>右側面板（四個頁籤）</h3>'
 +'<ul>'
-+'<li><strong>預覽</strong>：即時模擬正式劇本排版（白底 Courier 字型）</li>'
-+'<li><strong>統計</strong>：場景數、字數、對白行、角色台詞排行</li>'
-+'<li><strong>歷史</strong>：版本快照列表，可回溯任意版本</li>'
-+'<li><strong>格式說明</strong>：Fountain 標記對照表</li>'
++'<li><strong>預覽</strong>：即時劇本排版預覽</li>'
++'<li><strong>統計</strong>：場景數、字數、角色台詞排行</li>'
++'<li><strong>歷史</strong>：版本快照，可回溯</li>'
++'<li><strong>格式說明</strong>：Fountain 標記對照</li>'
 +'</ul>'
-+'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body"><strong>從範例劇本開始</strong>切換到「📖 範例劇本（觀摩用）」專案，可以看到六種格式、分場卡、角色卡的完整示範。</div></div>',
++'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body"><strong>從範例劇本開始</strong>切換到「📖 範例劇本（觀摩用）」可以看到六種格式、分場卡的完整示範。</div></div>',
 
 // 1 — 專案管理
 '<h2>📁 專案管理</h2>'
-+'<p>每個劇本都是一個獨立的<strong>專案</strong>，擁有自己的劇本、分場卡、角色、筆記。</p>'
-+'<h3>新建劇本</h3>'
-+'<p>點擊工具列的 <strong>＋ 新劇本</strong> 按鈕，輸入劇本名稱，系統會建立一個全新的空白專案，游標自動跳到標題輸入欄。</p>'
-+'<h3>切換劇本</h3>'
-+'<p>點擊頂部工具列的<strong>專案選單下拉框</strong>，選擇要切換的劇本即可。所有資料完全獨立。</p>'
-+'<h3>重新命名</h3>'
-+'<p>點擊 <strong>✏</strong> 按鈕，輸入新名稱。</p>'
-+'<h3>刪除劇本</h3>'
-+'<p>點擊 <strong>🗑</strong> 按鈕，確認後刪除。<strong>至少需保留一個專案</strong>，無法刪除最後一個。</p>'
-+'<div class="g-callout warn"><span class="g-callout-icon">⚠️</span><div class="g-callout-body"><strong>刪除前請先備份</strong>刪除動作不可撤銷。建議先點「⬇ 備份 JSON」下載備份，或至少確認版本歷史中有近期快照。</div></div>'
++'<p>每個劇本都是獨立的<strong>專案</strong>，擁有自己的劇本、分場卡、角色、筆記。</p>'
++'<h3>新建 / 切換 / 重新命名</h3>'
++'<p>點 <strong>＋ 新劇本</strong> 建立新專案，輸入名稱後自動跳出專案設定視窗讓你選擇格式。點頂部下拉選單切換專案。點 <strong>✏</strong> 重新命名。</p>'
++'<h3>專案設定 ⚙</h3>'
++'<p>點 <strong>⚙</strong> 開啟專案設定視窗，可以在這裡選擇劇本格式（好萊塢 / 優劇 / 電視劇）。格式也可以直接從工具列的格式切換按鈕隨時更改。</p>'
++'<h3>刪除劇本（有保護機制）</h3>'
++'<p>點 <strong>🗑</strong> 刪除。系統會要求你手動輸入專案名稱確認，並在刪除前<strong>自動下載 JSON 備份</strong>，防止誤刪。至少需保留一個專案。</p>'
 +'<h3>備份與還原</h3>'
-+'<p>點擊 <strong>⬇ 備份 JSON</strong>，下載包含所有專案完整資料的 .json 檔案。換電腦或清除瀏覽器後，點 <strong>⬆ 還原備份</strong> 選擇 JSON 檔即可完整還原。</p>',
++'<p>點 <strong>⬇ 備份 JSON</strong> 下載包含所有專案的完整備份。換電腦或清除瀏覽器後，點 <strong>⬆ 還原備份</strong> 選擇 JSON 檔即可完整還原。</p>',
 
-// 2 — 六種段落格式
+// 2 — 三種劇本格式
+'<h2>🎭 三種劇本格式</h2>'
++'<p>工具列的格式切換按鈕可以選擇三種格式，每個專案各自設定，互不影響。</p>'
++'<h3>好萊塢格式</h3>'
++'<p>國際通用的電影劇本標準格式。</p>'
++'<table class="g-table"><tr><th>元素</th><th>格式範例</th></tr>'
++'<tr><td>場景標題</td><td><code>INT. 咖啡館 - 夜</code></td></tr>'
++'<tr><td>角色名稱</td><td>置中縮排、全大寫</td></tr>'
++'<tr><td>對白</td><td>兩側縮排</td></tr>'
++'<tr><td>語氣說明</td><td>獨立一行，斜體括號</td></tr>'
++'</table>'
++'<h3>優劇格式（優良電影劇本獎）</h3>'
++'<p>台灣文化部優良電影劇本獎的標準格式，投稿時請使用此格式。</p>'
++'<table class="g-table"><tr><th>元素</th><th>格式範例</th></tr>'
++'<tr><td>場景標題</td><td><code>1. 內景 咖啡館 夜</code></td></tr>'
++'<tr><td>角色對白</td><td><code>加一：（輕聲）你好。</code>（同一行）</td></tr>'
++'<tr><td>動作描述</td><td>無符號，靠左</td></tr>'
++'</table>'
++'<h3>電視劇格式（戲說台灣）</h3>'
++'<p>台灣電視劇常用格式，動作描述前加 △ 符號。</p>'
++'<table class="g-table"><tr><th>元素</th><th>格式範例</th></tr>'
++'<tr><td>場景標題</td><td><code>1. 內景 咖啡館 夜</code></td></tr>'
++'<tr><td>動作描述</td><td><code>△ 她走進房間，關上門。</code></td></tr>'
++'<tr><td>角色對白</td><td><code>加一：（輕聲）你好。</code>（同一行）</td></tr>'
++'</table>'
++'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body"><strong>切換格式不會破壞內容</strong>切換格式只影響匯出時的排版，編輯區的文字完全不受影響。但場景標題的文字（如 INT. 改成 內景）需要手動修正，或點行首按鈕重新設定。</div></div>',
+
+// 3 — 六種段落格式
 '<h2>🎬 六種段落格式</h2>'
-+'<p>每行劇本都屬於六種格式之一，對應好萊塢劇本標準結構。</p>'
++'<p>每行劇本都屬於六種格式之一，對應劇本標準結構。</p>'
 +'<div class="g-fmt-grid">'
 +'<div class="g-fmt-card gfc-scene"><div class="gfc-type">場景標題</div><div class="gfc-desc">標示新場景，含室內外、地點、時間</div><div class="gfc-eg">INT. 城市街道 - 黃昏</div></div>'
-+'<div class="g-fmt-card gfc-action"><div class="gfc-type">動作描述</div><div class="gfc-desc">描述畫面動作、場景氛圍、人物行為</div><div class="gfc-eg">她停下腳步，望向遠方。</div></div>'
++'<div class="g-fmt-card gfc-action"><div class="gfc-type">動作描述</div><div class="gfc-desc">描述畫面動作、場景氛圍</div><div class="gfc-eg">她停下腳步，望向遠方。</div></div>'
 +'<div class="g-fmt-card gfc-char"><div class="gfc-type">角色名稱</div><div class="gfc-desc">說話角色的名字，置於對白前</div><div class="gfc-eg">雪雪</div></div>'
 +'<div class="g-fmt-card gfc-dial"><div class="gfc-type">對白</div><div class="gfc-desc">角色說的話，接在角色名稱之後</div><div class="gfc-eg">這個城市從未醒來過。</div></div>'
 +'<div class="g-fmt-card gfc-paren"><div class="gfc-type">語氣說明</div><div class="gfc-desc">補充說話方式，夾在角色名與對白之間</div><div class="gfc-eg">（輕聲、轉向窗外）</div></div>'
-+'<div class="g-fmt-card gfc-trans"><div class="gfc-type">轉場</div><div class="gfc-desc">場景過渡指示，靠右對齊全大寫</div><div class="gfc-eg">FADE TO:</div></div>'
++'<div class="g-fmt-card gfc-trans"><div class="gfc-type">轉場</div><div class="gfc-desc">場景過渡指示</div><div class="gfc-eg">FADE TO:</div></div>'
 +'</div>'
 +'<h3>切換格式的三種方式</h3>'
 +'<ol>'
-+'<li><strong>工具列按鈕</strong>：點擊頂部「場景標題」「動作描述」等按鈕，游標所在行立即套用，且按鈕會高亮顯示目前格式</li>'
-+'<li><strong>行首格式標籤</strong>：每行左側有帶顏色的小按鈕，點擊展開下拉選單選擇</li>'
-+'<li><strong>鍵盤</strong>：<kbd>Tab</kbd> 循環切換，<kbd>Shift</kbd>+<kbd>Tab</kbd> 反向</li>'
++'<li><strong>工具列按鈕</strong>：點擊頂部格式按鈕，目前行格式高亮顯示</li>'
++'<li><strong>行首格式標籤</strong>：點擊每行左側的格式按鈕，展開下拉選單</li>'
++'<li><strong>Tab 鍵</strong>：循環切換，<kbd>Shift</kbd>+<kbd>Tab</kbd> 反向</li>'
 +'</ol>'
 +'<h3>Enter 智慧換行</h3>'
 +'<table class="g-table"><tr><th>目前格式</th><th>按 Enter 後</th></tr>'
@@ -4063,57 +4339,47 @@ var GUIDE_SECTIONS = [
 +'<tr><td>語氣說明</td><td>→ 對白</td></tr>'
 +'<tr><td>轉場</td><td>→ 場景標題</td></tr>'
 +'</table>'
-+'<h3>像 Word 一樣分行與合行</h3>'
-+'<ul>'
-+'<li><kbd>Enter</kbd>：在游標位置斷行，後半段移到新行</li>'
-+'<li><kbd>Backspace</kbd>（游標在行首）：將此行接回上一行末尾</li>'
-+'</ul>',
++'<h3>多行選取</h3>'
++'<p>點擊編輯工具列右側的 <strong>☑ 多行選取</strong> 按鈕，每行左側出現勾選框。勾選後可以：一次刪除多行、一次改變多行格式、整體上移或下移。</p>',
 
-// 3 — 場景標題工具
+// 4 — 場景標題工具
 '<h2>🏷 場景標題工具列</h2>'
 +'<p>游標停在<strong>場景標題</strong>行時，行前方自動出現兩組快速切換按鈕：</p>'
 +'<h3>室內 / 室外切換</h3>'
-+'<ul>'
-+'<li><strong>INT</strong>：室內景（Interior）</li>'
-+'<li><strong>EXT</strong>：室外景（Exterior）</li>'
-+'<li><strong>INT/EXT</strong>：室內外切換景</li>'
-+'</ul>'
-+'<p>點擊後自動替換行首縮寫，不影響後面的地點文字。</p>'
++'<p>好萊塢格式顯示 <strong>INT / EXT / INT/EXT</strong>，優劇和電視劇格式顯示<strong>內景 / 外景 / 內外景</strong>，依目前劇本格式自動切換。點擊後自動替換行首縮寫。</p>'
 +'<h3>時間切換</h3>'
-+'<p>點擊 <strong>日 / 夜 / 黃昏 / 清晨</strong> 四個按鈕之一，自動在地點後加上標準時間後綴。</p>'
-+'<div class="g-callout tip"><span class="g-callout-icon">⌨️</span><div class="g-callout-body"><strong>Alt + T 快捷鍵</strong>在場景標題行按下 <kbd>Alt</kbd>+<kbd>T</kbd>，循環切換四個時間選項，不需移開手離開鍵盤。</div></div>'
-+'<p>手動輸入 INT.、EXT.、- 夜 等文字時，按鈕也會自動同步高亮。</p>',
++'<p>點擊 <strong>日 / 夜 / 黃昏 / 清晨</strong> 四個按鈕之一，自動在地點後加上時間後綴。</p>'
++'<div class="g-callout tip"><span class="g-callout-icon">⌨️</span><div class="g-callout-body"><strong>Alt + T 快捷鍵</strong>在場景標題行按 <kbd>Alt</kbd>+<kbd>T</kbd>，循環切換四個時間選項。</div></div>',
 
-// 4 — 分場卡系統
+// 5 — 分場卡系統
 '<h2>🗂 分場卡系統</h2>'
-+'<p>分場卡讓你在劇本成形前就先規劃場景架構，也可以在寫作過程中補建。</p>'
-+'<h3>新增分場卡</h3>'
-+'<p>切換到左側「分場卡」頁籤，點右上角 <strong>＋</strong>。欄位包含：場次、標題、地點、時間、室內外、出場角色、場景功能、衝突、備註。</p>'
++'<p>分場卡讓你在劇本成形前規劃場景架構，也可以寫作途中補建。</p>'
++'<h3>分場卡欄位</h3>'
++'<p>場次、標題、地點、時間、室內外、出場角色、場景功能、衝突、備註，以及專為分場文件匯出設計的<strong>分場描述</strong>欄位。</p>'
 +'<h3>從劇本主文導入分場</h3>'
-+'<p>點擊「<strong>＋ 從劇本主文導入分場</strong>」按鈕，系統自動掃描劇本中所有場景標題行，為每個未建立分場卡的場景自動解析地點、時間、室內外，建立對應分場卡。</p>'
++'<p>點「<strong>＋ 從劇本主文導入分場</strong>」，系統掃描劇本中的場景標題行，自動解析室內外、時間、地點，建立對應分場卡。</p>'
 +'<h3>導入劇本</h3>'
-+'<p>在分場卡上點 <strong>⬇ 導入劇本</strong>，系統自動在劇本中插入場景標題行、動作描述行，以及角色與對白行（若有角色）。導入後兩者建立連結，各自修改互不影響。</p>'
++'<p>在分場卡上點 <strong>⬇ 導入劇本</strong>，自動在劇本中插入對應的場景骨架，並建立雙向連結。</p>'
 +'<h3>拖曳排序</h3>'
-+'<p>滑鼠移到分場卡上，游標變為 ✋，按住左鍵直接拖動排序。拖到列表底部虛線區可移到最後。</p>'
-+'<h3>依分場卡順序重排劇本</h3>'
-+'<p>拖曳排序後，點擊「<strong>↕ 依分場卡順序重排劇本</strong>」，所有已連結場景群組依新順序重排。</p>'
-+'<div class="g-callout warn"><span class="g-callout-icon">⚠️</span><div class="g-callout-body"><strong>重排前請備份</strong>重排無法撤銷，建議先下載「⬇ 備份 JSON」。</div></div>',
++'<p>按住分場卡拖動調整順序，拖到底部虛線區可移到最後。排序後點「↕ 依分場卡順序重排劇本」，劇本場景跟著重排。</p>'
++'<h3>匯出分場文件</h3>'
++'<p>點「<strong>⬇ 匯出分場文件</strong>」，輸出包含每場場次表格和分場描述的 Word 檔，可作為備審資料或交給寫手參考完成完整劇本。</p>'
++'<div class="g-callout warn"><span class="g-callout-icon">⚠️</span><div class="g-callout-body"><strong>重排前請備份</strong>重排劇本無法撤銷，建議先點「⬇ 備份 JSON」。</div></div>',
 
-// 5 — 角色與筆記
+// 6 — 角色與筆記
 '<h2>👤 角色與筆記</h2>'
 +'<h3>角色資料卡</h3>'
-+'<p>切換到左側「角色」頁籤，點 <strong>＋</strong>。可記錄：姓名、年齡、身分職業、性格特質、角色弧線、備註。角色姓名首字自動作為頭像縮寫。</p>'
-+'<p>右側「統計」頁籤會自動統計每個角色的對白行數，方便檢視各角色戲份分佈。</p>'
++'<p>切換到「角色」頁籤，點 <strong>＋</strong>。可記錄：姓名、年齡、身分職業、性格特質、角色弧線、備註。右側「統計」頁籤自動統計每個角色的對白行數。</p>'
 +'<h3>創作筆記</h3>'
-+'<p>切換到「筆記」頁籤，點 <strong>＋</strong> 新增。適合記錄：故事主題、橋段靈感、對白草稿、修改紀錄、參考資料摘要等。</p>'
++'<p>切換到「筆記」頁籤，點 <strong>＋</strong>。適合記錄故事主題、橋段靈感、對白草稿、修改紀錄等。</p>'
 +'<h3>參考資料</h3>'
-+'<p>切換到「資料」頁籤。<strong>拖曳或點擊上傳</strong>各種格式：圖片（有縮圖預覽）、PDF、Word、Excel、PPT、HTML、TXT、Markdown。點擊檔案可在新分頁開啟。</p>',
++'<p>切換到「資料」頁籤，拖曳或點擊上傳參考文件。支援：圖片（有縮圖）、PDF、Word、Excel、PPT、HTML、TXT、Markdown。</p>',
 
-// 6 — 匯入劇本
+// 7 — 匯入劇本
 '<h2>⬆ 智慧匯入劇本</h2>'
-+'<p>點擊工具列的 <strong>⬆ 匯入劇本</strong>，支援兩種方式：</p>'
++'<p>點工具列的 <strong>⬆ 匯入劇本</strong>，支援兩種方式：</p>'
 +'<h3>📋 貼上純文字</h3>'
-+'<p>將劇本文字貼入文字框，點「🔍 自動辨識段落類型」。系統依以下規則自動判斷：</p>'
++'<p>貼入劇本文字，點「🔍 自動辨識段落類型」，系統依規則自動判斷格式：</p>'
 +'<table class="g-table"><tr><th>規則</th><th>判斷格式</th></tr>'
 +'<tr><td>含 INT / EXT / 內景 / 外景 + 時間</td><td>場景標題</td></tr>'
 +'<tr><td>FADE TO / CUT TO / 切至 等</td><td>轉場</td></tr>'
@@ -4124,31 +4390,38 @@ var GUIDE_SECTIONS = [
 +'</table>'
 +'<h3>📄 上傳 Word 檔（.docx）</h3>'
 +'<p>拖曳或點擊上傳 .docx 檔，系統用 mammoth.js 讀取文字後自動辨識（需網路連線）。</p>'
-+'<h3>預覽與修正</h3>'
-+'<p>辨識結果以表格呈現，每行都有下拉選單可手動修正格式，確認後按「匯入劇本」。</p>'
-+'<h3>匯入模式</h3>'
-+'<ul><li><strong>取代目前劇本</strong>：清空後插入</li>'
-+'<li><strong>附加到劇本末尾</strong></li>'
-+'<li><strong>插入游標位置</strong></li></ul>'
-+'<div class="g-callout note"><span class="g-callout-icon">📌</span><div class="g-callout-body">辨識結果僅供初步整理，匯入後可用工具列或 Tab 鍵手動校正任何一行的格式。</div></div>',
++'<h3>預覽與確認</h3>'
++'<p>辨識結果以表格呈現，每行都有下拉選單可手動修正，確認後選擇匯入模式（取代 / 附加 / 插入游標位置）再匯入。</p>',
 
-// 7 — 匯出與備份
+// 8 — 匯出與備份
 '<h2>💾 匯出與備份</h2>'
 +'<h3>⬇ Fountain（.fountain）</h3>'
-+'<p>符合 <strong>Fountain 1.1</strong> 國際標準，可直接匯入 Highland 2、WriterDuet、Slugline、FadeIn 等專業劇本軟體。</p>'
++'<p>符合 Fountain 1.1 標準，可匯入 Highland 2、WriterDuet、FadeIn 等專業軟體。</p>'
 +'<h3>⬇ Word（.docx）</h3>'
-+'<p>好萊塢標準版面：US Letter 紙張、Courier New 12pt、左邊距 1.5 吋。場景編號、角色縮排、對白格式全自動套用。需網路連線載入函式庫。</p>'
++'<p>依目前劇本格式匯出：好萊塢格式含縮排、場次編號；優劇格式含角色冒號對白；電視劇格式含 △ 符號。每頁底部有頁碼和浮水印。需網路連線。</p>'
++'<h3>⬇ 分場文件（.docx）</h3>'
++'<p>位於左側分場卡頁籤底部。匯出包含每場場次表格（場次/時間/場景/人物）和分場描述的 Word 文件，可作為備審資料或交給寫手。</p>'
 +'<h3>🖨 列印 / 匯出 PDF</h3>'
-+'<p>呼叫瀏覽器列印對話框，選「另存 PDF」。每頁底部中央自動加上頁碼，場景標題前自動加上場次編號。浮水印「小葉劇本工坊」出現在每頁底部。</p>'
++'<p>呼叫瀏覽器列印，選「另存 PDF」。依劇本格式自動套用對應排版，每頁底部有頁碼和浮水印。</p>'
 +'<h3>⬇ 備份 JSON</h3>'
-+'<p>下載包含<strong>所有專案</strong>完整資料的 .json 備份檔。換電腦時用「⬆ 還原備份」一鍵還原。</p>'
-+'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body"><strong>建議定期備份</strong>重要修改後點一次「⬇ 備份 JSON」，存到雲端硬碟或 Email 給自己。LocalStorage 自動儲存只保護同一台電腦同一瀏覽器。</div></div>',
++'<p>下載包含<strong>所有專案</strong>完整資料的備份檔，換電腦時用「⬆ 還原備份」一鍵還原。</p>'
++'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body"><strong>定期備份</strong>每次重要修改後點一次「⬇ 備份 JSON」，存到雲端硬碟或傳給自己。</div></div>',
 
-// 8 — 自動儲存與版本歷史
+// 9 — 分享連結
+'<h2>🔗 分享連結</h2>'
++'<p>點工具列的 <strong>🔗 分享連結</strong>，系統把劇本目前內容壓縮成一個 URL，自動複製到剪貼簿。把這個連結傳給夥伴，對方打開就能閱讀劇本，不需要帳號，不需要下載任何東西。</p>'
++'<h3>快照版本</h3>'
++'<p>每次點分享會產生一個新的<strong>快照版本</strong>（v1、v2、v3…），連結視窗和唯讀橫幅上都會顯示版本號和日期。</p>'
++'<div class="g-callout warn"><span class="g-callout-icon">⚠️</span><div class="g-callout-body"><strong>快照不會自動更新</strong>連結是當下內容的快照。你之後對劇本做的修改，不會自動反映在已分享的連結上。想讓夥伴看最新版，請重新點「🔗 分享連結」產生新快照。</div></div>'
++'<h3>唯讀模式</h3>'
++'<p>收到連結的人打開後，頁面頂部出現青色橫幅「👁 唯讀模式」，劇本完整顯示，所有編輯功能鎖定。點「退出唯讀」可回到自己的編輯環境。</p>'
++'<div class="g-callout info"><span class="g-callout-icon">ℹ️</span><div class="g-callout-body"><strong>連結無密碼保護</strong>任何拿到連結的人都可以看到劇本內容，請只分享給你信任的人。</div></div>',
+
+// 10 — 自動儲存與版本歷史
 '<h2>💾 自動儲存與版本歷史</h2>'
 +'<h3>LocalStorage 自動儲存</h3>'
-+'<p>每次輸入後約 1.5 秒，資料自動存入瀏覽器本機 LocalStorage。底部狀態列顯示「✦ 已自動儲存」。下次打開同一個頁面，資料自動恢復。</p>'
-+'<div class="g-callout info"><span class="g-callout-icon">ℹ️</span><div class="g-callout-body"><strong>自動儲存的限制</strong>資料只存在「這台電腦、這個瀏覽器、這個網址」的組合下。換電腦、換瀏覽器、清除瀏覽器資料，都會遺失。請定期下載「⬇ 備份 JSON」作為跨裝置備份。</div></div>'
++'<p>每次輸入後約 1.5 秒，資料自動存入瀏覽器本機。底部狀態列顯示「✦ 已自動儲存」。下次打開同一個頁面，資料自動恢復。</p>'
++'<div class="g-callout info"><span class="g-callout-icon">ℹ️</span><div class="g-callout-body"><strong>自動儲存只在同一台電腦同一個瀏覽器有效</strong>換電腦、換瀏覽器、清除瀏覽器資料都會遺失。請定期下載「⬇ 備份 JSON」作為跨裝置備份。</div></div>'
 +'<h3>版本歷史</h3>'
 +'<p>右側面板切換到「歷史」頁籤，可看到所有版本快照：</p>'
 +'<ul>'
@@ -4158,72 +4431,54 @@ var GUIDE_SECTIONS = [
 +'<li>點「↩ 回溯」可還原任意版本（回溯前自動備份當前版本）</li>'
 +'</ul>',
 
-// 9 — 快捷鍵
+// 11 — 快捷鍵
 '<h2>⌨️ 快捷鍵總覽</h2>'
 +'<h3>編輯區快捷鍵</h3>'
 +'<table class="g-table">'
-+'<tr><th style="width:48%">按鍵</th><th>功能</th></tr>'
++'<tr><th style="width:50%">按鍵</th><th>功能</th></tr>'
 +'<tr><td><kbd>Enter</kbd></td><td>在游標位置斷行（智慧判斷下一行格式）</td></tr>'
 +'<tr><td><kbd>Backspace</kbd>（游標在行首）</td><td>將此行合併回上一行末尾</td></tr>'
 +'<tr><td><kbd>Tab</kbd></td><td>切換到下一種格式（循環）</td></tr>'
 +'<tr><td><kbd>Shift</kbd> + <kbd>Tab</kbd></td><td>切換到上一種格式（反向）</td></tr>'
 +'<tr><td><kbd>Alt</kbd> + <kbd>T</kbd></td><td>循環切換場景時間（場景標題行限定）</td></tr>'
-+'<tr><td><kbd>Ctrl/⌘</kbd> + <kbd>Z</kbd></td><td>復原（Undo）</td></tr>'
-+'<tr><td><kbd>Ctrl/⌘</kbd> + <kbd>Y</kbd>　或　<kbd>Ctrl/⌘</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>重做（Redo）</td></tr>'
++'<tr><td><kbd>Ctrl/⌘</kbd> + <kbd>Z</kbd></td><td>復原（Undo，最多 80 步）</td></tr>'
++'<tr><td><kbd>Ctrl/⌘</kbd> + <kbd>Y</kbd> 或 <kbd>Ctrl/⌘</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>重做（Redo）</td></tr>'
 +'<tr><td><kbd>Ctrl/⌘</kbd> + <kbd>S</kbd></td><td>手動存檔（建立版本快照）</td></tr>'
++'<tr><td><kbd>Ctrl/⌘</kbd> + <kbd>A</kbd>（游標不在行內）</td><td>選取整篇劇本所有行</td></tr>'
 +'<tr><td><kbd>↑</kbd> / <kbd>↓</kbd></td><td>跨行移動游標</td></tr>'
 +'</table>'
 +'<h3>Tab 格式循環順序</h3>'
 +'<p>動作描述 → 角色名稱 → 語氣說明 → 對白 → 轉場 → 場景標題 → 動作描述 …</p>'
-+'<h3>其他快捷鍵</h3>'
++'<h3>其他操作</h3>'
 +'<table class="g-table">'
-+'<tr><th style="width:48%">操作</th><th>方法</th></tr>'
-+'<tr><td>複製 / 貼上</td><td><kbd>Cmd/Ctrl</kbd> + <kbd>C</kbd> / <kbd>V</kbd></td></tr>'
-+'<tr><td>收合左側欄</td><td>點工具列 ◀</td></tr>'
-+'<tr><td>收合右側欄</td><td>點工具列 ▶</td></tr>'
++'<tr><th style="width:50%">操作</th><th>方法</th></tr>'
++'<tr><td>拖曳調整左側欄寬度</td><td>拖曳左側邊界的分隔線</td></tr>'
++'<tr><td>拖曳調整右側欄寬度</td><td>拖曳右側邊界的分隔線</td></tr>'
++'<tr><td>收合左 / 右側欄</td><td>點工具列 ◀ / ▶</td></tr>'
 +'<tr><td>跳至場景</td><td>左側「場景」頁籤點擊項目</td></tr>'
 +'<tr><td>關閉使用指南</td><td><kbd>Esc</kbd> 或點視窗外</td></tr>'
 +'</table>',
 
-// 10 — FAQ
+// 12 — FAQ
 '<h2>❓ 常見問題</h2>'
-+'<h3>Q：如何開始寫一個新劇本？</h3>'
-+'<p>點擊工具列的 <strong>＋ 新劇本</strong> 按鈕，輸入劇本名稱即可。如果只有一個劇本，直接在現有空白頁面輸入就好。</p>'
-+'<h3>Q：範例劇本可以刪除嗎？</h3>'
-+'<p>可以，點 🗑 即可刪除。但建議保留作為格式參考，隨時可觀摩六種段落格式和分場卡的完整用法。</p>'
++'<h3>Q：三種劇本格式有什麼差別？應該用哪個？</h3>'
++'<p>投稿文化部優良電影劇本獎用<strong>優劇格式</strong>；寫台灣電視劇（如戲說台灣）用<strong>電視劇格式</strong>；其他國際場合或習慣好萊塢規格用<strong>好萊塢格式</strong>。</p>'
++'<h3>Q：分享連結傳出去後，我修改了劇本，對方看到的還是舊版嗎？</h3>'
++'<p>是的。分享連結是快照，不會自動更新。修改後請重新點「🔗 分享連結」產生新快照，再把新連結傳給對方。</p>'
 +'<h3>Q：資料會消失嗎？</h3>'
-+'<p>LocalStorage 自動儲存保護你的資料，<strong>但只在同一台電腦同一個瀏覽器</strong>。請定期點「⬇ 備份 JSON」下載備份，這是最安全的保障。</p>'
++'<p>LocalStorage 自動儲存保護你的資料，但只在<strong>同一台電腦同一個瀏覽器</strong>有效。請定期下載「⬇ 備份 JSON」，這是最安全的保障。</p>'
++'<h3>Q：刪除專案後還能找回來嗎？</h3>'
++'<p>刪除時系統會自動下載一份該專案的 JSON 備份到你的下載資料夾，可以用「⬆ 還原備份」找回來。</p>'
++'<h3>Q：分場文件是什麼？和劇本有什麼不同？</h3>'
++'<p>分場文件是劇本的<strong>規劃階段文件</strong>，每場只有場次表格和描述性文字，沒有完整的對白和動作格式。可以作為備審資料，或交給寫手參考完成完整劇本。</p>'
 +'<h3>Q：Ctrl+Z 復原的範圍是什麼？</h3>'
 +'<p>復原只針對劇本編輯區的文字與格式變更，最多 80 步。分場卡、角色、筆記的修改目前不在復原範圍內。</p>'
 +'<h3>Q：Word 匯出按了沒反應？</h3>'
-+'<p>Word 匯出需要網路連線載入 docx.js 函式庫。確認網路正常後重新整理頁面再試。若無法使用，可改用「🖨 列印 PDF」。</p>'
-+'<h3>Q：匯入劇本辨識結果不準確怎麼辦？</h3>'
-+'<p>辨識結果只是初步整理，每行都有下拉選單可修正格式，確認後再匯入。匯入後也可以用 Tab 鍵或行首按鈕繼續校正。</p>'
++'<p>Word 匯出需要網路連線。確認網路正常後重新整理頁面再試。若無法使用，可改用「🖨 列印 PDF」。</p>'
 +'<h3>Q：可以同時管理多個劇本嗎？</h3>'
-+'<p>可以。用 <strong>＋ 新劇本</strong> 建立多個專案，透過頂部下拉選單切換。每個專案的資料完全獨立，備份 JSON 會一次打包所有專案。</p>'
++'<p>可以。用 <strong>＋ 新劇本</strong> 建立多個專案，從頂部下拉選單切換。備份 JSON 會一次打包所有專案。</p>'
 
 ];
-
-// ── Welcome modal ────────────────────────────────
-var WELCOME_SEEN_KEY = 'xiaoyeWelcomeSeen_v1';
-
-function showWelcomeIfNeeded(){
-  try {
-    if(!localStorage.getItem(WELCOME_SEEN_KEY)){
-      document.getElementById('welcome-overlay').classList.add('open');
-    }
-  } catch(e){}
-}
-
-function closeWelcome(){
-  document.getElementById('welcome-overlay').classList.remove('open');
-  try { localStorage.setItem(WELCOME_SEEN_KEY, '1'); } catch(e){}
-}
-
-// Close on clicking outside the box
-document.getElementById('welcome-overlay').addEventListener('click', function(e){
-  if(e.target === this) closeWelcome();
-});
 
 function openGuide(){
   document.getElementById('guide-overlay').classList.add('open');
