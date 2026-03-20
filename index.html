@@ -32,7 +32,17 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans TC',sans-serif;back
   box-shadow:var(--shadow);
 }
 #main{display:flex;flex:1;overflow:hidden}
-#left{width:220px;min-width:160px;max-width:320px;background:var(--bg2);border-right:1.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width 0.2s;flex-shrink:0}
+#left{width:220px;min-width:160px;max-width:400px;background:var(--bg2);border-right:none;display:flex;flex-direction:column;overflow:hidden;transition:width 0.15s;flex-shrink:0}
+.panel-divider{
+  width:5px;background:var(--border);cursor:col-resize;flex-shrink:0;
+  transition:background 0.15s;position:relative;z-index:10;
+}
+.panel-divider:hover,.panel-divider.dragging{background:var(--amber)}
+.panel-divider::after{
+  content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:1px;height:32px;background:var(--border2);border-radius:1px;
+}
+#right{width:280px;min-width:180px;max-width:500px;background:var(--bg2);border-left:none;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
 #left.collapsed{width:0;min-width:0;border-right:none}
 #center{flex:1;display:flex;flex-direction:column;overflow:hidden}
 #right{width:280px;min-width:200px;max-width:380px;background:var(--bg2);border-left:1.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
@@ -249,33 +259,49 @@ body.multiselect-mode .sl-num{display:none}
 .type-dd-item.selected{font-weight:700}
 .type-dd-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .sl-content{
-  flex:1;outline:none;min-height:24px;padding:3px 5px;
-  line-height:1.8;border:1px solid transparent;border-radius:3px;
+  flex:1;outline:none;min-height:24px;padding:3px 0;
+  line-height:1.7;border:1px solid transparent;border-radius:3px;
   transition:border-color 0.1s;word-break:break-all;
-  font-family:'Courier Prime',monospace;
+  font-family:'Courier Prime',Courier,monospace;
+  font-size:12.5px;color:var(--ink);
 }
-.sl-content:focus{border-color:rgba(184,122,0,0.35);background:rgba(255,255,255,0.5)}
+.sl-content:focus{border-color:rgba(184,122,0,0.25);background:rgba(255,255,255,0.4)}
 
-/* Per-type formatting */
+/* Per-type formatting — WYSIWYG Hollywood layout */
 .sl-content[data-type="scene"]{
-  font-size:12px;font-weight:700;color:var(--red);text-transform:uppercase;
-  letter-spacing:1.5px;border-bottom:1px solid rgba(122,28,28,0.2);margin-bottom:2px;padding-bottom:3px;
+  font-weight:700;color:var(--ink);text-transform:uppercase;
+  letter-spacing:0.5px;margin-top:14px;margin-bottom:2px;
+  border-bottom:1px solid rgba(0,0,0,0.08);padding-bottom:2px;
 }
-.sl-content[data-type="action"]{font-size:13px;color:var(--ink);font-weight:400;padding-top:2px}
+.sl-content[data-type="action"]{
+  color:var(--ink);font-weight:400;margin-bottom:2px;
+}
 .sl-content[data-type="character"]{
-  font-size:12px;font-weight:700;color:var(--teal);text-transform:uppercase;
-  letter-spacing:2px;text-align:center;padding-left:80px;margin-top:8px;
+  font-weight:700;color:var(--ink);text-transform:uppercase;
+  letter-spacing:0.5px;margin-top:10px;margin-bottom:0;
+  padding-left:38%;text-align:left;
 }
 .sl-content[data-type="dialogue"]{
-  font-size:13px;color:var(--ink2);padding-left:60px;padding-right:60px;
+  color:var(--ink);
+  padding-left:22%;padding-right:18%;margin-bottom:2px;
 }
 .sl-content[data-type="parenthetical"]{
-  font-size:12px;color:var(--blue);font-style:italic;
-  padding-left:48px;padding-right:80px;
+  color:var(--ink);font-style:italic;
+  padding-left:30%;padding-right:24%;margin-bottom:0;
 }
 .sl-content[data-type="transition"]{
-  font-size:12px;font-weight:700;color:#6A3A8A;text-transform:uppercase;
-  text-align:right;letter-spacing:1px;margin-top:6px;
+  font-weight:700;color:var(--ink);text-transform:uppercase;
+  text-align:right;margin-top:8px;margin-bottom:2px;
+}
+/* Taiwan format overrides in editor */
+body.tw-editor .sl-content[data-type="character"]{
+  padding-left:0;text-transform:none;letter-spacing:0;
+}
+body.tw-editor .sl-content[data-type="dialogue"]{
+  padding-left:0;padding-right:0;
+}
+body.tw-editor .sl-content[data-type="parenthetical"]{
+  padding-left:0;padding-right:0;
 }
 
 /* Scene interior toggle chips */
@@ -455,16 +481,16 @@ body.multiselect-mode .sl-num{display:none}
   }
   .sl-content[data-type="action"]{margin-bottom:10pt!important;page-break-inside:avoid}
   .sl-content[data-type="character"]{
-    padding-left:3.5in!important;text-align:left!important;
+    padding-left:3.7in!important;text-align:left!important;
     font-weight:700!important;margin-top:10pt!important;
     text-transform:uppercase!important;letter-spacing:0!important;
     page-break-after:avoid!important;
   }
   .sl-content[data-type="dialogue"]{
-    padding-left:2in!important;padding-right:2in!important;margin-bottom:8pt!important;
+    padding-left:2.5in!important;padding-right:1.5in!important;margin-bottom:8pt!important;
   }
   .sl-content[data-type="parenthetical"]{
-    padding-left:2.5in!important;padding-right:2.5in!important;
+    padding-left:3.1in!important;padding-right:2.4in!important;
     font-style:italic!important;page-break-after:avoid!important;
   }
   .sl-content[data-type="transition"]{
@@ -827,6 +853,9 @@ body.multiselect-mode .sl-num{display:none}
     </div>
   </div>
 
+  <!-- ── LEFT DIVIDER ────────────────────────── -->
+  <div class="panel-divider" id="divider-left" title="拖曳調整左側欄寬度"></div>
+
   <!-- ── CENTER EDITOR ───────────────────────── -->
   <div id="center">
     <div class="editor-toolbar">
@@ -874,6 +903,9 @@ body.multiselect-mode .sl-num{display:none}
       </div>
     </div>
   </div>
+
+  <!-- ── RIGHT DIVIDER ───────────────────────── -->
+  <div class="panel-divider" id="divider-right" title="拖曳調整右側欄寬度"></div>
 
   <!-- ── RIGHT PANEL ─────────────────────────── -->
   <div id="right">
@@ -1232,9 +1264,9 @@ function renderAll(){
 // ── Script format toggle ─────────────────────────
 function setScriptFormat(fmt){
   getScript().format = fmt;
-  // Update toggle button highlights
   document.getElementById('fmt-toggle-hw').classList.toggle('active', fmt==='hollywood');
   document.getElementById('fmt-toggle-tw').classList.toggle('active', fmt==='taiwan');
+  syncEditorFormatClass();
   renderLines();
   scheduleUpdate();
 }
@@ -3201,20 +3233,20 @@ async function exportDocx(){
               var parenText = parenMatch[1].trim();
               var restDial = parenMatch[2].trim();
               children.push(new Paragraph({
-                indent: { left: IN(1.2), right: IN(1.5) },
+                indent: { left: IN(1.6), right: IN(2.4) },
                 spacing: { before: 0, after: 0 },
                 children: [baseRun('(' + parenText + ')', { italics: true })]
               }));
               if(restDial){
                 children.push(new Paragraph({
-                  indent: { left: IN(0.5), right: IN(1.5) },
+                  indent: { left: IN(1.0), right: IN(1.5) },
                   spacing: { before: 0, after: IN(0.17) },
                   children: [baseRun(restDial)]
                 }));
               }
             } else {
               children.push(new Paragraph({
-                indent: { left: IN(0.5), right: IN(1.5) },
+                indent: { left: IN(1.0), right: IN(1.5) },
                 spacing: { before: 0, after: IN(0.17) },
                 children: [baseRun(dialPart)]
               }));
@@ -3234,13 +3266,13 @@ async function exportDocx(){
         } else if(b.type === 'parenthetical'){
           var inner = t.replace(/^[(（]/,'').replace(/[)）]$/,'');
           children.push(new Paragraph({
-            indent: { left: IN(1.2), right: IN(1.5) },
+            indent: { left: IN(1.6), right: IN(2.4) },
             spacing: { before: 0, after: 0 },
             children: [baseRun('(' + inner + ')', { italics: true })]
           }));
         } else if(b.type === 'dialogue'){
           children.push(new Paragraph({
-            indent: { left: IN(0.5), right: IN(1.5) },
+            indent: { left: IN(1.0), right: IN(1.5) },
             spacing: { before: 0, after: IN(0.17) },
             children: [baseRun(t)]
           }));
@@ -3555,14 +3587,64 @@ window.addEventListener('DOMContentLoaded', function(){
   var _origSU = scheduleUpdate;
   scheduleUpdate = function(){ _origSU(); debouncedSave(); };
   var _origRA = renderAll;
-  renderAll = function(){ _origRA(); debouncedSave(); autoSnapshot('自動快照'); };
+  renderAll = function(){ _origRA(); debouncedSave(); autoSnapshot('自動快照'); syncEditorFormatClass(); };
 
   // Boot sequence
   loadFromStorage();
   renderAll();
   restoreDomFromStorage();
   renderHistoryPanel();
+
+  // Init panel resize dividers
+  initPanelResize('divider-left',  'left',  'left');
+  initPanelResize('divider-right', 'right', 'right');
 });
+
+// ── Panel resize ─────────────────────────────────
+function initPanelResize(dividerId, panelId, side){
+  var divider = document.getElementById(dividerId);
+  var panel   = document.getElementById(panelId);
+  if(!divider || !panel) return;
+
+  var startX, startW;
+
+  divider.addEventListener('mousedown', function(e){
+    e.preventDefault();
+    startX = e.clientX;
+    startW = panel.offsetWidth;
+    divider.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    function onMove(e){
+      var delta = side === 'left'
+        ? e.clientX - startX
+        : startX - e.clientX;
+      var newW = Math.min(Math.max(startW + delta,
+        parseInt(getComputedStyle(panel).minWidth)||160),
+        parseInt(getComputedStyle(panel).maxWidth)||500);
+      panel.style.width = newW + 'px';
+      panel.style.transition = 'none';
+    }
+
+    function onUp(){
+      divider.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      panel.style.transition = '';
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+}
+
+// ── Sync tw-editor body class for WYSIWYG Taiwan layout ──
+function syncEditorFormatClass(){
+  document.body.classList.toggle('tw-editor', isTaiwan());
+}
 
 
 
