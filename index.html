@@ -2747,7 +2747,53 @@ function deleteProject(){
   }
   var proj = DB.projects.find(function(p){ return p.id===getProject(); });
   if(!proj) return;
-  if(!confirm('確定要刪除「' + proj.name + '」嗎？\n這個劇本的所有內容（分場卡、角色、筆記）都會一起刪除，且無法復原。')) return;
+
+  // Step 1: Require typing project name to confirm
+  var input = prompt(
+    '確定要刪除「' + proj.name + '」嗎？\n\n' +
+    '刪除後所有內容（劇本、分場卡、角色、筆記）無法復原。\n\n' +
+    '請輸入專案名稱「' + proj.name + '」確認刪除：'
+  );
+  if(input === null) return; // cancelled
+  if(input.trim() !== proj.name.trim()){
+    alert('名稱不符，已取消刪除。');
+    return;
+  }
+
+  // Step 2: Auto-download JSON backup before deleting
+  var titleData = {};
+  try {
+    var td = localStorage.getItem('xiaoyeTitle_v1');
+    if(td) titleData = JSON.parse(td);
+  } catch(e){}
+
+  var backupPayload = {
+    _version: 1,
+    _app: '小葉劇本工坊',
+    _exported: new Date().toISOString(),
+    _note: '刪除前自動備份：' + proj.name,
+    _title: titleData.title || '',
+    _subtitle: titleData.subtitle || '',
+    db: {
+      projects: [proj],
+      activeProject: proj.id,
+      scripts:    { [proj.id]: DB.scripts[proj.id]    || {} },
+      sceneCards: { [proj.id]: DB.sceneCards[proj.id] || [] },
+      characters: { [proj.id]: DB.characters[proj.id] || [] },
+      notes:      { [proj.id]: DB.notes[proj.id]      || [] }
+    }
+  };
+  try {
+    var blob = new Blob([JSON.stringify(backupPayload, null, 2)], {type:'application/json;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = proj.name + '_刪除前備份_' + new Date().toISOString().slice(0,10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch(e){ console.warn('備份下載失敗：', e); }
+
+  // Step 3: Delete
   var id = proj.id;
   DB.projects = DB.projects.filter(function(p){ return p.id!==id; });
   delete DB.scripts[id];
@@ -2759,6 +2805,7 @@ function deleteProject(){
   document.getElementById('sb-project').textContent = DB.projects[0].name;
   renderAll();
   debouncedSave();
+  alert('「' + proj.name + '」已刪除。備份 JSON 已自動下載到你的下載資料夾。');
 }
 
 function syncProjectSelector(){
