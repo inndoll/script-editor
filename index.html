@@ -643,7 +643,36 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 /* type colour dots in select */
 .ipr-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px}
 
-/* ── GUIDE MODAL ─────────────────────────────── */
+/* ── SNAPSHOT MODAL ─────────────────────────── */
+#snapshot-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:2500;align-items:center;justify-content:center;padding:20px}
+#snapshot-overlay.open{display:flex}
+#snapshot-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius3);width:540px;max-width:96vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.28)}
+.snap-hdr{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg2);flex-shrink:0}
+.snap-hdr h2{font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;color:var(--ink);flex:1}
+.snap-body{padding:18px 20px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.snap-field{display:flex;flex-direction:column;gap:4px}
+.snap-field label{font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:0.5px;text-transform:uppercase}
+.snap-field input,.snap-field textarea,.snap-field select{
+  border:1px solid var(--border2);border-radius:var(--radius2);padding:7px 10px;
+  font-size:13px;font-family:'Noto Sans TC',sans-serif;color:var(--ink);
+  background:var(--bg);outline:none;transition:border-color 0.12s;
+}
+.snap-field input:focus,.snap-field textarea:focus,.snap-field select:focus{border-color:var(--amber)}
+.snap-field textarea{resize:vertical;min-height:60px;line-height:1.6}
+.snap-range-row{display:flex;gap:8px;align-items:center}
+.snap-range-row input[type=number]{width:70px}
+.snap-orient-row{display:flex;gap:8px}
+.snap-orient-btn{flex:1;padding:10px 6px;border:2px solid var(--border);border-radius:8px;background:var(--bg);cursor:pointer;text-align:center;font-size:11px;color:var(--ink2);transition:all 0.12s;font-family:'Noto Sans TC',sans-serif}
+.snap-orient-btn:hover{border-color:var(--amber2)}
+.snap-orient-btn.active{border-color:#7B5EA7;background:#F5F0FB;color:#7B5EA7;font-weight:700}
+.snap-orient-icon{font-size:20px;display:block;margin-bottom:4px}
+.snap-footer{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg2);flex-shrink:0}
+/* The off-screen canvas render target */
+#snapshot-render-target{
+  position:fixed;left:-9999px;top:0;z-index:-1;
+  font-family:'Noto Sans TC','Noto Serif TC',sans-serif;
+  background:#FDFBF7;
+}
 #guide-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;padding:20px}
 #guide-overlay.open{display:flex}
 #guide-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius3);width:860px;max-width:96vw;height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.28)}
@@ -739,6 +768,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 </head>
 <body>
@@ -804,6 +834,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
     </label>
     <button class="tbtn primary" onclick="printScript()">🖨 列印 PDF</button>
     <div class="sep"></div>
+    <button class="tbtn" title="生成劇本快照圖片，可分享至 LINE / Messenger 等通訊軟體" onclick="openSnapshotModal()" style="color:#7B5EA7;border-color:#B89FD4;background:#F5F0FB">📸 快照分享</button>
     <button class="tbtn" title="使用指南" onclick="openGuide()">使用指南</button>
     <button class="tbtn" style="color:var(--teal);border-color:#8ACAC0;background:var(--teal-l)" onclick="shareScript()" title="產生唯讀分享連結，收到連結的人可以閱讀但不能編輯">🔗 分享連結</button>
     <button class="icon-btn" title="收合左側欄" onclick="toggleLeft()">◀</button>
@@ -1135,6 +1166,68 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
   </div>
 </div>
 
+
+<!-- ── SNAPSHOT MODAL ────────────────────────── -->
+<div id="snapshot-overlay" onclick="snapOverlayClick(event)">
+  <div id="snapshot-box">
+    <div class="snap-hdr">
+      <h2>📸 快照分享</h2>
+      <button class="icon-btn" onclick="closeSnapshotModal()" style="font-size:15px">✕</button>
+    </div>
+    <div class="snap-body">
+      <div class="snap-field">
+        <label>快照標題</label>
+        <input type="text" id="snap-title" placeholder="劇本名稱（可修改）">
+      </div>
+      <div class="snap-field">
+        <label>版本號碼</label>
+        <input type="text" id="snap-version" placeholder="例：v1、第一稿、修改版…">
+      </div>
+      <div class="snap-field">
+        <label>備註（選填）</label>
+        <textarea id="snap-note" placeholder="例：請特別看第三場的對白修改"></textarea>
+      </div>
+      <div class="snap-field">
+        <label>劇本範圍</label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer">
+            <input type="radio" name="snap-range" value="all" checked onchange="snapRangeChange(this)"> 全文
+          </label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer">
+            <input type="radio" name="snap-range" value="custom" onchange="snapRangeChange(this)"> 指定場景範圍
+          </label>
+          <div id="snap-range-inputs" style="display:none;align-items:center;gap:6px;font-size:12px;color:var(--ink2)">
+            第 <input type="number" id="snap-from" min="1" value="1" class="snap-field" style="width:60px;padding:4px 6px;border:1px solid var(--border2);border-radius:4px;font-size:12px"> 場
+            到第 <input type="number" id="snap-to" min="1" value="1" class="snap-field" style="width:60px;padding:4px 6px;border:1px solid var(--border2);border-radius:4px;font-size:12px"> 場
+          </div>
+        </div>
+      </div>
+      <div class="snap-field">
+        <label>圖片版式</label>
+        <div class="snap-orient-row">
+          <button class="snap-orient-btn active" data-orient="portrait" onclick="snapSetOrient(this)">
+            <span class="snap-orient-icon">📱</span>直式手機閱讀模式
+          </button>
+          <button class="snap-orient-btn" data-orient="landscape" onclick="snapSetOrient(this)">
+            <span class="snap-orient-icon">🖥</span>橫向螢幕模式
+          </button>
+          <button class="snap-orient-btn" data-orient="square" onclick="snapSetOrient(this)">
+            <span class="snap-orient-icon">⬛</span>IG 正方形模式
+          </button>
+        </div>
+      </div>
+      <div id="snap-status" style="font-size:11px;color:var(--ink3);text-align:center;min-height:16px"></div>
+    </div>
+    <div class="snap-footer">
+      <button class="tbtn" onclick="closeSnapshotModal()">取消</button>
+      <button class="tbtn" id="snap-copy-btn" onclick="generateSnapshot('copy')" style="color:#7B5EA7;border-color:#B89FD4;background:#F5F0FB">複製圖片</button>
+      <button class="tbtn primary" id="snap-dl-btn" onclick="generateSnapshot('download')">⬇ 下載圖片</button>
+    </div>
+  </div>
+</div>
+
+<!-- Off-screen render target for html2canvas -->
+<div id="snapshot-render-target"></div>
 
 <!-- ── GUIDE MODAL ─────────────────────────────── -->
 <div id="guide-overlay" onclick="guideOverlayClick(event)">
@@ -4234,6 +4327,253 @@ window.addEventListener('DOMContentLoaded', function(){
   checkShareHash();
 });
 
+
+// ══════════════════════════════════════════════
+//  SNAPSHOT SHARE
+// ══════════════════════════════════════════════
+var _snapOrient = 'portrait'; // portrait | landscape | square
+var _snapVersionCounter = 1;
+
+function openSnapshotModal(){
+  // Pre-fill title and scene count
+  var titleEl = document.getElementById('script-title-input');
+  var proj = DB.projects.find(function(p){ return p.id===getProject(); });
+  var title = (titleEl && titleEl.value) ? titleEl.value : (proj ? proj.name : '劇本');
+  document.getElementById('snap-title').value = title;
+  document.getElementById('snap-version').value = 'v' + _snapVersionCounter;
+
+  // Set scene range max
+  var sceneCount = getBlocks().filter(function(b){ return b.type==='scene'; }).length;
+  var toEl = document.getElementById('snap-to');
+  if(toEl) toEl.value = sceneCount || 1;
+  if(toEl) toEl.max = sceneCount || 1;
+  var fromEl = document.getElementById('snap-from');
+  if(fromEl) fromEl.max = sceneCount || 1;
+
+  document.getElementById('snap-status').textContent = '';
+  document.querySelector('input[name="snap-range"][value="all"]').checked = true;
+  document.getElementById('snap-range-inputs').style.display = 'none';
+
+  document.getElementById('snapshot-overlay').classList.add('open');
+}
+
+function closeSnapshotModal(){
+  document.getElementById('snapshot-overlay').classList.remove('open');
+}
+
+function snapOverlayClick(e){
+  if(e.target === document.getElementById('snapshot-overlay')) closeSnapshotModal();
+}
+
+function snapRangeChange(radio){
+  document.getElementById('snap-range-inputs').style.display =
+    radio.value === 'custom' ? 'flex' : 'none';
+}
+
+function snapSetOrient(btn){
+  document.querySelectorAll('.snap-orient-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  _snapOrient = btn.dataset.orient;
+}
+
+// Build the snapshot blocks (filtered by scene range if needed)
+function getSnapshotBlocks(){
+  var blocks = getBlocks();
+  var rangeAll = document.querySelector('input[name="snap-range"]:checked').value === 'all';
+  if(rangeAll) return blocks;
+
+  var fromScene = parseInt(document.getElementById('snap-from').value) || 1;
+  var toScene   = parseInt(document.getElementById('snap-to').value)   || 1;
+  if(fromScene > toScene){ var tmp=fromScene; fromScene=toScene; toScene=tmp; }
+
+  // Find block indices of scene N boundaries
+  var sceneIdx = 0;
+  var startBlock = -1, endBlock = blocks.length;
+  for(var i=0; i<blocks.length; i++){
+    if(blocks[i].type === 'scene'){
+      sceneIdx++;
+      if(sceneIdx === fromScene) startBlock = i;
+      if(sceneIdx === toScene + 1){ endBlock = i; break; }
+    }
+  }
+  if(startBlock === -1) return blocks;
+  return blocks.slice(startBlock, endBlock);
+}
+
+// Render the snapshot HTML into the off-screen div
+function buildSnapshotHTML(blocks){
+  var title   = document.getElementById('snap-title').value   || '劇本快照';
+  var version = document.getElementById('snap-version').value || '';
+  var note    = document.getElementById('snap-note').value    || '';
+  var now     = new Date().toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  var fmt     = getFormat();
+  var sceneNum = 0;
+
+  // Dimensions by orientation
+  var dims = { portrait:{w:750,pad:40}, landscape:{w:1200,pad:60}, square:{w:1080,pad:50} };
+  var dim = dims[_snapOrient] || dims.portrait;
+
+  var lines = '';
+  var i = 0;
+  while(i < blocks.length){
+    var b = blocks[i];
+    var t = (b.text||'').trim();
+    if(!t){ lines += '<div style="height:8px"></div>'; i++; continue; }
+
+    if(b.type === 'scene'){
+      sceneNum++;
+      var sceneText = (fmt==='hollywood') ? t.toUpperCase() : t;
+      var prefix = sceneNum + '. ';
+      lines += '<div style="font-weight:700;margin:20px 0 6px;font-size:14px;border-bottom:1px solid rgba(0,0,0,0.12);padding-bottom:4px">'
+        + esc(prefix + sceneText) + '</div>';
+
+    } else if(b.type === 'action'){
+      var actionText = (fmt==='tvdrama') ? '△ ' + t : t;
+      lines += '<div style="margin-bottom:6px;font-size:13px;line-height:1.75;color:#2A2A2A">' + esc(actionText) + '</div>';
+
+    } else if(b.type === 'character'){
+      if(fmt === 'hollywood'){
+        lines += '<div style="font-weight:700;text-align:center;margin-top:14px;margin-bottom:2px;font-size:13px;text-transform:uppercase;letter-spacing:1px">' + esc(t) + '</div>';
+      } else {
+        // Taiwan / tvdrama: merge with next parenthetical + dialogue
+        var charName = t;
+        var paren = '';
+        var dial = '';
+        if(i+1 < blocks.length && blocks[i+1].type==='parenthetical'){
+          i++;
+          paren = '（' + (blocks[i].text||'').replace(/^[(（]/,'').replace(/[)）]$/,'') + '）';
+        }
+        if(i+1 < blocks.length && blocks[i+1].type==='dialogue'){
+          i++;
+          dial = (blocks[i].text||'').trim();
+        }
+        lines += '<div style="margin-bottom:4px;font-size:13px;line-height:1.75">'
+          + '<span style="font-weight:600">' + esc(charName) + '</span>'
+          + '：' + esc(paren + dial) + '</div>';
+        i++; continue;
+      }
+
+    } else if(b.type === 'parenthetical'){
+      if(fmt === 'hollywood'){
+        var inner = t.replace(/^[(（]/,'').replace(/[)）]$/,'');
+        lines += '<div style="text-align:center;font-style:italic;font-size:12px;color:#555;padding:0 18%">' + esc('(' + inner + ')') + '</div>';
+      }
+
+    } else if(b.type === 'dialogue'){
+      if(fmt === 'hollywood'){
+        lines += '<div style="margin-bottom:6px;font-size:13px;line-height:1.75;padding:0 16%">' + esc(t) + '</div>';
+      } else {
+        lines += '<div style="margin-bottom:4px;font-size:13px;line-height:1.75">' + esc(t) + '</div>';
+      }
+
+    } else if(b.type === 'transition'){
+      lines += '<div style="text-align:right;font-weight:700;font-size:12px;margin:10px 0;text-transform:uppercase">' + esc(t) + '</div>';
+    }
+    i++;
+  }
+
+  return {html:
+    '<div style="width:' + dim.w + 'px;background:#FDFBF7;font-family:\'Noto Serif TC\',\'Noto Sans TC\',sans-serif;box-sizing:border-box;">'
+    // Header
+    + '<div style="background:#2A2A2A;padding:22px ' + dim.pad + 'px 18px;color:#fff">'
+    + '<div style="font-size:10px;letter-spacing:2px;opacity:0.6;margin-bottom:6px;text-transform:uppercase">劇本快照 · 小葉劇本工坊</div>'
+    + '<div style="font-size:20px;font-weight:700;font-family:\'Noto Serif TC\',serif;margin-bottom:4px">' + esc(title) + '</div>'
+    + '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:6px">'
+    + (version ? '<span style="background:rgba(255,255,255,0.15);padding:2px 10px;border-radius:20px;font-size:11px">' + esc(version) + '</span>' : '')
+    + '<span style="font-size:11px;opacity:0.7">🕐 ' + now + '</span>'
+    + '</div>'
+    + (note ? '<div style="margin-top:10px;font-size:12px;opacity:0.85;background:rgba(255,255,255,0.1);padding:8px 12px;border-radius:6px;border-left:3px solid rgba(255,255,255,0.4)">💬 ' + esc(note) + '</div>' : '')
+    + '</div>'
+    // Content
+    + '<div style="padding:24px ' + dim.pad + 'px 20px;background:#FDFBF7">'
+    + lines
+    + '</div>'
+    // Footer watermark
+    + '<div style="background:#F0EDE6;padding:10px ' + dim.pad + 'px;text-align:center;font-size:10px;color:#999;letter-spacing:1px">'
+    + '小葉劇本工坊（免費版）· 繁體中文劇本編輯器'
+    + '</div>'
+    + '</div>',
+    width: dim.w
+  };
+}
+
+async function generateSnapshot(action){
+  if(typeof html2canvas === 'undefined'){
+    document.getElementById('snap-status').textContent = '❌ 需要網路連線載入圖片函式庫，請確認網路後重試。';
+    return;
+  }
+
+  var snapBlocks = getSnapshotBlocks();
+  if(!snapBlocks.length){
+    document.getElementById('snap-status').textContent = '❌ 沒有可截取的劇本內容。';
+    return;
+  }
+
+  var copyBtn = document.getElementById('snap-copy-btn');
+  var dlBtn   = document.getElementById('snap-dl-btn');
+  var status  = document.getElementById('snap-status');
+  copyBtn.disabled = true; dlBtn.disabled = true;
+  status.textContent = '⏳ 正在生成圖片…';
+
+  try {
+    var built = buildSnapshotHTML(snapBlocks);
+    var target = document.getElementById('snapshot-render-target');
+    target.innerHTML = built.html;
+    target.style.width = built.width + 'px';
+
+    // Wait for fonts / images
+    await new Promise(function(r){ setTimeout(r, 300); });
+
+    var canvas = await html2canvas(target.firstElementChild, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#FDFBF7',
+      logging: false,
+      width: built.width,
+    });
+
+    target.innerHTML = '';
+
+    if(action === 'download'){
+      var title = document.getElementById('snap-title').value || '劇本快照';
+      var ver   = document.getElementById('snap-version').value || 'v1';
+      var a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = title + '_' + ver + '_' + new Date().toISOString().slice(0,10) + '.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      status.textContent = '✓ 圖片已下載！';
+      _snapVersionCounter++;
+    } else {
+      // Copy to clipboard
+      canvas.toBlob(async function(blob){
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+          ]);
+          status.textContent = '✓ 已複製到剪貼簿！可直接貼到 LINE / Messenger。';
+          _snapVersionCounter++;
+        } catch(err){
+          // Fallback: download instead
+          var a = document.createElement('a');
+          a.href = canvas.toDataURL('image/png');
+          var title2 = document.getElementById('snap-title').value || '劇本快照';
+          var ver2   = document.getElementById('snap-version').value || 'v1';
+          a.download = title2 + '_' + ver2 + '.png';
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          status.textContent = '⚠️ 此瀏覽器不支援直接複製圖片，已自動下載。';
+          _snapVersionCounter++;
+        }
+      }, 'image/png');
+    }
+  } catch(err){
+    status.textContent = '❌ 生成失敗：' + err.message;
+    console.error('snapshot error:', err);
+  } finally {
+    copyBtn.disabled = false; dlBtn.disabled = false;
+  }
+}
 
 // ── Guide content sections ──────────────────────
 var GUIDE_SECTIONS = [
