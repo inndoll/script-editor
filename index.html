@@ -1768,7 +1768,7 @@ function snapshotUndo(){
 // Debounced — coalesce rapid typing into one snapshot
 function debouncedSnapshotUndo(){
   clearTimeout(_undoDebounce);
-  _undoDebounce = setTimeout(snapshotUndo, 600);
+  _undoDebounce = setTimeout(snapshotUndo, 200);
 }
 
 function doUndo(){
@@ -1966,6 +1966,16 @@ function onLineKey(e,i){
   if(e.key==='ArrowDown' && i<blocks.length-1){
     const nextEl = document.getElementById('line-'+(i+1));
     if(nextEl) setTimeout(()=>nextEl.focus(), 0);
+  }
+
+  // Page Up / Page Down — scroll only the editor-scroll container, not the whole page
+  if(e.key==='PageUp' || e.key==='PageDown'){
+    e.preventDefault();
+    var scroller = document.getElementById('editor-scroll');
+    if(scroller){
+      var amount = scroller.clientHeight * 0.85;
+      scroller.scrollBy({ top: e.key==='PageDown' ? amount : -amount, behavior:'smooth' });
+    }
   }
 }
 
@@ -4057,10 +4067,19 @@ document.addEventListener('keydown', function(e){
     var active = document.activeElement;
     var inEditorLine = active && active.classList.contains('sl-content');
     var inTitleInput = active && (active.id === 'script-title-input' || active.id === 'script-subtitle-input');
-    // Only intercept when focus is NOT already in a specific line or title field
     if(!inEditorLine && !inTitleInput){
       e.preventDefault();
       selectAllScriptText();
+    }
+    return;
+  }
+  // Page Up / Page Down — always scroll editor-scroll, never the body/page
+  if(e.key === 'PageUp' || e.key === 'PageDown'){
+    var editorArea = document.getElementById('editor-scroll');
+    if(editorArea && document.activeElement && editorArea.contains(document.activeElement)){
+      e.preventDefault();
+      var amount = editorArea.clientHeight * 0.85;
+      editorArea.scrollBy({ top: e.key==='PageDown' ? amount : -amount, behavior:'smooth' });
     }
     return;
   }
