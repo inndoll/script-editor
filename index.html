@@ -303,6 +303,19 @@ body.tw-editor .sl-content[data-type="dialogue"]{
 body.tw-editor .sl-content[data-type="parenthetical"]{
   padding-left:0;padding-right:0;
 }
+/* TV Drama format overrides in editor — action shows △ prefix */
+body.tv-editor .sl-content[data-type="action"]::before{
+  content:'△ ';color:var(--ink3);font-style:normal;
+}
+body.tv-editor .sl-content[data-type="character"]{
+  padding-left:0;text-transform:none;letter-spacing:0;
+}
+body.tv-editor .sl-content[data-type="dialogue"]{
+  padding-left:0;padding-right:0;
+}
+body.tv-editor .sl-content[data-type="parenthetical"]{
+  padding-left:0;padding-right:0;
+}
 
 /* Scene interior toggle chips */
 .scene-int-wrap{
@@ -516,6 +529,26 @@ body.tw-editor .sl-content[data-type="parenthetical"]{
   }
   body.tw-print .sl{display:block!important;margin-bottom:0!important}
 
+  /* TV Drama format print (戲說台灣格式): △ before action, 角色名：對白 same line */
+  body.tv-print .sl-content[data-type="scene"]{text-transform:none!important}
+  body.tv-print .sl-content[data-type="action"]::before{
+    content:'△ ';
+  }
+  body.tv-print .sl-content[data-type="character"]{
+    padding-left:0!important;text-transform:none!important;font-weight:400!important;
+    margin-top:0!important;letter-spacing:0!important;display:inline!important;
+  }
+  body.tv-print .sl-content[data-type="character"]::after{content:'：';}
+  body.tv-print .sl-content[data-type="parenthetical"]{
+    padding-left:0!important;padding-right:0!important;
+    font-style:normal!important;display:inline!important;
+  }
+  body.tv-print .sl-content[data-type="dialogue"]{
+    padding-left:0!important;padding-right:0!important;
+    margin-bottom:0!important;display:inline!important;
+  }
+  body.tv-print .sl{display:block!important;margin-bottom:0!important}
+
   /* Scene card chips don't print */
   .int-chip,.time-chip,.chip-group-sep,.int-sep{display:none!important}
 
@@ -723,7 +756,8 @@ body.tw-editor .sl-content[data-type="parenthetical"]{
   <div class="tbar-group">
     <span style="font-size:10px;color:var(--ink3);letter-spacing:0.5px">劇本格式</span>
     <button id="fmt-toggle-hw" class="tbtn fmt-toggle active" onclick="setScriptFormat('hollywood')" title="好萊塢格式：INT./EXT. 地點 - 時間">好萊塢</button>
-    <button id="fmt-toggle-tw" class="tbtn fmt-toggle" onclick="setScriptFormat('taiwan')" title="台灣格式：內景／外景 地點 時間">台灣</button>
+    <button id="fmt-toggle-tw" class="tbtn fmt-toggle" onclick="setScriptFormat('taiwan')" title="優劇格式：內景／外景 地點 時間（優良電影劇本獎）">優劇</button>
+    <button id="fmt-toggle-tv" class="tbtn fmt-toggle" onclick="setScriptFormat('tvdrama')" title="戲說台灣格式：△ 動作描述，角色名：對白">電視劇</button>
   </div>
   <div class="sep"></div>
 
@@ -1230,18 +1264,23 @@ function getProject(){ return DB.activeProject; }
 function getScript(){ return DB.scripts[getProject()]; }
 function getFormat(){
   var script = getScript();
-  // If format is not set, auto-detect from scene headings
   if(!script.format){
     var blocks = script.blocks || [];
     var sceneBlocks = blocks.filter(function(b){ return b.type==='scene' && b.text; });
     var hasTaiwan = sceneBlocks.some(function(b){
       return /^(內景|外景|內外景)/.test(b.text.trim());
     });
-    script.format = hasTaiwan ? 'taiwan' : 'hollywood';
+    // Check for △ in action blocks → tvdrama
+    var actionBlocks = blocks.filter(function(b){ return b.type==='action' && b.text; });
+    var hasTvDrama = actionBlocks.some(function(b){
+      return b.text.trim().startsWith('△');
+    });
+    script.format = hasTvDrama ? 'tvdrama' : hasTaiwan ? 'taiwan' : 'hollywood';
   }
   return script.format;
 }
 function isTaiwan(){ return getFormat()==='taiwan'; }
+function isTvDrama(){ return getFormat()==='tvdrama'; }
 function getBlocks(){ return getScript().blocks; }
 function getCards(){ return DB.sceneCards[getProject()]||[]; }
 function getChars(){ return DB.characters[getProject()]||[]; }
@@ -1266,6 +1305,7 @@ function setScriptFormat(fmt){
   getScript().format = fmt;
   document.getElementById('fmt-toggle-hw').classList.toggle('active', fmt==='hollywood');
   document.getElementById('fmt-toggle-tw').classList.toggle('active', fmt==='taiwan');
+  document.getElementById('fmt-toggle-tv').classList.toggle('active', fmt==='tvdrama');
   syncEditorFormatClass();
   renderLines();
   scheduleUpdate();
@@ -1275,8 +1315,10 @@ function syncFormatToggle(){
   var fmt = getFormat();
   var hw = document.getElementById('fmt-toggle-hw');
   var tw = document.getElementById('fmt-toggle-tw');
+  var tv = document.getElementById('fmt-toggle-tv');
   if(hw) hw.classList.toggle('active', fmt==='hollywood');
   if(tw) tw.classList.toggle('active', fmt==='taiwan');
+  if(tv) tv.classList.toggle('active', fmt==='tvdrama');
 }
 
 // Parse INT/EXT prefix from scene heading text (supports both Hollywood and Taiwan format)
@@ -2720,7 +2762,7 @@ function openProjectSettings(){
     + '</label>'
     + '<label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;padding:10px 12px;border-radius:8px;border:2px solid '+(fmt==='taiwan'?'var(--amber)':'var(--border)')+'background:var(--bg);transition:all 0.15s" id="ps-tw-label">'
     + '<input type="radio" name="ps-format" value="taiwan" '+(fmt==='taiwan'?'checked':'')+' onchange="psFormatChange(this)" style="margin-top:2px;flex-shrink:0">'
-    + '<div><div style="font-weight:700;font-size:13px;color:var(--ink)">台灣格式（優良電影劇本獎）</div>'
+    + '<div><div style="font-weight:700;font-size:13px;color:var(--ink)">優劇格式（優良電影劇本獎）</div>'
     + '<div style="font-size:11px;color:var(--ink3);margin-top:2px">內景 地點 夜　角色名稱：對白在同一行<br>語氣說明放在對白同行括號內</div></div>'
     + '</label>'
     + '</div>'
@@ -2866,11 +2908,45 @@ function toFountain(){
   const title = titleEl?.value || proj?.name || '劇本';
   const subtitle = subtitleEl?.value || '';
   const tw = isTaiwan();
+  const tv = isTvDrama();
   let o=`Title: ${title}\n`;
   if(subtitle) o+=`Credit: ${subtitle}\n`;
   o+=`Author: 小葉\nDraft date: ${new Date().toISOString().slice(0,10)}\n\n`;
 
-  if(tw){
+  if(tv){
+    // TV Drama format: △ before action, 角色名：（語氣）對白 same line
+    var tvBlocks = getBlocks();
+    var tvI = 0, tvScene = 0;
+    while(tvI < tvBlocks.length){
+      var tvB = tvBlocks[tvI];
+      var tvT = (tvB.text||'').trim();
+      if(!tvT){ o+='\n'; tvI++; continue; }
+      if(tvB.type==='scene'){
+        tvScene++;
+        o += '\n' + tvScene + '. ' + tvT + '\n\n';
+      } else if(tvB.type==='action'){
+        o += '△ ' + tvT + '\n';
+      } else if(tvB.type==='character'){
+        var tvChar = tvT;
+        var tvParen = '';
+        var tvDial = '';
+        if(tvI+1 < tvBlocks.length && tvBlocks[tvI+1].type==='parenthetical'){
+          tvI++;
+          tvParen = '（' + (tvBlocks[tvI].text||'').replace(/^[(（]/,'').replace(/[)）]$/,'') + '）';
+        }
+        if(tvI+1 < tvBlocks.length && tvBlocks[tvI+1].type==='dialogue'){
+          tvI++;
+          tvDial = (tvBlocks[tvI].text||'').trim();
+        }
+        o += tvChar + '：' + tvParen + tvDial + '\n';
+      } else if(tvB.type==='dialogue'){
+        o += tvT + '\n';
+      } else if(tvB.type==='transition'){
+        o += '\n' + tvT + '\n\n';
+      }
+      tvI++;
+    }
+  } else if(tw){
     // Taiwan format: merge character + parenthetical + dialogue into one line
     var blocks = getBlocks();
     var i = 0;
@@ -2945,11 +3021,13 @@ function exportFountain(){
 }
 
 function printScript(){
-  if(isTaiwan()) document.body.classList.add('tw-print');
-  else document.body.classList.remove('tw-print');
+  document.body.classList.toggle('tw-print', isTaiwan());
+  document.body.classList.toggle('tv-print', isTvDrama());
   window.print();
-  // Remove class after print dialog closes
-  setTimeout(function(){ document.body.classList.remove('tw-print'); }, 1000);
+  setTimeout(function(){
+    document.body.classList.remove('tw-print');
+    document.body.classList.remove('tv-print');
+  }, 1000);
 }
 function exportJson(){
   var proj = DB.projects.find(function(p){ return p.id===getProject(); });
@@ -3132,8 +3210,61 @@ async function exportDocx(){
     // ── Script body ──────────────────────────────
     var sceneNum = 0;
     var tw = isTaiwan();
+    var tv = isTvDrama();
 
-    if(tw){
+    if(tv){
+      // TV Drama format: △ before action, 角色名：（語氣）對白 merged
+      var tvI = 0;
+      while(tvI < blocks.length){
+        var tvB = blocks[tvI];
+        var tvT = (tvB.text||'').trim();
+        if(!tvT){
+          children.push(new Paragraph({ spacing:{before:0,after:0}, children:[baseRun('')] }));
+          tvI++; continue;
+        }
+        if(tvB.type==='scene'){
+          sceneNum++;
+          children.push(new Paragraph({
+            spacing: { before: IN(0.25), after: IN(0.08) },
+            children: [baseRun(sceneNum + '. ' + tvT, { bold: true })]
+          }));
+        } else if(tvB.type==='action'){
+          children.push(new Paragraph({
+            spacing: { before: 0, after: IN(0.08) },
+            children: [baseRun('△ ' + tvT)]
+          }));
+        } else if(tvB.type==='character'){
+          var tvChar = tvT;
+          var tvParen = '';
+          var tvDial = '';
+          if(tvI+1 < blocks.length && blocks[tvI+1].type==='parenthetical'){
+            tvI++;
+            tvParen = '（' + (blocks[tvI].text||'').replace(/^[(（]/,'').replace(/[)）]$/,'') + '）';
+          }
+          if(tvI+1 < blocks.length && blocks[tvI+1].type==='dialogue'){
+            tvI++;
+            tvDial = (blocks[tvI].text||'').trim();
+          }
+          children.push(new Paragraph({
+            spacing: { before: 0, after: IN(0.08) },
+            children: [baseRun(tvChar + '：' + tvParen + tvDial)]
+          }));
+        } else if(tvB.type==='dialogue'){
+          children.push(new Paragraph({
+            spacing: { before: 0, after: IN(0.08) },
+            children: [baseRun(tvT)]
+          }));
+        } else if(tvB.type==='transition'){
+          children.push(new Paragraph({
+            spacing: { before: IN(0.17), after: IN(0.17) },
+            children: [baseRun(tvT)]
+          }));
+        } else {
+          children.push(new Paragraph({ children: [baseRun(tvT)] }));
+        }
+        tvI++;
+      }
+    } else if(tw){
       // Taiwan format: character + parenthetical + dialogue merged into one line
       var bi = 0;
       while(bi < blocks.length){
@@ -3644,6 +3775,7 @@ function initPanelResize(dividerId, panelId, side){
 // ── Sync tw-editor body class for WYSIWYG Taiwan layout ──
 function syncEditorFormatClass(){
   document.body.classList.toggle('tw-editor', isTaiwan());
+  document.body.classList.toggle('tv-editor', isTvDrama());
 }
 
 
