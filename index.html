@@ -514,8 +514,11 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
     padding-left:2.5in!important;padding-right:1.5in!important;margin-bottom:8pt!important;
   }
   .sl-content[data-type="parenthetical"]{
-    padding-left:3.1in!important;padding-right:2.4in!important;
+    /* Standard Hollywood indent for short parentheticals,
+       but cap padding so long備註 text doesn't get squeezed into a narrow column */
+    padding-left:2.5in!important;padding-right:1.5in!important;
     font-style:italic!important;page-break-after:avoid!important;
+    word-break:break-word!important;white-space:normal!important;
   }
   .sl-content[data-type="transition"]{
     text-align:right!important;font-weight:700!important;
@@ -1127,7 +1130,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
     </div>
     <div class="import-tabs">
       <button class="import-tab active" id="itab-text" onclick="switchImportTab('text',this)">📋 貼上純文字</button>
-      <button class="import-tab" id="itab-docx" onclick="switchImportTab('docx',this)">📄 上傳 Word 檔（.docx）</button>
+      <button class="import-tab" id="itab-docx" onclick="switchImportTab('docx',this)">📄 上傳 Word 檔（.docx / .doc）</button>
     </div>
 
     <!-- 純文字 pane -->
@@ -1152,9 +1155,9 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
         ondragover="docxDragOver(event)" ondragleave="docxDragLeave(event)" ondrop="docxDrop(event)">
         <span class="dz-icon">📄</span>
         <div class="dz-main">拖曳 .docx 檔至此，或點擊選擇檔案</div>
-        <div class="dz-sub">支援 Microsoft Word .docx 格式</div>
+        <div class="dz-sub">支援 Microsoft Word .docx 格式（舊版 .doc 需先轉換）</div>
       </div>
-      <input type="file" id="docx-file-input" accept=".docx" style="display:none" onchange="handleDocxFile(this.files[0])">
+      <input type="file" id="docx-file-input" accept=".docx,.doc" style="display:none" onchange="handleDocxFile(this.files[0])">
       <div class="import-hint" id="docx-status">等待選擇檔案……</div>
     </div>
 
@@ -4260,7 +4263,17 @@ function docxDrop(e){
 }
 function handleDocxFile(file){
   if(!file) return;
-  if(!file.name.match(/\.docx$/i)){ alert('請上傳 .docx 格式的 Word 檔案。'); return; }
+
+  // Detect .doc (old format) — show friendly conversion guide
+  if(file.name.match(/\.doc$/i)){
+    showDocConvertGuide(file.name);
+    return;
+  }
+
+  if(!file.name.match(/\.docx$/i)){
+    alert('請上傳 .docx 格式的 Word 檔案。');
+    return;
+  }
   var status = document.getElementById('docx-status');
   status.textContent = '⏳ 正在讀取 ' + file.name + ' ……';
   if(typeof mammoth === 'undefined'){
@@ -4282,6 +4295,50 @@ function handleDocxFile(file){
       .catch(function(err){ status.textContent = '❌ 讀取失敗：' + err.message; });
   };
   reader.readAsArrayBuffer(file);
+}
+
+function showDocConvertGuide(filename){
+  var body = '<div style="display:flex;flex-direction:column;gap:16px">'
+    + '<div style="background:var(--amber-l);border:1px solid var(--amber2);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.7">'
+    + '你上傳的 <strong>' + esc(filename) + '</strong> 是舊版 Word 格式（<code>.doc</code>）。'
+    + '<br>小葉劇本工坊只支援新版格式（<code>.docx</code>），需要先轉換才能匯入。'
+    + '</div>'
+    + '<div>'
+    + '<div style="font-size:12px;font-weight:700;color:var(--ink3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">轉換方法（擇一）</div>'
+    + '<div style="display:flex;flex-direction:column;gap:10px;font-size:13px">'
+
+    // Method 1: Word
+    + '<div style="border:1px solid var(--border);border-radius:8px;padding:12px 14px">'
+    + '<div style="font-weight:700;margin-bottom:6px">💻 用 Microsoft Word 轉換</div>'
+    + '<ol style="margin:0;padding-left:18px;line-height:2;color:var(--ink2)">'
+    + '<li>用 Word 開啟這個 .doc 檔</li>'
+    + '<li>點選上方選單「檔案」→「另存新檔」</li>'
+    + '<li>格式選「Word 文件（.docx）」</li>'
+    + '<li>儲存後，將新的 .docx 檔上傳到這裡</li>'
+    + '</ol>'
+    + '</div>'
+
+    // Method 2: Google Docs
+    + '<div style="border:1px solid var(--border);border-radius:8px;padding:12px 14px">'
+    + '<div style="font-weight:700;margin-bottom:6px">🌐 用 Google 文件轉換（免費）</div>'
+    + '<ol style="margin:0;padding-left:18px;line-height:2;color:var(--ink2)">'
+    + '<li>前往 <a href="https://drive.google.com" target="_blank" style="color:var(--amber)">Google 雲端硬碟</a></li>'
+    + '<li>將 .doc 檔拖曳上傳</li>'
+    + '<li>在檔案上按右鍵→「用 Google 文件開啟」</li>'
+    + '<li>點「檔案」→「下載」→「Microsoft Word (.docx)」</li>'
+    + '<li>下載後上傳到這裡</li>'
+    + '</ol>'
+    + '</div>'
+
+    + '</div>'
+    + '</div>'
+    + '</div>';
+
+  document.getElementById('modal-title').textContent = '⚠️ 需要轉換檔案格式';
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('modal-footer').innerHTML =
+    '<button class="tbtn primary" onclick="closeModal()">了解了</button>';
+  document.getElementById('modal-overlay').classList.add('open');
 }
 
 // ── Preview table ────────────────────────────────
