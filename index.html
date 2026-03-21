@@ -495,7 +495,7 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 
 /* Mobile-only elements — hidden by default, shown only via JS on mobile */
 #mob-header,#mob-tabbar,#mob-fmt-bar,
-#mob-menu-overlay{display:none!important}
+#mob-menu-overlay{display:none}
 
 /* ══════════════════════════════════════════════
    TABLET (768–1023px)
@@ -514,20 +514,20 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 ══════════════════════════════════════════════ */
 @media (max-width:767px){
 
-  /* ── Allow mobile elements to be shown by JS ── */
+  /* ── Mobile-only elements also hidden until JS activates ── */
   #mob-header,#mob-tabbar,#mob-fmt-bar,
-  #mob-menu-overlay{ display:none!important } /* still hidden until JS activates */
+  #mob-menu-overlay{ display:none }
 
-  /* ── Layout reset ── */
-  #shell{ height:100dvh;height:100vh }
-  #topbar{ display:none!important }
-  #statusbar{ display:none!important }
-  #main{ display:block!important;overflow:hidden;height:100% }
-  #left{ display:none!important }
-  #divider-left{ display:none!important }
-  #divider-right{ display:none!important }
-  #right{ display:none!important }
-  #tips-card{ display:none!important }
+  /* ── Layout reset — NO !important so JS inline styles can override ── */
+  #shell{ height:100dvh;height:100vh;overflow:hidden }
+  #topbar{ display:none }
+  #statusbar{ display:none }
+  #main{ flex:1;min-height:0;overflow:hidden }
+  #left{ display:none }
+  #divider-left{ display:none }
+  #divider-right{ display:none }
+  #right{ display:none }
+  #tips-card{ display:none }
 
   /* ── Mobile shell ── */
   #mob-header{
