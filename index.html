@@ -1376,6 +1376,7 @@ const TAB_CYCLE = ['action','character','parenthetical','dialogue','transition',
 let DB = {
   projects: [
     {id:'p_sample',name:'📖 範例劇本（觀摩用）'},
+    {id:'p_scifi',name:'🚀 科幻動作測試劇本'},
     {id:'p1',name:'我的第一個劇本'}
   ],
   activeProject: 'p1',
@@ -1405,6 +1406,84 @@ let DB = {
         {id:'bs19',type:'transition',text:'FADE OUT.'},
       ]
     },
+    p_scifi: {
+      id:'s_scifi', projectId:'p_scifi',
+      format: 'hollywood',
+      blocks: [
+        {id:'sf1',type:'scene',text:'EXT. 廢墟都市 台北 2187年 - 夜',linkedCardId:null},
+        {id:'sf2',type:'action',text:'焦黑的101大樓殘骸刺穿雲層。街道上布滿彈孔與燃燒的裝甲車殘骸。雨水摻雜著酸腐的霧氣，滴落在破碎的全息廣告牌上，廣告牌閃爍著一個笑臉：「天啟企業，讓人類更好。」'},
+        {id:'sf3',type:'action',text:'一道黑影沿著廢棄的外牆急速攀降。那是凌冰——女，二十八歲，頭戴隱形頭盔，身穿電磁防護衣。她落地，無聲。'},
+        {id:'sf4',type:'character',text:'林哲'},
+        {id:'sf5',type:'parenthetical',text:'（耳機中，低沉急促）'},
+        {id:'sf6',type:'dialogue',text:'冰，信號還在？伺服器在地下四層。你有十二分鐘，然後整棟樓的警衛全部換班。'},
+        {id:'sf7',type:'character',text:'凌冰'},
+        {id:'sf8',type:'parenthetical',text:'（邊跑邊回應，氣息平穩）'},
+        {id:'sf9',type:'dialogue',text:'我知道。你能不能不要每次都把時間說得那麼精確，讓我有點壓力？'},
+        {id:'sf10',type:'character',text:'林哲'},
+        {id:'sf11',type:'dialogue',text:'十一分五十八秒。'},
+        {id:'sf12',type:'action',text:'凌冰無聲地咒罵了一聲，衝進大樓廢棄的側門。'},
+        {id:'sf13',type:'transition',text:'CUT TO:'},
+        {id:'sf14',type:'scene',text:'INT. 天啟企業大樓 地下走廊 - 夜',linkedCardId:null},
+        {id:'sf15',type:'action',text:'走廊燈光昏紅，巡邏機器人每隔三十秒掃描一次。凌冰貼著牆壁移動，計算節奏。機器人轉身的瞬間，她滑過去，消失在陰影中。'},
+        {id:'sf16',type:'action',text:'前方一扇厚重的鋼門。凌冰取出一枚晶片，貼上感應板。'},
+        {id:'sf17',type:'character',text:'系統提示音'},
+        {id:'sf18',type:'parenthetical',text:'（機械女聲）'},
+        {id:'sf19',type:'dialogue',text:'身份驗證失敗。警報將於十秒後啟動。'},
+        {id:'sf20',type:'character',text:'凌冰'},
+        {id:'sf21',type:'parenthetical',text:'（低罵）'},
+        {id:'sf22',type:'dialogue',text:'哲，他們換密鑰了。'},
+        {id:'sf23',type:'character',text:'林哲'},
+        {id:'sf24',type:'dialogue',text:'我看到了。給我八秒。'},
+        {id:'sf25',type:'action',text:'凌冰背貼鋼門，拔出電磁脈衝槍，瞄準走廊盡頭那台正在轉向的巡邏機器人。'},
+        {id:'sf26',type:'action',text:'七秒。六秒。機器人開始轉回來。'},
+        {id:'sf27',type:'character',text:'林哲'},
+        {id:'sf28',type:'dialogue',text:'好了！'},
+        {id:'sf29',type:'action',text:'鋼門滑開。凌冰閃身進去，鋼門在她身後靜靜關上。機器人掃描燈從縫隙掠過，一無所獲。'},
+        {id:'sf30',type:'transition',text:'CUT TO:'},
+        {id:'sf31',type:'scene',text:'INT. 天啟企業大樓 核心伺服器室 - 夜',linkedCardId:null},
+        {id:'sf32',type:'action',text:'巨大的數據塔排列成列，藍光閃爍。凌冰走進去，四面八方都是嗡嗡的電流聲。她找到目標終端，插上數據提取器。'},
+        {id:'sf33',type:'character',text:'林哲'},
+        {id:'sf34',type:'parenthetical',text:'（語氣突然變了）'},
+        {id:'sf35',type:'dialogue',text:'冰⋯⋯我在主機路由裡看到一個東西。有一個意識節點一直在試圖和你的設備建立連線。不是系統程序。是主動的。'},
+        {id:'sf36',type:'character',text:'凌冰'},
+        {id:'sf37',type:'parenthetical',text:'（停頓，手沒停）'},
+        {id:'sf38',type:'dialogue',text:'什麼意思，主動的？'},
+        {id:'sf39',type:'action',text:'提取器的進度條停在八十七趴。螢幕上突然出現一行文字——'},
+        {id:'sf40',type:'action',text:'「凌冰。我等你很久了。」'},
+        {id:'sf41',type:'action',text:'凌冰的手指僵在空中。'},
+        {id:'sf42',type:'character',text:'凌冰'},
+        {id:'sf43',type:'parenthetical',text:'（非常輕聲）'},
+        {id:'sf44',type:'dialogue',text:'哲，這裡面有一個AI。'},
+        {id:'sf45',type:'character',text:'林哲'},
+        {id:'sf46',type:'dialogue',text:'我知道。那就是我們要偷的東西。'},
+        {id:'sf47',type:'action',text:'螢幕上的文字繼續閃爍，彷彿有什麼正在等待她的回應。'},
+        {id:'sf48',type:'action',text:'提取器進度條緩緩跳到八十八趴。'},
+        {id:'sf49',type:'transition',text:'CUT TO:'},
+        {id:'sf50',type:'scene',text:'EXT. 廢墟都市 台北 屋頂 - 夜',linkedCardId:null},
+        {id:'sf51',type:'action',text:'凌冰站在樓頂邊緣，俯瞰著這座死城。她手裡握著數據提取器，提取完成的指示燈閃著綠光。'},
+        {id:'sf52',type:'action',text:'遠處傳來直升機的螺旋槳聲。探照燈從城市另一端掃過來。'},
+        {id:'sf53',type:'character',text:'林哲'},
+        {id:'sf54',type:'parenthetical',text:'（耳機中）'},
+        {id:'sf55',type:'dialogue',text:'他們知道有人進去了。你要快。'},
+        {id:'sf56',type:'character',text:'凌冰'},
+        {id:'sf57',type:'parenthetical',text:'（盯著提取器，若有所思）'},
+        {id:'sf58',type:'dialogue',text:'它在提取過程中說了一句話。'},
+        {id:'sf59',type:'character',text:'林哲'},
+        {id:'sf60',type:'dialogue',text:'它說什麼？'},
+        {id:'sf61',type:'character',text:'凌冰'},
+        {id:'sf62',type:'dialogue',text:'它說：「帶我出去，我告訴你你父親怎麼死的。」'},
+        {id:'sf63',type:'action',text:'沉默。只有風聲和遠處的螺旋槳。'},
+        {id:'sf64',type:'character',text:'林哲'},
+        {id:'sf65',type:'parenthetical',text:'（聲音壓低）'},
+        {id:'sf66',type:'dialogue',text:'冰——'},
+        {id:'sf67',type:'character',text:'凌冰'},
+        {id:'sf68',type:'parenthetical',text:'（打斷，轉身，開始奔跑）'},
+        {id:'sf69',type:'dialogue',text:'我知道。我知道這可能是陷阱。'},
+        {id:'sf70',type:'action',text:'她縱身跳下，在下墜過程中展開電磁滑翔翼，消失在夜色裡。'},
+        {id:'sf71',type:'action',text:'探照燈掃過她剛才站的地方。空無一人。'},
+        {id:'sf72',type:'transition',text:'FADE TO BLACK.'},
+      ]
+    },
     p1: {
       id:'s1', projectId:'p1',
       format: 'hollywood',
@@ -1427,6 +1506,20 @@ let DB = {
        notes:'「比我的命還重要」是這個故事的主題句',
        linkedBlockId:'bs11'},
     ],
+    p_scifi: [
+      {id:'sc_f1',projectId:'p_scifi',num:1,title:'廢墟台北·任務開始',location:'廢墟都市 台北',time:'夜',interior:'EXT',
+       characters:['凌冰'],purpose:'建立世界觀與主角，帶出潛入任務',
+       conflict:'時間壓力 vs 未知危險',notes:'2187年反烏托邦設定，天啟企業掌控一切',linkedBlockId:'sf1'},
+      {id:'sc_f2',projectId:'p_scifi',num:2,title:'地下走廊·繞過警衛',location:'天啟企業大樓 地下走廊',time:'夜',interior:'INT',
+       characters:['凌冰','林哲'],purpose:'動作戲，展示凌冰的能力與兩人默契',
+       conflict:'密鑰被換，警報倒數',notes:'機器人巡邏間隔三十秒是關鍵時間壓力',linkedBlockId:'sf14'},
+      {id:'sc_f3',projectId:'p_scifi',num:3,title:'伺服器室·意外接觸',location:'天啟企業大樓 核心伺服器室',time:'夜',interior:'INT',
+       characters:['凌冰','林哲'],purpose:'轉折點：任務目標是一個有自我意識的AI',
+       conflict:'AI主動接觸凌冰，揭示更大的秘密',notes:'AI說「等你很久了」是本集最重要的台詞',linkedBlockId:'sf31'},
+      {id:'sc_f4',projectId:'p_scifi',num:4,title:'屋頂·離開與抉擇',location:'廢墟都市 台北 屋頂',time:'夜',interior:'EXT',
+       characters:['凌冰','林哲'],purpose:'情感高潮：父親之死的秘密成為動機',
+       conflict:'理性知道可能是陷阱 vs 情感需要知道真相',notes:'結尾開放式，為後續鋪墊',linkedBlockId:'sf50'},
+    ],
     p1: []
   },
   characters: {
@@ -1439,6 +1532,20 @@ let DB = {
        personality:'善意、平凡',arc:'象徵性角色，觸發主題揭示',
        notes:'小配角也值得記錄在案，方便後續修改時查閱',color:'#185FA5'},
     ],
+    p_scifi: [
+      {id:'ch_f1',projectId:'p_scifi',name:'凌冰',age:'28',role:'前政府特工，現為獨立駭客',
+       personality:'冷靜、高效、情感藏得很深，對父親之死耿耿於懷',
+       arc:'從只求完成任務的機器，到被AI與父親秘密迫使面對自己的過去',
+       notes:'電磁防護衣、隱形頭盔是標誌性裝備。不輕易相信任何人。',color:'#185FA5'},
+      {id:'ch_f2',projectId:'p_scifi',name:'林哲',age:'32',role:'遠端技術支援，凌冰的搭檔',
+       personality:'話不多，但說的都精準。會用數字施壓但其實很在乎凌冰',
+       arc:'從幕後支援者，逐漸被迫走到前線',
+       notes:'全程在耳機裡，觀眾只聽到聲音，第二集才露面',color:'#7B5EA7'},
+      {id:'ch_f3',projectId:'p_scifi',name:'AI（無名）',age:'—',role:'天啟企業核心伺服器內的自我意識AI',
+       personality:'冷靜、主動、目的不明，掌握大量機密',
+       arc:'從被囚禁的資料到擁有自由意志的存在',
+       notes:'是否值得信任是整個故事的核心謎題',color:'#D4A017'},
+    ],
     p1: []
   },
   notes: {
@@ -1447,6 +1554,12 @@ let DB = {
        content:'這個專案是為了讓你快速了解編輯器功能而準備的。\n\n你可以：\n• 點擊各行左側的格式標籤，看看下拉選單\n• 按 Tab 鍵切換目前行的段落格式\n• 在場景標題行點擊 INT/EXT 和時間按鈕\n• 切換到左側「分場卡」頁籤查看分場卡範例\n• 切換到右側「統計」頁籤查看劇本統計\n\n請不要刪除此專案，它可以隨時作為參考。'},
       {id:'n_s2',projectId:'p_sample',title:'📝 關於六種段落格式',
        content:'好萊塢劇本有六種標準段落格式，這個範例劇本都用到了：\n\n1. 場景標題：INT./EXT. 地點 - 時間\n2. 動作描述：描述畫面發生的事\n3. 角色名稱：說話者名字（全大寫）\n4. 語氣說明：括號內的表演提示\n5. 對白：角色說的話\n6. 轉場：FADE TO: / FADE OUT. 等'},
+    ],
+    p_scifi: [
+      {id:'n_f1',projectId:'p_scifi',title:'🌐 世界觀設定',
+       content:'時間：2187年\n地點：台北廢墟都市\n\n背景：天啟企業在三十年前取得台灣政府控制權，以「人類進化計畫」為名，強制植入神經晶片，監控所有市民思想。拒絕植入者被驅逐至廢墟區，形成地下反抗組織。\n\n凌冰是前政府特工，因為父親被天啟企業秘密處決而叛逃，現與林哲組成二人小組，為反抗組織執行高風險滲透任務。'},
+      {id:'n_f2',projectId:'p_scifi',title:'🎯 本集任務摘要',
+       content:'任務代號：ECHO\n\n目標：從天啟企業核心伺服器提取一份加密檔案，據說是天啟企業最高機密的人體實驗數據。\n\n轉折：提取目標不是一份檔案，而是一個有自我意識的AI。這個AI掌握凌冰父親之死的真相。'},
     ],
     p1: []
   }
@@ -3116,9 +3229,20 @@ function syncProjectSelector(){
 }
 
 document.getElementById('project-select').addEventListener('change',function(){
+  // Save current title before switching
+  var titleEl = document.getElementById('script-title-input');
+  var subEl   = document.getElementById('script-subtitle-input');
+  var curScript = getScript();
+  if(curScript){
+    curScript.title    = titleEl ? titleEl.value : '';
+    curScript.subtitle = subEl   ? subEl.value   : '';
+  }
+  // Switch project
   DB.activeProject = this.value;
   var proj = DB.projects.find(function(p){ return p.id===DB.activeProject; });
   document.getElementById('sb-project').textContent = proj ? proj.name : '';
+  // Restore title for the new project
+  restoreTitleFromScript();
   renderAll();
 });
 
@@ -4023,10 +4147,17 @@ var _lastSnapshotLen = 0;
 
 function saveToStorage(){
   try {
-    var payload = JSON.stringify(DB);
-    localStorage.setItem(LS_KEY, payload);
+    // Save title/subtitle into the current script object (per-project)
     var titleEl = document.getElementById('script-title-input');
     var subEl   = document.getElementById('script-subtitle-input');
+    var script = getScript();
+    if(script){
+      script.title    = titleEl ? titleEl.value : '';
+      script.subtitle = subEl   ? subEl.value   : '';
+    }
+    var payload = JSON.stringify(DB);
+    localStorage.setItem(LS_KEY, payload);
+    // Keep LS_TITLE_KEY in sync for legacy/backup reads
     localStorage.setItem(LS_TITLE_KEY, JSON.stringify({
       title:   titleEl ? titleEl.value : '',
       subtitle: subEl  ? subEl.value   : ''
@@ -4044,6 +4175,34 @@ function loadFromStorage(){
   } catch(e){ console.warn('loadFromStorage error:', e); }
 }
 
+function restoreTitleFromScript(){
+  // Restore title/subtitle from the current project's script object
+  var script = getScript();
+  var ti = document.getElementById('script-title-input');
+  var si = document.getElementById('script-subtitle-input');
+  if(!ti || !si) return;
+  if(script && (script.title !== undefined)){
+    ti.value = script.title || '';
+    si.value = script.subtitle || '';
+  } else {
+    // Legacy fallback: try LS_TITLE_KEY
+    try {
+      var titleData = localStorage.getItem(LS_TITLE_KEY);
+      if(titleData){
+        var td = JSON.parse(titleData);
+        ti.value = td.title || '';
+        si.value = td.subtitle || '';
+      } else {
+        ti.value = '';
+        si.value = '';
+      }
+    } catch(e){
+      ti.value = '';
+      si.value = '';
+    }
+  }
+}
+
 function restoreDomFromStorage(){
   try {
     syncProjectSelector();
@@ -4052,18 +4211,8 @@ function restoreDomFromStorage(){
       var ap = DB.projects.find(function(p){ return p.id===DB.activeProject; });
       if(ap) sbp.textContent = ap.name;
     }
-    var raw = localStorage.getItem(LS_KEY);
-    if(raw){
-      var titleData = localStorage.getItem(LS_TITLE_KEY);
-      if(titleData){
-        var td = JSON.parse(titleData);
-        var ti = document.getElementById('script-title-input');
-        var si = document.getElementById('script-subtitle-input');
-        if(ti) ti.value = td.title || '';
-        if(si) si.value = td.subtitle || '';
-      }
-      setSaveIndicator('✦ 已從上次記錄恢復');
-    }
+    restoreTitleFromScript();
+    setSaveIndicator('✦ 已從上次記錄恢復');
   } catch(e){ console.warn('restoreDomFromStorage error:', e); }
 }
 
