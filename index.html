@@ -493,6 +493,11 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:var(--border3)}
 
+/* Mobile-only elements — hidden by default, shown only via JS on mobile */
+#mob-header,#mob-tabbar,#mob-fmt-bar,
+#mob-left-panel,#mob-right-panel,#mob-content,
+#mob-menu-overlay{display:none!important}
+
 /* ══════════════════════════════════════════════
    TABLET (768–1023px)
 ══════════════════════════════════════════════ */
@@ -509,6 +514,11 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
    MOBILE (< 768px)
 ══════════════════════════════════════════════ */
 @media (max-width:767px){
+
+  /* ── Allow mobile elements to be shown by JS ── */
+  #mob-header,#mob-tabbar,#mob-fmt-bar,
+  #mob-left-panel,#mob-right-panel,#mob-content,
+  #mob-menu-overlay{ display:none!important } /* still hidden until JS activates */
 
   /* ── Layout reset ── */
   #shell{ height:100dvh;height:100vh }
@@ -6017,30 +6027,30 @@ function initMobileIfNeeded(){
 }
 
 function activateMobileLayout(){
-  document.getElementById('mob-header').style.display = 'flex';
-  document.getElementById('mob-tabbar').style.display = 'flex';
+  // Show mobile-only elements via inline style (overrides !important CSS)
+  document.getElementById('mob-header').style.cssText = 'display:flex!important';
+  document.getElementById('mob-tabbar').style.cssText = 'display:flex!important';
+  document.getElementById('mob-content').style.cssText = 'display:flex!important;flex-direction:column;flex:1;overflow:hidden';
   // Sync project selector
   mobSyncProjectSelect();
   // Sync format pills
   mobSyncFormatPills();
   // Set initial tab
-  mobTab('edit', document.querySelector('#mob-tabbar button'));
-  // Mirror left panel content into mob-left-panel
+  var firstTabBtn = document.querySelector('#mob-tabbar button');
+  mobTab('edit', firstTabBtn);
+  // Mirror panels into mobile content
   mobMirrorLeftPanel();
-  // Mirror right panel content into mob-right-panel
   mobMirrorRightPanel();
-  // Update mode indicator for mobile
-  updateMobFmtBar();
 }
 
 function deactivateMobileLayout(){
-  document.getElementById('mob-header').style.display = 'none';
-  document.getElementById('mob-tabbar').style.display = 'none';
-  document.getElementById('mob-fmt-bar').classList.remove('mob-active');
-  document.getElementById('mob-left-panel').classList.remove('mob-active');
-  document.getElementById('mob-right-panel').classList.remove('mob-active');
-  document.getElementById('center').classList.remove('mob-active');
-  document.getElementById('center').style.display = '';
+  ['mob-header','mob-tabbar','mob-fmt-bar','mob-left-panel',
+   'mob-right-panel','mob-content','mob-menu-overlay'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.style.cssText = '';
+  });
+  document.getElementById('center').style.cssText = '';
+  mobRestoreDesktopPanels();
 }
 
 function mobTab(tab, btn){
@@ -6050,20 +6060,24 @@ function mobTab(tab, btn){
   if(btn) btn.classList.add('active');
 
   // Hide all panels
-  document.getElementById('center').classList.remove('mob-active');
-  document.getElementById('mob-fmt-bar').classList.remove('mob-active');
-  document.getElementById('mob-left-panel').classList.remove('mob-active');
-  document.getElementById('mob-right-panel').classList.remove('mob-active');
+  var center = document.getElementById('center');
+  var fmtBar = document.getElementById('mob-fmt-bar');
+  var leftPanel = document.getElementById('mob-left-panel');
+  var rightPanel = document.getElementById('mob-right-panel');
+  center.style.cssText = 'display:none!important';
+  fmtBar.style.cssText = '';
+  leftPanel.style.cssText = '';
+  rightPanel.style.cssText = '';
 
   if(tab === 'edit'){
-    document.getElementById('center').classList.add('mob-active');
-    document.getElementById('mob-fmt-bar').classList.add('mob-active');
+    center.style.cssText = 'display:flex!important;flex-direction:column;overflow:hidden;height:100%;width:100%';
+    fmtBar.style.cssText = 'display:flex!important;flex-wrap:nowrap;overflow-x:auto;gap:4px;padding:6px 10px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0';
   } else if(tab === 'scenes'){
     mobMirrorLeftPanel();
-    document.getElementById('mob-left-panel').classList.add('mob-active');
+    leftPanel.style.cssText = 'display:flex!important;flex-direction:column;overflow:hidden;height:100%;width:100%;background:var(--bg2)';
   } else if(tab === 'preview'){
     mobMirrorRightPanel();
-    document.getElementById('mob-right-panel').classList.add('mob-active');
+    rightPanel.style.cssText = 'display:flex!important;flex-direction:column;overflow:hidden;height:100%;width:100%;background:var(--bg2)';
   }
 }
 
@@ -6164,11 +6178,12 @@ function updateMobFmtBar(){
 
 function openMobMenu(){
   mobSyncFormatPills();
-  document.getElementById('mob-menu-overlay').classList.add('open');
+  var el = document.getElementById('mob-menu-overlay');
+  el.style.cssText = 'display:block!important;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.45)';
 }
 
 function closeMobMenu(){
-  document.getElementById('mob-menu-overlay').classList.remove('open');
+  document.getElementById('mob-menu-overlay').style.cssText = '';
 }
 
 // Listen for resize to switch between mobile/desktop
