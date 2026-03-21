@@ -1376,13 +1376,14 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       <span style="font-size:22px">🗺</span>
       <div>
         <div style="font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;color:#D8F3DC;letter-spacing:1px">故事白板</div>
-        <div style="font-size:11px;color:rgba(216,243,220,0.7);margin-top:2px">由 Excalidraw 提供 · 免費 · 不需帳號 · 簡體中文介面</div>
+        <div style="font-size:11px;color:rgba(216,243,220,0.7);margin-top:2px">推薦使用 Excalidraw · 免費 · 不需帳號 · 在瀏覽器直接使用</div>
       </div>
       <button onclick="closeWhiteboardModal()" style="margin-left:auto;width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);cursor:pointer;font-size:14px;color:#fff;display:flex;align-items:center;justify-content:center">✕</button>
     </div>
     <!-- Body -->
     <div style="padding:20px 22px;overflow-y:auto;flex:1">
-      <p style="font-size:13px;color:var(--ink2);line-height:1.75;margin-bottom:16px">故事白板是一個自由的視覺化思考空間。在開始寫劇本之前，先在白板上把故事的骨架畫出來，能讓你在動筆時更有把握。</p>
+      <p style="font-size:13px;color:var(--ink2);line-height:1.75;margin-bottom:4px">在開始寫劇本之前，先用視覺化的方式把故事骨架整理出來，能讓你在動筆時更有把握。</p>
+      <p style="font-size:11px;color:var(--ink3);line-height:1.65;margin-bottom:16px">以下是我們推薦的免費線上工具 <strong style="color:var(--ink2)">Excalidraw</strong>（excalidraw.com），介面預設為英文，進去後可以點左上角 ☰ 選單，拉到最下方找到語言下拉選單，選「中文（简体）」即可切換。</p>
 
       <!-- 編劇用法建議 -->
       <div style="font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px">編劇可以這樣用</div>
@@ -5667,7 +5668,7 @@ function closeWhiteboardModal(){
 }
 function goToWhiteboard(){
   closeWhiteboardModal();
-  window.open('https://excalidraw.com/?lang=zh-CN', '_blank');
+  window.open('https://excalidraw.com/', '_blank');
 }
 
 function openGuide(){
