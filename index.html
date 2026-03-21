@@ -38,7 +38,7 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans TC',sans-serif;back
 .topbar-row+.topbar-row{
   border-top:1px solid var(--border);background:var(--bg3);
 }
-#main{display:flex;flex:1;overflow:visible;min-height:0}
+#main{display:flex;flex:1;overflow:hidden}
 #left{width:220px;min-width:160px;max-width:400px;background:var(--bg2);border-right:none;display:flex;flex-direction:column;overflow:hidden;transition:width 0.15s;flex-shrink:0}.panel-divider{
   width:5px;background:var(--border);cursor:col-resize;flex-shrink:0;
   transition:background 0.15s;position:relative;z-index:10;
@@ -50,7 +50,7 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans TC',sans-serif;back
 }
 #right{width:280px;min-width:180px;max-width:500px;background:var(--bg2);border-left:none;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
 #left.collapsed{width:0;min-width:0;border-right:none}
-#center{flex:1;display:flex;flex-direction:column;min-height:0}
+#center{flex:1;display:flex;flex-direction:column;overflow:hidden}
 #right{width:280px;min-width:200px;max-width:380px;background:var(--bg2);border-left:1.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
 #right.collapsed{width:0;min-width:0;border-left:none}
 #statusbar{height:24px;background:var(--bg3);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:16px;font-size:10px;color:var(--ink3);flex-shrink:0;font-family:monospace}
@@ -490,8 +490,9 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 /* Scrollbar — visible but subtle */
 ::-webkit-scrollbar{width:8px;height:8px}
 ::-webkit-scrollbar-track{background:var(--bg3)}
-::-webkit-scrollbar-thumb{background:var(--border3);border-radius:4px}
-::-webkit-scrollbar-thumb:hover{background:var(--ink4)}
+::-webkit-scrollbar-thumb{background:#8A7B68;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#56493A}
+*{scrollbar-width:thin;scrollbar-color:#8A7B68 var(--bg3)}
 
 /* Mobile-only elements — hidden by default, shown only via JS on mobile */
 #mob-header,#mob-tabbar,#mob-fmt-bar,
@@ -522,7 +523,7 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
   #shell{ height:100dvh;height:100vh;overflow:hidden }
   #topbar{ display:none }
   #statusbar{ display:none }
-  #main{ flex:1;min-height:0;overflow:visible }
+  #main{ flex:1;overflow:hidden }
   #left{ display:none }
   #divider-left{ display:none }
   #divider-right{ display:none }
