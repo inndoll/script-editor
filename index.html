@@ -6027,104 +6027,116 @@ function initMobileIfNeeded(){
 }
 
 function activateMobileLayout(){
-  // Show mobile-only elements via inline style (overrides !important CSS)
-  document.getElementById('mob-header').style.cssText = 'display:flex!important';
-  document.getElementById('mob-tabbar').style.cssText = 'display:flex!important';
-  document.getElementById('mob-content').style.cssText = 'display:flex!important;flex-direction:column;flex:1;overflow:hidden';
-  // Sync project selector
+  var shell = document.getElementById('shell');
+  var main  = document.getElementById('main');
+  var left  = document.getElementById('left');
+  var center= document.getElementById('center');
+  var right = document.getElementById('right');
+  var topbar= document.getElementById('topbar');
+  var statusbar = document.getElementById('statusbar');
+
+  // Hide desktop elements
+  topbar.style.display    = 'none';
+  statusbar.style.display = 'none';
+  left.style.display      = 'none';
+  right.style.display     = 'none';
+  // Dividers
+  var dl = document.getElementById('divider-left');
+  var dr = document.getElementById('divider-right');
+  if(dl) dl.style.display = 'none';
+  if(dr) dr.style.display = 'none';
+
+  // Make shell a proper mobile flex column
+  shell.style.cssText = 'display:flex;flex-direction:column;height:100dvh;height:100vh;overflow:hidden';
+  main.style.cssText  = 'flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0';
+  center.style.cssText= 'flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;width:100%';
+
+  // Show mobile header and tabbar
+  document.getElementById('mob-header').style.cssText  = 'display:flex;align-items:center;padding:0 12px;height:52px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;gap:8px';
+  document.getElementById('mob-tabbar').style.cssText  = 'display:flex;height:56px;background:var(--bg2);border-top:1.5px solid var(--border);flex-shrink:0';
+
+  // Sync selectors
   mobSyncProjectSelect();
-  // Sync format pills
   mobSyncFormatPills();
-  // Set initial tab
-  var firstTabBtn = document.querySelector('#mob-tabbar button');
-  mobTab('edit', firstTabBtn);
-  // Mirror panels into mobile content
-  mobMirrorLeftPanel();
-  mobMirrorRightPanel();
+
+  // Default to edit tab
+  mobTab('edit', document.querySelector('#mob-tabbar button'));
 }
 
 function deactivateMobileLayout(){
-  ['mob-header','mob-tabbar','mob-fmt-bar','mob-left-panel',
-   'mob-right-panel','mob-content','mob-menu-overlay'].forEach(function(id){
-    var el = document.getElementById(id);
-    if(el) el.style.cssText = '';
-  });
-  document.getElementById('center').style.cssText = '';
-  mobRestoreDesktopPanels();
+  var shell = document.getElementById('shell');
+  var main  = document.getElementById('main');
+  var left  = document.getElementById('left');
+  var center= document.getElementById('center');
+  var right = document.getElementById('right');
+  var topbar= document.getElementById('topbar');
+  var statusbar = document.getElementById('statusbar');
+
+  // Restore desktop elements
+  topbar.style.display    = '';
+  statusbar.style.display = '';
+  left.style.display      = '';
+  right.style.display     = '';
+  var dl = document.getElementById('divider-left');
+  var dr = document.getElementById('divider-right');
+  if(dl) dl.style.display = '';
+  if(dr) dr.style.display = '';
+
+  // Restore layout
+  shell.style.cssText  = '';
+  main.style.cssText   = '';
+  center.style.cssText = '';
+
+  // Hide mobile elements
+  document.getElementById('mob-header').style.cssText  = '';
+  document.getElementById('mob-tabbar').style.cssText  = '';
+  document.getElementById('mob-fmt-bar').style.cssText = '';
+  closeMobMenu();
 }
 
 function mobTab(tab, btn){
   _mobCurrentTab = tab;
+
   // Update tab bar buttons
   document.querySelectorAll('#mob-tabbar button').forEach(function(b){ b.classList.remove('active'); });
   if(btn) btn.classList.add('active');
 
-  // Hide all panels
+  var left   = document.getElementById('left');
   var center = document.getElementById('center');
+  var right  = document.getElementById('right');
   var fmtBar = document.getElementById('mob-fmt-bar');
-  var leftPanel = document.getElementById('mob-left-panel');
-  var rightPanel = document.getElementById('mob-right-panel');
-  center.style.cssText = 'display:none!important';
+
+  // Hide all content panels first
+  left.style.display   = 'none';
+  right.style.display  = 'none';
+  // center always stays in flow (flex:1) — just hide/show
+  center.style.display = 'none';
   fmtBar.style.cssText = '';
-  leftPanel.style.cssText = '';
-  rightPanel.style.cssText = '';
 
   if(tab === 'edit'){
-    center.style.cssText = 'display:flex!important;flex-direction:column;overflow:hidden;height:100%;width:100%';
-    fmtBar.style.cssText = 'display:flex!important;flex-wrap:nowrap;overflow-x:auto;gap:4px;padding:6px 10px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0';
+    center.style.display = 'flex';
+    center.style.flexDirection = 'column';
+    center.style.overflow = 'hidden';
+    center.style.flex = '1';
+    center.style.minHeight = '0';
+    // Show mobile format bar
+    fmtBar.style.cssText = 'display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;-webkit-overflow-scrolling:touch';
+    // Focus first line if nothing focused
+    if(activeLineIdx === null){
+      var firstLine = document.getElementById('line-0');
+      if(firstLine) setTimeout(function(){ firstLine.focus(); }, 100);
+    }
   } else if(tab === 'scenes'){
-    mobMirrorLeftPanel();
-    leftPanel.style.cssText = 'display:flex!important;flex-direction:column;overflow:hidden;height:100%;width:100%;background:var(--bg2)';
+    left.style.cssText = 'display:flex;flex-direction:column;overflow:hidden;flex:1;min-height:0;width:100%;max-width:none;border:none';
   } else if(tab === 'preview'){
-    mobMirrorRightPanel();
-    rightPanel.style.cssText = 'display:flex!important;flex-direction:column;overflow:hidden;height:100%;width:100%;background:var(--bg2)';
+    right.style.cssText = 'display:flex;flex-direction:column;overflow:hidden;flex:1;min-height:0;width:100%;max-width:none;border:none';
   }
 }
 
-function mobMirrorLeftPanel(){
-  // Clone the desktop left panel content into the mobile left panel
-  var src = document.getElementById('left');
-  var dest = document.getElementById('mob-left-panel');
-  if(!src || !dest) return;
-  // Just show the left panel directly by repositioning it
-  dest.innerHTML = '';
-  // Instead of cloning, we show the actual #left inside mob-left-panel area
-  // by unhiding it temporarily — simpler approach: directly move content
-  dest.innerHTML = src.innerHTML;
-  // Re-wire event handlers won't work with innerHTML clone for complex elements
-  // Better: just show #left inside mob content
-  src.style.display = 'flex';
-  src.style.width = '100%';
-  src.style.maxWidth = 'none';
-  dest.appendChild(src);
-}
+function mobMirrorLeftPanel(){ /* no longer needed — using direct left panel */ }
+function mobMirrorRightPanel(){ /* no longer needed — using direct right panel */ }
+function mobRestoreDesktopPanels(){ /* handled in deactivateMobileLayout */ }
 
-function mobMirrorRightPanel(){
-  var src = document.getElementById('right');
-  var dest = document.getElementById('mob-right-panel');
-  if(!src || !dest) return;
-  src.style.display = 'flex';
-  src.style.width = '100%';
-  src.style.maxWidth = 'none';
-  dest.appendChild(src);
-}
-
-function mobRestoreDesktopPanels(){
-  // Move panels back to #main when switching to desktop
-  var main = document.getElementById('main');
-  var left = document.getElementById('left');
-  var right = document.getElementById('right');
-  if(left && left.parentElement !== main){
-    left.style.width = '';
-    left.style.maxWidth = '';
-    main.insertBefore(left, main.firstChild);
-  }
-  if(right && right.parentElement !== main){
-    right.style.width = '';
-    right.style.maxWidth = '';
-    main.appendChild(right);
-  }
-}
 
 function mobSyncProjectSelect(){
   var sel = document.getElementById('mob-project-select');
