@@ -5963,13 +5963,23 @@ function initMobileIfNeeded(){
   try {
     _isMobile = isMobileView();
     if(_isMobile){
+      // Debug: show visible indicator
+      var dbg = document.createElement('div');
+      dbg.id = 'mob-debug';
+      dbg.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#e74c3c;color:#fff;font-size:13px;padding:8px 12px;font-family:monospace';
+      dbg.textContent = 'Mobile JS running... w=' + window.innerWidth;
+      document.body.appendChild(dbg);
       activateMobileLayout();
+      dbg.textContent = 'Mobile activated OK w=' + window.innerWidth;
+      dbg.style.background = '#27ae60';
     } else {
       deactivateMobileLayout();
     }
   } catch(err){
-    console.error('Mobile init error:', err);
-    // On any error, ensure the page is usable in desktop mode
+    var dbg2 = document.createElement('div');
+    dbg2.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#c0392b;color:#fff;font-size:12px;padding:8px;font-family:monospace;word-break:break-all';
+    dbg2.textContent = 'ERROR: ' + err.message + ' | ' + err.stack;
+    document.body.appendChild(dbg2);
     try { deactivateMobileLayout(); } catch(e){}
   }
 }
