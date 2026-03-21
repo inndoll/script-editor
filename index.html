@@ -1150,6 +1150,9 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
           <div class="stat-box"><span class="stat-num" id="stat-dialogues">0</span><span class="stat-lbl">對白行</span></div>
         </div>
         <div class="divider"></div>
+        <div style="font-size:10px;color:var(--ink3);letter-spacing:1px;margin:8px 0 6px;text-transform:uppercase;font-weight:700">段落格式細分</div>
+        <div id="stat-type-breakdown"></div>
+        <div class="divider"></div>
         <div style="font-size:10px;color:var(--ink3);letter-spacing:1px;margin:8px 0 6px;text-transform:uppercase;font-weight:700">角色台詞次數</div>
         <div id="char-stat-list"></div>
         <div class="divider"></div>
@@ -2551,7 +2554,11 @@ function updateStats(){
   const blocks = getBlocks();
   const chars = {};
   let diaCount=0, lastChar=null;
+
+  // Count each type
+  const typeCounts = {scene:0,action:0,character:0,dialogue:0,parenthetical:0,transition:0};
   blocks.forEach(b=>{
+    if(typeCounts[b.type] !== undefined) typeCounts[b.type]++;
     if(b.type==='character') lastChar=b.text.trim().toUpperCase();
     if(b.type==='dialogue'){diaCount++;if(lastChar)chars[lastChar]=(chars[lastChar]||0)+1;}
   });
@@ -2566,6 +2573,33 @@ function updateStats(){
   document.getElementById('stat-pages').textContent = `約 ${pages} 頁（每頁約 50 行估算）`;
   document.getElementById('sb-lines').textContent = blocks.length;
   document.getElementById('sb-chars').textContent = wordCount;
+
+  // Type breakdown
+  const typeInfo = [
+    {type:'scene',       label:'場景標題', color:'var(--red)'},
+    {type:'action',      label:'動作描述', color:'var(--ink3)'},
+    {type:'character',   label:'角色名稱', color:'var(--teal)'},
+    {type:'dialogue',    label:'對白',     color:'var(--amber)'},
+    {type:'parenthetical',label:'語氣說明',color:'var(--blue)'},
+    {type:'transition',  label:'轉場',     color:'#7B5EA7'},
+  ];
+  const total = blocks.length || 1;
+  const breakdown = document.getElementById('stat-type-breakdown');
+  if(breakdown){
+    breakdown.innerHTML = typeInfo.map(function(t){
+      const count = typeCounts[t.type] || 0;
+      const pct = Math.round(count / total * 100);
+      return '<div style="margin-bottom:6px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">'
+        + '<span style="font-size:11px;color:var(--ink2)">' + t.label + '</span>'
+        + '<span style="font-family:monospace;font-size:11px;color:var(--ink3)">' + count + ' 行</span>'
+        + '</div>'
+        + '<div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">'
+        + '<div style="height:100%;width:' + pct + '%;background:' + t.color + ';border-radius:2px;transition:width 0.3s"></div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
 
   // Active scene
   if(activeLineIdx!==null){
