@@ -225,6 +225,18 @@ body.multiselect-mode .sl-num{display:none}
 #multiselect-bar button:hover{background:rgba(255,255,255,0.3)}
 #multiselect-bar button.ms-danger{border-color:rgba(255,100,100,0.6);background:rgba(200,0,0,0.25)}
 #multiselect-bar button.ms-danger:hover{background:rgba(200,0,0,0.45)}
+#multiselect-bar button.ms-cut{border-color:rgba(255,220,100,0.7);background:rgba(180,140,0,0.3)}
+#multiselect-bar button.ms-paste{border-color:rgba(100,220,150,0.7);background:rgba(0,140,80,0.35);font-weight:700}
+/* Paste-mode: rows become clickable insert targets */
+body.paste-mode .sl{cursor:pointer!important}
+body.paste-mode .sl:hover{background:rgba(0,160,100,0.08)!important;outline:1px dashed rgba(0,160,100,0.4)!important}
+.sl.paste-target{background:rgba(0,160,100,0.13)!important;outline:2px solid rgba(0,160,100,0.6)!important}
+/* Paste insert indicator line */
+.sl.paste-target::after{
+  content:'▶ 貼上到這行後面';
+  display:block;font-size:10px;color:rgba(0,140,80,0.8);
+  padding:1px 6px;font-family:'Noto Sans TC',sans-serif;letter-spacing:0.5px;
+}
 #multiselect-bar select{
   padding:3px 6px;border:1px solid rgba(255,255,255,0.5);border-radius:5px;
   background:rgba(255,255,255,0.15);color:#fff;font-size:11px;cursor:pointer;
@@ -1058,6 +1070,9 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       </select>
       <button onclick="msMoveUp()">↑ 上移</button>
       <button onclick="msMoveDown()">↓ 下移</button>
+      <button class="ms-cut" id="ms-cut-btn" onclick="msCut()">✂ 剪下</button>
+      <button class="ms-paste" id="ms-paste-btn" onclick="msPaste()" style="display:none">📋 貼上到選取行後</button>
+      <button id="ms-paste-cancel-btn" onclick="msCancelPaste()" style="display:none;background:rgba(255,255,255,0.15)">✕ 取消貼上</button>
       <button class="ms-danger" onclick="msDeleteSelected()">✕ 刪除選取行</button>
       <button onclick="toggleMultiSelect()" style="background:rgba(255,255,255,0.2)">完成</button>
     </div>
@@ -1773,7 +1788,7 @@ function renderLines(){
       typeDropdownItems += '</div>';
     });
 
-    return '<div class="sl' + (activeLineIdx===i?' focused':'') + '" id="row-'+i+'" data-idx="'+i+'"' + (isScene?' data-scene="1"':'') + '>'
+    return '<div class="sl' + (activeLineIdx===i?' focused':'') + '" id="row-'+i+'" data-idx="'+i+'"' + (isScene?' data-scene="1"':'') + ' onclick="if(_pasteMode)msRowClickForPaste('+i+')">'
       + '<span class="sl-check"><input type="checkbox" onchange="msToggleLine('+i+',this)" onclick="event.stopPropagation()" id="chk-'+i+'"></span>'
       + '<span class="sl-num">' + (i+1) + '</span>'
       + '<div class="sl-type-wrap" id="typewrap-'+i+'">'
@@ -2183,6 +2198,7 @@ var _msSelected = new Set(); // Set of selected line indices
 function toggleMultiSelect(){
   _msActive = !_msActive;
   _msSelected.clear();
+  if(!_msActive && _pasteMode) msCancelPaste();
   document.body.classList.toggle('multiselect-mode', _msActive);
   var btn = document.getElementById('ms-toggle-btn');
   if(btn) btn.classList.toggle('active', _msActive);
@@ -2305,6 +2321,87 @@ function msMoveDown(){
   });
   scheduleUpdate();
   msUpdateBar();
+}
+
+// ── Cut / Paste ──────────────────────────────────
+var _msClipboard = [];   // cut blocks stored here
+var _pasteMode   = false;
+var _pasteTarget = -1;   // index of row user clicked as insert point
+
+function msCut(){
+  if(_msSelected.size === 0){ alert('請先勾選要剪下的行。'); return; }
+  snapshotUndo();
+  var blocks = getBlocks();
+  var sorted = Array.from(_msSelected).sort(function(a,b){ return a-b; });
+  // Store copies
+  _msClipboard = sorted.map(function(i){ return Object.assign({},blocks[i]); });
+  // Remove from script (bottom-up)
+  sorted.slice().reverse().forEach(function(i){ blocks.splice(i,1); });
+  _msSelected.clear();
+
+  // Enter paste mode
+  _pasteMode = true;
+  _pasteTarget = -1;
+  document.body.classList.add('paste-mode');
+
+  // Update bar UI
+  document.getElementById('ms-cut-btn').style.display = 'none';
+  document.getElementById('ms-paste-btn').style.display = '';
+  document.getElementById('ms-paste-cancel-btn').style.display = '';
+  document.querySelectorAll('.sl-check').forEach(function(c){ c.style.pointerEvents='none'; });
+
+  renderLines();
+  scheduleUpdate();
+
+  var label = document.getElementById('ms-count-label');
+  if(label) label.textContent = '已剪下 ' + _msClipboard.length + ' 行，請點一行選擇插入位置';
+}
+
+function msRowClickForPaste(i){
+  if(!_pasteMode) return;
+  // Clear previous target
+  if(_pasteTarget >= 0){
+    var prev = document.getElementById('row-'+_pasteTarget);
+    if(prev) prev.classList.remove('paste-target');
+  }
+  _pasteTarget = i;
+  var row = document.getElementById('row-'+i);
+  if(row) row.classList.add('paste-target');
+  var btn = document.getElementById('ms-paste-btn');
+  if(btn) btn.textContent = '📋 貼上到第 ' + (i+1) + ' 行後';
+}
+
+function msPaste(){
+  if(!_pasteMode || _msClipboard.length === 0) return;
+  if(_pasteTarget < 0){ alert('請先點選一行作為插入位置。'); return; }
+  snapshotUndo();
+  var blocks = getBlocks();
+  // Assign new IDs to avoid conflicts
+  var toInsert = _msClipboard.map(function(b){
+    return { id: uid(), type: b.type, text: b.text, linkedCardId: b.linkedCardId||null };
+  });
+  // Insert after _pasteTarget
+  var insertAt = _pasteTarget + 1;
+  blocks.splice.apply(blocks, [insertAt, 0].concat(toInsert));
+
+  msCancelPaste();
+  renderLines();
+  scheduleUpdate();
+  msUpdateBar();
+}
+
+function msCancelPaste(){
+  _pasteMode = false;
+  _pasteTarget = -1;
+  _msClipboard = [];
+  document.body.classList.remove('paste-mode');
+  document.querySelectorAll('.sl').forEach(function(r){ r.classList.remove('paste-target'); });
+  document.getElementById('ms-cut-btn').style.display = '';
+  document.getElementById('ms-paste-btn').style.display = 'none';
+  document.getElementById('ms-paste-cancel-btn').style.display = 'none';
+  document.querySelectorAll('.sl-check').forEach(function(c){ c.style.pointerEvents=''; });
+  var label = document.getElementById('ms-count-label');
+  if(label) label.textContent = '已選取 0 行';
 }
 
 // Format select change handler (wired via onchange in HTML)
