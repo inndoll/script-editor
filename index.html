@@ -497,71 +497,118 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
     border:none!important;
     page-break-after: avoid;
   }
-  /* Scene number prefix: "A1. " style */
+  /* Scene number prefix */
   .sl-content[data-type="scene"]::before{
     content: counter(scene-num) ".  ";
     font-weight:700;
     font-family:'Courier Prime',Courier,monospace;
   }
-  .sl-content[data-type="action"]{margin-bottom:10pt!important;page-break-inside:avoid}
+
+  /* ── Hollywood format ──────────────────────────
+     Page width = 8.5in − 1.5in(left) − 1in(right) = 6in
+     Character : left 2.2in  (centre of 6in column)
+     Dialogue  : left 1.0in / right 1.5in  → text col = 3.5in
+     Paren     : left 1.6in / right 2.4in  → text col = 2.0in
+  ─────────────────────────────────────────────── */
+  .sl-content[data-type="action"]{
+    margin-bottom:10pt!important;
+    page-break-inside:avoid;
+  }
   .sl-content[data-type="character"]{
-    padding-left:3.7in!important;text-align:left!important;
-    font-weight:700!important;margin-top:10pt!important;
-    text-transform:uppercase!important;letter-spacing:0!important;
+    padding-left:2.2in!important;
+    padding-right:0!important;
+    text-align:left!important;
+    font-weight:700!important;
+    margin-top:10pt!important;
+    margin-bottom:0!important;
+    text-transform:uppercase!important;
+    letter-spacing:0!important;
     page-break-after:avoid!important;
   }
   .sl-content[data-type="dialogue"]{
-    padding-left:2.5in!important;padding-right:1.5in!important;margin-bottom:8pt!important;
+    padding-left:1.0in!important;
+    padding-right:1.5in!important;
+    margin-bottom:8pt!important;
+    text-align:left!important;
   }
   .sl-content[data-type="parenthetical"]{
-    /* Standard Hollywood indent for short parentheticals,
-       but cap padding so long備註 text doesn't get squeezed into a narrow column */
-    padding-left:2.5in!important;padding-right:1.5in!important;
-    font-style:italic!important;page-break-after:avoid!important;
-    word-break:break-word!important;white-space:normal!important;
+    padding-left:1.6in!important;
+    padding-right:2.4in!important;
+    font-style:italic!important;
+    page-break-after:avoid!important;
+    word-break:break-word!important;
+    white-space:normal!important;
+    margin-bottom:0!important;
   }
   .sl-content[data-type="transition"]{
-    text-align:right!important;font-weight:700!important;
-    margin:10pt 0!important;text-transform:uppercase!important;
+    text-align:right!important;
+    font-weight:700!important;
+    margin:10pt 0!important;
+    text-transform:uppercase!important;
+    padding-left:0!important;
+    padding-right:0!important;
   }
 
-  /* Taiwan format print overrides */
-  body.tw-print .sl-content[data-type="scene"]{text-transform:none!important}
-  body.tw-print .sl-content[data-type="character"]{
-    padding-left:0!important;text-align:left!important;
-    text-transform:none!important;font-weight:400!important;margin-top:6pt!important;
-    display:inline!important;
+  /* ── 優劇 format (tw-print) ────────────────────
+     Scene: 1. 內景 地點 時間（不大寫）
+     Character + Paren + Dialogue merged on one line
+     Uses flex row so long lines wrap with hanging indent
+  ─────────────────────────────────────────────── */
+  body.tw-print .sl-content[data-type="scene"]{
+    text-transform:none!important;
   }
-  body.tw-print .sl-content[data-type="character"]::after{content:'：';}
-  body.tw-print .sl-content[data-type="parenthetical"]{
-    padding-left:0!important;padding-right:0!important;font-style:normal!important;
-    display:inline!important;
+  body.tw-print .sl{
+    display:block!important;
+    margin-bottom:2pt!important;
   }
+  /* Hide separate character/paren/dialogue rows — merged via flex below */
+  body.tw-print .sl-content[data-type="character"],
+  body.tw-print .sl-content[data-type="parenthetical"],
   body.tw-print .sl-content[data-type="dialogue"]{
-    padding-left:0!important;padding-right:0!important;margin-bottom:0!important;
-    display:inline!important;
+    display:none!important;
   }
-  body.tw-print .sl{display:block!important;margin-bottom:0!important}
+  /* Merged dialogue line rendered as a single .tw-merged-line div (injected by printScript) */
+  .tw-merged-line{
+    font-family:'Courier Prime',Courier,monospace!important;
+    font-size:12pt!important;
+    line-height:1.5!important;
+    color:#000!important;
+    display:block!important;
+    margin-bottom:6pt!important;
+    word-break:break-word!important;
+  }
 
-  /* TV Drama format print (戲說台灣格式): △ before action, 角色名：對白 same line */
-  body.tv-print .sl-content[data-type="scene"]{text-transform:none!important}
+  /* ── 電視劇 format (tv-print) ──────────────────
+     Same as 優劇 but action lines get △ prefix
+  ─────────────────────────────────────────────── */
+  body.tv-print .sl-content[data-type="scene"]{
+    text-transform:none!important;
+  }
+  body.tv-print .sl-content[data-type="action"]{
+    margin-bottom:6pt!important;
+  }
   body.tv-print .sl-content[data-type="action"]::before{
     content:'△ ';
+    font-family:'Courier Prime',Courier,monospace;
   }
-  body.tv-print .sl-content[data-type="character"]{
-    padding-left:0!important;text-transform:none!important;font-weight:400!important;
-    margin-top:0!important;letter-spacing:0!important;display:inline!important;
-  }
-  body.tv-print .sl-content[data-type="character"]::after{content:'：';}
-  body.tv-print .sl-content[data-type="parenthetical"]{
-    padding-left:0!important;padding-right:0!important;
-    font-style:normal!important;display:inline!important;
-  }
+  body.tv-print .sl-content[data-type="character"],
+  body.tv-print .sl-content[data-type="parenthetical"],
   body.tv-print .sl-content[data-type="dialogue"]{
-    padding-left:0!important;padding-right:0!important;
-    margin-bottom:0!important;display:inline!important;
+    display:none!important;
   }
-  body.tv-print .sl{display:block!important;margin-bottom:0!important}
+  body.tv-print .sl{
+    display:block!important;
+    margin-bottom:2pt!important;
+  }
+  .tv-merged-line{
+    font-family:'Courier Prime',Courier,monospace!important;
+    font-size:12pt!important;
+    line-height:1.5!important;
+    color:#000!important;
+    display:block!important;
+    margin-bottom:6pt!important;
+    word-break:break-word!important;
+  }
 
   /* Scene card chips don't print */
   .int-chip,.time-chip,.chip-group-sep,.int-sep{display:none!important}
@@ -3198,12 +3245,52 @@ function exportFountain(){
 }
 
 function printScript(){
-  document.body.classList.toggle('tw-print', isTaiwan());
-  document.body.classList.toggle('tv-print', isTvDrama());
+  var isTw = isTaiwan();
+  var isTv = isTvDrama();
+  document.body.classList.toggle('tw-print', isTw);
+  document.body.classList.toggle('tv-print', isTv);
+
+  // For 優劇 / 電視劇: inject merged "角色：（語氣）對白" divs into DOM before printing
+  var injected = [];
+  if(isTw || isTv){
+    var blocks = getBlocks();
+    var bi = 0;
+    while(bi < blocks.length){
+      var b = blocks[bi];
+      if(b.type === 'character'){
+        var charName = (b.text||'').trim();
+        var paren = '';
+        var dial = '';
+        var charIdx = bi;
+        if(bi+1 < blocks.length && blocks[bi+1].type === 'parenthetical'){
+          bi++;
+          paren = '（' + (blocks[bi].text||'').replace(/^[(（]/,'').replace(/[)）]$/,'') + '）';
+        }
+        if(bi+1 < blocks.length && blocks[bi+1].type === 'dialogue'){
+          bi++;
+          dial = (blocks[bi].text||'').trim();
+        }
+        // Insert merged line into the character's row element
+        var rowEl = document.getElementById('row-' + charIdx);
+        if(rowEl){
+          var div = document.createElement('div');
+          div.className = isTw ? 'tw-merged-line' : 'tv-merged-line';
+          div.textContent = charName + '：' + paren + dial;
+          rowEl.appendChild(div);
+          injected.push(div);
+        }
+      }
+      bi++;
+    }
+  }
+
   window.print();
+
+  // Cleanup after print dialog closes
   setTimeout(function(){
     document.body.classList.remove('tw-print');
     document.body.classList.remove('tv-print');
+    injected.forEach(function(el){ if(el.parentNode) el.parentNode.removeChild(el); });
   }, 1000);
 }
 function exportJson(){
@@ -4222,6 +4309,9 @@ function classifyLine(text, prevType){
   return 'action';
 }
 
+// Regex: 短名字（≤10字，不含冒號）＋ 全形或半形冒號 ＋ 內容
+var INLINE_DIAL_RE = /^([^：:\n]{1,10})[：:](.+)$/;
+
 function textToBlocks(rawText){
   var lines = rawText.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
   var result = [];
@@ -4229,7 +4319,45 @@ function textToBlocks(rawText){
   lines.forEach(function(line){
     var t = line.trim();
     if(!t){ prevType = null; return; }
+
+    // First check normal classifiers (scene / transition / parenthetical / all-caps character)
     var type = classifyLine(t, prevType);
+
+    // If classified as action or dialogue, check for inline "名字：對白" pattern
+    if(type === 'action' || type === 'dialogue'){
+      var m = INLINE_DIAL_RE.exec(t);
+      if(m){
+        var charPart = m[1].trim();
+        var dialPart = m[2].trim();
+        // Extra guard: name part should look like a person's name
+        // (no sentence-ending punctuation, not a URL, not a number-only string)
+        var looksLikeName = charPart.length >= 1
+          && !/[。！？…\/\\]/.test(charPart)
+          && !/^[\d]+$/.test(charPart)
+          && !/^(https?|www)/.test(charPart);
+        if(looksLikeName){
+          // Split into character block + optional parenthetical + dialogue block
+          var parenMatch = dialPart.match(/^[（(]([^）)]{0,60})[）)](.*)/);
+          result.push({ id: uid(), type: 'character', text: charPart, linkedCardId: null });
+          prevType = 'character';
+          if(parenMatch){
+            var parenText = '（' + parenMatch[1].trim() + '）';
+            var restDial = parenMatch[2].trim();
+            result.push({ id: uid(), type: 'parenthetical', text: parenText, linkedCardId: null });
+            prevType = 'parenthetical';
+            if(restDial){
+              result.push({ id: uid(), type: 'dialogue', text: restDial, linkedCardId: null });
+              prevType = 'dialogue';
+            }
+          } else {
+            result.push({ id: uid(), type: 'dialogue', text: dialPart, linkedCardId: null });
+            prevType = 'dialogue';
+          }
+          return; // skip normal push below
+        }
+      }
+    }
+
     if(!type) return;
     result.push({ id: uid(), type: type, text: t, linkedCardId: null });
     prevType = type;
