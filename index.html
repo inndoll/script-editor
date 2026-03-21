@@ -3246,9 +3246,20 @@ function syncProjectSelector(){
 }
 
 document.getElementById('project-select').addEventListener('change',function(){
+  // 先把目前標題存進當前專案
+  var titleEl = document.getElementById('script-title-input');
+  var subEl   = document.getElementById('script-subtitle-input');
+  var cur = getScript();
+  if(cur){
+    cur.title    = titleEl ? titleEl.value : '';
+    cur.subtitle = subEl   ? subEl.value   : '';
+  }
+  // 切換專案
   DB.activeProject = this.value;
   var proj = DB.projects.find(function(p){ return p.id===DB.activeProject; });
   document.getElementById('sb-project').textContent = proj ? proj.name : '';
+  // 讀取新專案的標題
+  restoreTitleFromScript();
   renderAll();
 });
 
@@ -4153,10 +4164,17 @@ var _lastSnapshotLen = 0;
 
 function saveToStorage(){
   try {
-    var payload = JSON.stringify(DB);
-    localStorage.setItem(LS_KEY, payload);
+    // 把標題存進當前專案的 script 物件
     var titleEl = document.getElementById('script-title-input');
     var subEl   = document.getElementById('script-subtitle-input');
+    var script  = getScript();
+    if(script){
+      script.title    = titleEl ? titleEl.value : '';
+      script.subtitle = subEl   ? subEl.value   : '';
+    }
+    var payload = JSON.stringify(DB);
+    localStorage.setItem(LS_KEY, payload);
+    // 同步保留舊的 LS_TITLE_KEY 作為 fallback
     localStorage.setItem(LS_TITLE_KEY, JSON.stringify({
       title:   titleEl ? titleEl.value : '',
       subtitle: subEl  ? subEl.value   : ''
@@ -4174,6 +4192,24 @@ function loadFromStorage(){
   } catch(e){ console.warn('loadFromStorage error:', e); }
 }
 
+function restoreTitleFromScript(){
+  var script = getScript();
+  var ti = document.getElementById('script-title-input');
+  var si = document.getElementById('script-subtitle-input');
+  if(!ti || !si) return;
+  if(script && script.title !== undefined){
+    ti.value = script.title    || '';
+    si.value = script.subtitle || '';
+  } else {
+    // fallback：舊版本沒有 title 欄位，從 LS_TITLE_KEY 讀
+    try {
+      var td = JSON.parse(localStorage.getItem(LS_TITLE_KEY) || 'null');
+      ti.value = td ? (td.title    || '') : '';
+      si.value = td ? (td.subtitle || '') : '';
+    } catch(e){ ti.value = ''; si.value = ''; }
+  }
+}
+
 function restoreDomFromStorage(){
   try {
     syncProjectSelector();
@@ -4182,18 +4218,8 @@ function restoreDomFromStorage(){
       var ap = DB.projects.find(function(p){ return p.id===DB.activeProject; });
       if(ap) sbp.textContent = ap.name;
     }
-    var raw = localStorage.getItem(LS_KEY);
-    if(raw){
-      var titleData = localStorage.getItem(LS_TITLE_KEY);
-      if(titleData){
-        var td = JSON.parse(titleData);
-        var ti = document.getElementById('script-title-input');
-        var si = document.getElementById('script-subtitle-input');
-        if(ti) ti.value = td.title || '';
-        if(si) si.value = td.subtitle || '';
-      }
-      setSaveIndicator('✦ 已從上次記錄恢復');
-    }
+    restoreTitleFromScript();
+    setSaveIndicator('✦ 已從上次記錄恢復');
   } catch(e){ console.warn('restoreDomFromStorage error:', e); }
 }
 
