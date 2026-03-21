@@ -495,7 +495,6 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 
 /* Mobile-only elements — hidden by default, shown only via JS on mobile */
 #mob-header,#mob-tabbar,#mob-fmt-bar,
-#mob-left-panel,#mob-right-panel,#mob-content,
 #mob-menu-overlay{display:none!important}
 
 /* ══════════════════════════════════════════════
@@ -517,7 +516,6 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 
   /* ── Allow mobile elements to be shown by JS ── */
   #mob-header,#mob-tabbar,#mob-fmt-bar,
-  #mob-left-panel,#mob-right-panel,#mob-content,
   #mob-menu-overlay{ display:none!important } /* still hidden until JS activates */
 
   /* ── Layout reset ── */
@@ -552,34 +550,16 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
     font-size:18px;cursor:pointer;flex-shrink:0;
   }
 
-  /* ── Mobile content area ── */
-  #mob-content{
-    flex:1;overflow:hidden;display:flex;flex-direction:column;
-    height:calc(100% - 48px - 56px);
-  }
-
-  /* Center editor — full width on mobile */
-  #center{
-    display:none;flex-direction:column;overflow:hidden;
-    height:100%;width:100%!important;
-  }
-  #center.mob-active{ display:flex!important }
-  #center .editor-toolbar{ display:none!important }
-  #center .topbar-row{ display:none!important }
+  /* ── Editor on mobile ── */
   #editor-scroll{ padding:16px 14px!important }
   #editor-page{ max-width:none!important }
   #script-title-input{ font-size:16px!important }
   #script-subtitle-input{ font-size:12px!important }
+  .editor-toolbar{ display:none!important }
 
-  /* Mobile format bar (replaces desktop editor-toolbar) */
-  #mob-fmt-bar{
-    display:none;flex-wrap:nowrap;overflow-x:auto;gap:4px;
-    padding:6px 10px;background:var(--bg2);border-bottom:1px solid var(--border);
-    flex-shrink:0;-webkit-overflow-scrolling:touch;
-  }
-  #mob-fmt-bar.mob-active{ display:flex }
+  /* ── Mobile format bar ── */
   #mob-fmt-bar button{
-    flex-shrink:0;padding:5px 10px;border-radius:20px;font-size:11px;
+    flex-shrink:0;padding:6px 12px;border-radius:20px;font-size:12px;
     border:1px solid var(--border2);background:var(--bg);color:var(--ink2);
     cursor:pointer;white-space:nowrap;font-family:'Noto Sans TC',sans-serif;
   }
@@ -589,25 +569,6 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
   #mob-fmt-bar .mob-fmt-sep{
     width:1px;background:var(--border);flex-shrink:0;margin:4px 2px;
   }
-
-  /* Left panel shown as full screen on mobile */
-  #mob-left-panel{
-    display:none;flex-direction:column;overflow:hidden;
-    height:100%;width:100%;background:var(--bg2);
-  }
-  #mob-left-panel.mob-active{ display:flex }
-  #mob-left-panel .left-nav{
-    display:flex;border-bottom:1px solid var(--border);background:var(--bg3);
-    flex-shrink:0;overflow-x:auto;
-  }
-  #mob-left-panel .lnav-btn{ font-size:11px;padding:8px 12px }
-
-  /* Right panel as full screen on mobile */
-  #mob-right-panel{
-    display:none;flex-direction:column;overflow:hidden;
-    height:100%;width:100%;background:var(--bg2);
-  }
-  #mob-right-panel.mob-active{ display:flex }
 
   /* ── Bottom tab bar ── */
   #mob-tabbar{
@@ -1155,25 +1116,6 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
   <div class="mob-fmt-sep"></div>
   <button onclick="doUndo()" style="color:var(--ink3)">↩ 復原</button>
   <button onclick="doRedo()" style="color:var(--ink3)">↪ 重做</button>
-</div>
-
-<!-- ── MOBILE CONTENT AREA ────────────────────── -->
-<div id="mob-content">
-
-  <!-- Left panel (scenes/cards/chars/notes/assets) shown full screen -->
-  <div id="mob-left-panel"></div>
-
-  <!-- Right panel (preview/stats/history) shown full screen -->
-  <div id="mob-right-panel">
-    <div class="right-nav">
-      <button class="rnav-btn active" onclick="switchRight('preview',this)">預覽</button>
-      <button class="rnav-btn" onclick="switchRight('stats',this)">統計</button>
-      <button class="rnav-btn" onclick="switchRight('history',this)">歷史</button>
-      <button class="rnav-btn" onclick="switchRight('fountain',this)">格式說明</button>
-    </div>
-    <div class="right-content" id="mob-right-content"></div>
-  </div>
-
 </div>
 
 <!-- ── MOBILE BOTTOM TAB BAR ──────────────────── -->
@@ -6018,11 +5960,17 @@ function isMobileView(){
 }
 
 function initMobileIfNeeded(){
-  _isMobile = isMobileView();
-  if(_isMobile){
-    activateMobileLayout();
-  } else {
-    deactivateMobileLayout();
+  try {
+    _isMobile = isMobileView();
+    if(_isMobile){
+      activateMobileLayout();
+    } else {
+      deactivateMobileLayout();
+    }
+  } catch(err){
+    console.error('Mobile init error:', err);
+    // On any error, ensure the page is usable in desktop mode
+    try { deactivateMobileLayout(); } catch(e){}
   }
 }
 
