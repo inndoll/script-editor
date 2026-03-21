@@ -1589,6 +1589,11 @@ let DB = {
        characters:['凌冰','林哲'],purpose:'情感高潮：父親之死的秘密成為動機',
        conflict:'理性知道可能是陷阱 vs 情感需要知道真相',notes:'結尾開放式，為後續鋪墊',linkedBlockId:'sf50'},
     ],
+    p_horror: [
+      {id:'sc_h1',projectId:'p_horror',num:1,title:'老宅·第一夜',location:'老宅 客廳',time:'深夜',interior:'INT',characters:['阿婷','小傑'],purpose:'建立恐怖氛圍，埋下謎題',conflict:'阿婷的恐懼 vs 小傑的理性',notes:'',linkedBlockId:'gh1'},
+      {id:'sc_h2',projectId:'p_horror',num:2,title:'走廊·發現照片',location:'老宅 走廊',time:'深夜',interior:'INT',characters:['阿婷'],purpose:'揭示秘密，製造最大恐懼',conflict:'過去的秘密 vs 求生本能',notes:'',linkedBlockId:'gh17'},
+      {id:'sc_h3',projectId:'p_horror',num:3,title:'門口·翌日',location:'老宅 門口',time:'清晨',interior:'EXT',characters:['小傑','警察'],purpose:'反轉收尾，開放式恐懼',conflict:'理性解釋 vs 不可解釋的現實',notes:'',linkedBlockId:'gh27'},
+    ],
     p1: []
   },
   characters: {
@@ -1615,6 +1620,11 @@ let DB = {
        arc:'從被囚禁的資料到擁有自由意志的存在',
        notes:'是否值得信任是整個故事的核心謎題',color:'#D4A017'},
     ],
+    p_horror: [
+      {id:'ch_h1',projectId:'p_horror',name:'阿婷',age:'25',role:'繼承外婆老宅的孫女',personality:'獨立但內心脆弱，對家族歷史知之甚少',arc:'從理性的繼承人到目睹不可解釋事物的倖存者（？）',notes:'',color:'#D4A017'},
+      {id:'ch_h2',projectId:'p_horror',name:'小傑',age:'27',role:'阿婷的男友',personality:'樂天、理性，習慣用邏輯解釋一切',arc:'從旁觀者到最後知道真相的人',notes:'',color:'#185FA5'},
+      {id:'ch_h3',projectId:'p_horror',name:'外婆',age:'已故',role:'老宅的前主人',personality:'慈祥表面下藏著從未說出口的秘密',arc:'缺席的存在，卻主導整個故事',notes:'從未直接出現，只存在於照片和記憶',color:'#8A7B68'},
+    ],
     p1: []
   },
   notes: {
@@ -1629,6 +1639,9 @@ let DB = {
        content:'時間：2187年\n地點：台北廢墟都市\n\n背景：天啟企業在三十年前取得台灣政府控制權，以「人類進化計畫」為名，強制植入神經晶片，監控所有市民思想。拒絕植入者被驅逐至廢墟區，形成地下反抗組織。\n\n凌冰是前政府特工，因為父親被天啟企業秘密處決而叛逃，現與林哲組成二人小組，為反抗組織執行高風險滲透任務。'},
       {id:'n_f2',projectId:'p_scifi',title:'🎯 本集任務摘要',
        content:'任務代號：ECHO\n\n目標：從天啟企業核心伺服器提取一份加密檔案，據說是天啟企業最高機密的人體實驗數據。\n\n轉折：提取目標不是一份檔案，而是一個有自我意識的AI。這個AI掌握凌冰父親之死的真相。'},
+    ],
+    p_horror: [
+      {id:'n_h1',projectId:'p_horror',title:'👻 創作說明',content:'這個範例劇本示範台灣風格的鬼片寫法：\n\n• 恐怖來自「不確定」而非「看見」\n• 用日常細節建立真實感\n• 結局開放，觀眾自行詮釋\n• 反轉在最後一句對白，不在視覺'},
     ],
     p1: []
   }
@@ -4206,6 +4219,8 @@ function assetDrop(e){
 //  LOCALSTORAGE AUTOSAVE + VERSION HISTORY
 // ═══════════════════════════════════════════════
 var LS_KEY       = 'xiaoyeEditor_v1';
+var LS_BUILTIN_VER = 'xiaoyeBuiltinVer_v1'; // 更新內建範例時遞增這個版本號
+var CURRENT_BUILTIN_VER = 3; // 目前版本：1=範例+科幻, 2=鬼片, 3=鬼片內容修正
 var LS_HIST_KEY  = 'xiaoyeHistory_v1';
 var LS_TITLE_KEY = 'xiaoyeTitle_v1';
 var MAX_HISTORY  = 50;
@@ -4450,17 +4465,44 @@ function getDefaultDB(){
 function migrateBuiltinProjects(){
   var defaults = getDefaultDB();
   var builtins = ['p_sample','p_scifi','p_horror'];
+
+  // 檢查內建版本號，版本不符就強制更新所有內建劇本的 script 內容
+  var savedVer = parseInt(localStorage.getItem(LS_BUILTIN_VER) || '0');
+  var forceUpdate = savedVer < CURRENT_BUILTIN_VER;
+
   builtins.forEach(function(pid){
+    var defaults_proj = defaults.projects.find(function(p){ return p.id === pid; });
+    if(!defaults_proj) return;
+
+    // 補缺少的 project 項目
     var exists = DB.projects.some(function(p){ return p.id === pid; });
-    if(!exists){
-      var proj = defaults.projects.find(function(p){ return p.id === pid; });
-      if(proj) DB.projects.unshift(proj);
-      if(defaults.scripts[pid])    DB.scripts[pid]    = defaults.scripts[pid];
+    if(!exists) DB.projects.unshift(defaults_proj);
+
+    // 強制更新 或 補缺少/空的 script
+    if(forceUpdate || !DB.scripts[pid] || !DB.scripts[pid].blocks || DB.scripts[pid].blocks.length === 0){
+      if(defaults.scripts[pid]) DB.scripts[pid] = defaults.scripts[pid];
+    }
+
+    // 補缺少的 sceneCards
+    if(forceUpdate || !DB.sceneCards[pid] || DB.sceneCards[pid].length === 0){
       if(defaults.sceneCards[pid]) DB.sceneCards[pid] = defaults.sceneCards[pid];
+    }
+
+    // 補缺少的 characters
+    if(forceUpdate || !DB.characters[pid] || DB.characters[pid].length === 0){
       if(defaults.characters[pid]) DB.characters[pid] = defaults.characters[pid];
-      if(defaults.notes[pid])      DB.notes[pid]      = defaults.notes[pid];
+    }
+
+    // 補缺少的 notes
+    if(forceUpdate || !DB.notes[pid] || DB.notes[pid].length === 0){
+      if(defaults.notes[pid]) DB.notes[pid] = defaults.notes[pid];
     }
   });
+
+  // 儲存最新版本號
+  if(forceUpdate){
+    localStorage.setItem(LS_BUILTIN_VER, String(CURRENT_BUILTIN_VER));
+  }
 }
 
 function loadFromStorage(){
