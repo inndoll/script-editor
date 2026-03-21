@@ -38,9 +38,8 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans TC',sans-serif;back
 .topbar-row+.topbar-row{
   border-top:1px solid var(--border);background:var(--bg3);
 }
-#main{display:flex;flex:1;overflow:hidden}
-#left{width:220px;min-width:160px;max-width:400px;background:var(--bg2);border-right:none;display:flex;flex-direction:column;overflow:hidden;transition:width 0.15s;flex-shrink:0}
-.panel-divider{
+#main{display:flex;flex:1;overflow:visible;min-height:0}
+#left{width:220px;min-width:160px;max-width:400px;background:var(--bg2);border-right:none;display:flex;flex-direction:column;overflow:hidden;transition:width 0.15s;flex-shrink:0}.panel-divider{
   width:5px;background:var(--border);cursor:col-resize;flex-shrink:0;
   transition:background 0.15s;position:relative;z-index:10;
 }
@@ -488,10 +487,11 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
 /* Scrollbar */
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:var(--border3)}
+/* Scrollbar — visible but subtle */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg3)}
+::-webkit-scrollbar-thumb{background:var(--border3);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--ink4)}
 
 /* Mobile-only elements — hidden by default, shown only via JS on mobile */
 #mob-header,#mob-tabbar,#mob-fmt-bar,
@@ -522,7 +522,7 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
   #shell{ height:100dvh;height:100vh;overflow:hidden }
   #topbar{ display:none }
   #statusbar{ display:none }
-  #main{ flex:1;min-height:0;overflow:hidden }
+  #main{ flex:1;min-height:0;overflow:visible }
   #left{ display:none }
   #divider-left{ display:none }
   #divider-right{ display:none }
@@ -5956,32 +5956,12 @@ var _isMobile = false;
 var _mobCurrentTab = 'edit';
 
 function isMobileView(){
-  return window.innerWidth < 768;
+  return false; // Mobile version temporarily disabled — coming soon
 }
 
 function initMobileIfNeeded(){
-  try {
-    _isMobile = isMobileView();
-    if(_isMobile){
-      // Debug: show visible indicator
-      var dbg = document.createElement('div');
-      dbg.id = 'mob-debug';
-      dbg.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#e74c3c;color:#fff;font-size:13px;padding:8px 12px;font-family:monospace';
-      dbg.textContent = 'Mobile JS running... w=' + window.innerWidth;
-      document.body.appendChild(dbg);
-      activateMobileLayout();
-      dbg.textContent = 'Mobile activated OK w=' + window.innerWidth;
-      dbg.style.background = '#27ae60';
-    } else {
-      deactivateMobileLayout();
-    }
-  } catch(err){
-    var dbg2 = document.createElement('div');
-    dbg2.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#c0392b;color:#fff;font-size:12px;padding:8px;font-family:monospace;word-break:break-all';
-    dbg2.textContent = 'ERROR: ' + err.message + ' | ' + err.stack;
-    document.body.appendChild(dbg2);
-    try { deactivateMobileLayout(); } catch(e){}
-  }
+  // Mobile layout temporarily disabled
+  // Will be re-enabled when mobile version is ready
 }
 
 function activateMobileLayout(){
