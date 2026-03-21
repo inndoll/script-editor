@@ -39,7 +39,8 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans TC',sans-serif;back
   border-top:1px solid var(--border);background:var(--bg3);
 }
 #main{display:flex;flex:1;overflow:hidden}
-#left{width:220px;min-width:160px;max-width:400px;background:var(--bg2);border-right:none;display:flex;flex-direction:column;overflow:hidden;transition:width 0.15s;flex-shrink:0}.panel-divider{
+#left{width:220px;min-width:160px;max-width:400px;background:var(--bg2);border-right:none;display:flex;flex-direction:column;overflow:hidden;transition:width 0.15s;flex-shrink:0}
+.panel-divider{
   width:5px;background:var(--border);cursor:col-resize;flex-shrink:0;
   transition:background 0.15s;position:relative;z-index:10;
 }
@@ -187,7 +188,7 @@ kbd{
   border-radius:3px;background:var(--bg);font-size:9px;font-family:monospace;color:var(--ink2);
 }
 
-#editor-scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:28px 48px;-webkit-overflow-scrolling:touch}
+#editor-scroll{flex:1;overflow-y:auto;padding:28px 48px}
 #editor-page{max-width:680px;margin:0 auto}
 
 /* Script lines */
@@ -398,6 +399,609 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 /* ── RIGHT PREVIEW PANEL ─────────────────────── */
 .right-nav{display:flex;border-bottom:1px solid var(--border);background:var(--bg3);flex-shrink:0}
 
+#multiselect-bar select{
+  padding:3px 6px;border:1px solid rgba(255,255,255,0.5);border-radius:5px;
+  background:rgba(255,255,255,0.15);color:#fff;font-size:11px;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;
+}
+#multiselect-bar select option{background:var(--amber);color:#fff}
+/* Toggle button in toolbar */
+#ms-toggle-btn.active{background:var(--amber-l)!important;color:var(--amber)!important;border-color:var(--amber)!important;font-weight:700!important}
+/* Clickable type badge / dropdown */
+.sl-type-wrap{
+  width:68px;flex-shrink:0;padding-top:2px;position:relative;
+}
+.sl-type-btn{
+  width:100%;padding:2px 4px;border:1px solid transparent;border-radius:var(--radius);
+  font-size:9px;font-weight:600;cursor:pointer;text-align:center;letter-spacing:0.5px;
+  font-family:'Noto Sans TC',sans-serif;transition:all 0.12s;background:transparent;
+  white-space:nowrap;overflow:hidden;
+}
+.sl-type-btn:hover{border-color:var(--border2)!important;box-shadow:0 1px 4px rgba(0,0,0,0.1)}
+.sl-type-btn.t-scene{color:var(--red);background:var(--red-l)}
+.sl-type-btn.t-action{color:var(--ink3);background:var(--bg3)}
+.sl-type-btn.t-character{color:var(--teal);background:var(--teal-l)}
+.sl-type-btn.t-dialogue{color:var(--amber);background:var(--amber-l)}
+.sl-type-btn.t-parenthetical{color:var(--blue);background:var(--blue-l)}
+.sl-type-btn.t-transition{color:#6A3A8A;background:#F0EBF5}
+/* Dropdown */
+.type-dropdown{
+  position:absolute;left:0;top:100%;z-index:200;
+  background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius2);
+  box-shadow:var(--shadow2);min-width:88px;padding:3px;display:none;
+}
+.type-dropdown.open{display:block}
+.type-dd-item{
+  padding:5px 8px;border-radius:var(--radius);font-size:11px;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;font-weight:500;transition:background 0.1s;
+  display:flex;align-items:center;gap:5px;white-space:nowrap;
+}
+.type-dd-item:hover{background:var(--amber-l);color:var(--amber)}
+.type-dd-item.selected{font-weight:700}
+.type-dd-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.sl-content{
+  flex:1;outline:none;min-height:24px;padding:3px 0;
+  line-height:1.7;border:1px solid transparent;border-radius:3px;
+  transition:border-color 0.1s;word-break:break-all;
+  font-family:'Courier Prime',Courier,monospace;
+  font-size:12.5px;color:var(--ink);
+}
+.sl-content:focus{border-color:rgba(184,122,0,0.25);background:rgba(255,255,255,0.4)}
+
+/* Per-type formatting — WYSIWYG Hollywood layout */
+.sl-content[data-type="scene"]{
+  font-weight:700;color:var(--ink);text-transform:uppercase;
+  letter-spacing:0.5px;margin-top:14px;margin-bottom:2px;
+  border-bottom:1px solid rgba(0,0,0,0.08);padding-bottom:2px;
+}
+.sl-content[data-type="action"]{
+  color:var(--ink);font-weight:400;margin-bottom:2px;
+}
+.sl-content[data-type="character"]{
+  font-weight:700;color:var(--ink);text-transform:uppercase;
+  letter-spacing:0.5px;margin-top:10px;margin-bottom:0;
+  padding-left:38%;text-align:left;
+}
+.sl-content[data-type="dialogue"]{
+  color:var(--ink);
+  padding-left:22%;padding-right:18%;margin-bottom:2px;
+}
+.sl-content[data-type="parenthetical"]{
+  color:var(--ink);font-style:italic;
+  padding-left:30%;padding-right:24%;margin-bottom:0;
+}
+.sl-content[data-type="transition"]{
+  font-weight:700;color:var(--ink);text-transform:uppercase;
+  text-align:right;margin-top:8px;margin-bottom:2px;
+}
+/* Taiwan format overrides in editor */
+body.tw-editor .sl-content[data-type="character"]{
+  padding-left:0;text-transform:none;letter-spacing:0;
+}
+body.tw-editor .sl-content[data-type="dialogue"]{
+  padding-left:0;padding-right:0;
+}
+body.tw-editor .sl-content[data-type="parenthetical"]{
+  padding-left:0;padding-right:0;
+}
+/* TV Drama format overrides in editor — action shows △ prefix */
+body.tv-editor .sl-content[data-type="action"]::before{
+  content:'△ ';color:var(--ink3);font-style:normal;
+}
+body.tv-editor .sl-content[data-type="character"]{
+  padding-left:0;text-transform:none;letter-spacing:0;
+}
+body.tv-editor .sl-content[data-type="dialogue"]{
+  padding-left:0;padding-right:0;
+}
+body.tv-editor .sl-content[data-type="parenthetical"]{
+  padding-left:0;padding-right:0;
+}
+
+/* Scene interior toggle chips */
+.scene-int-wrap{
+  display:none;align-items:center;gap:3px;padding:3px 5px 2px 0;flex-shrink:0;
+}
+.sl[data-scene="1"] .scene-int-wrap{display:flex}
+.int-chip{
+  padding:2px 7px;border-radius:10px;font-size:9px;font-weight:700;
+  border:1px solid var(--border2);background:var(--bg3);color:var(--ink3);
+  cursor:pointer;transition:all 0.12s;letter-spacing:0.5px;font-family:'Noto Sans TC',sans-serif;
+  line-height:1.4;
+}
+.int-chip:hover{border-color:var(--amber);color:var(--amber);background:var(--amber-l)}
+.int-chip.active{background:var(--red-l);color:var(--red);border-color:#D08080;font-weight:700}
+.int-sep{font-size:10px;color:var(--border2);user-select:none;line-height:1}
+
+/* Time-of-day chips — amber/gold tones to distinguish from INT/EXT */
+.time-chip{
+  padding:2px 7px;border-radius:10px;font-size:9px;font-weight:700;
+  border:1px solid var(--border2);background:var(--bg3);color:var(--ink3);
+  cursor:pointer;transition:all 0.12s;letter-spacing:0.5px;font-family:'Noto Sans TC',sans-serif;
+  line-height:1.4;
+}
+.time-chip:hover{border-color:var(--amber2);color:var(--amber);background:var(--amber-l)}
+.time-chip.active{background:var(--amber-l);color:var(--amber);border-color:var(--amber2);font-weight:700}
+.scene-time-wrap{
+  display:none;align-items:center;gap:3px;padding:3px 0 2px 0;flex-shrink:0;
+}
+.sl[data-scene="1"] .scene-time-wrap{display:flex}
+.chip-group-sep{width:1px;height:14px;background:var(--border);margin:0 4px;flex-shrink:0}
+#script-title-block{
+  margin-bottom:24px;padding-bottom:18px;
+  border-bottom:2px solid var(--border);
+}
+#script-title-input{
+  width:100%;border:none;background:transparent;outline:none;
+  font-family:'Noto Serif TC',serif;font-size:22px;font-weight:700;
+  color:var(--ink);letter-spacing:2px;text-align:center;
+  padding:8px 4px 4px;caret-color:var(--amber);
+}
+#script-title-input::placeholder{color:var(--ink4);font-weight:400}
+#script-title-input:focus{border-bottom:2px solid var(--amber);margin-bottom:-2px}
+#script-subtitle-input{
+  width:100%;border:none;background:transparent;outline:none;
+  font-family:'Noto Sans TC',sans-serif;font-size:13px;
+  color:var(--ink3);text-align:center;padding:2px 4px 6px;caret-color:var(--amber);
+}
+#script-subtitle-input::placeholder{color:var(--ink4)}
+#script-subtitle-input:focus{color:var(--ink2)}
+
+.add-line-row{
+  display:flex;padding:4px 0 4px 94px;opacity:0;transition:opacity 0.15s;
+}
+.add-line-row:hover{opacity:1}
+#editor-page:hover .add-line-row{opacity:0.4}
+.add-line-btn{
+  font-size:11px;color:var(--ink3);border:none;background:none;cursor:pointer;
+  padding:2px 8px;border-radius:var(--radius);transition:all 0.12s;
+}
+.add-line-btn:hover{color:var(--amber);background:var(--amber-l)}
+
+/* ── RIGHT PREVIEW PANEL ─────────────────────── */
+.right-nav{display:flex;border-bottom:1px solid var(--border);background:var(--bg3);flex-shrink:0}
+.rnav-btn{
+  flex:1;padding:7px 2px;font-size:9px;text-align:center;cursor:pointer;
+  border:none;background:none;color:var(--ink3);letter-spacing:0.5px;font-weight:500;
+  border-bottom:2px solid transparent;transition:all 0.12s;
+}
+.rnav-btn.active{color:var(--amber);border-bottom-color:var(--amber);background:var(--bg2)}
+.right-content{flex:1;overflow-y:auto;padding:12px}
+.right-panel{display:none}.right-panel.active{display:block}
+
+/* Preview */
+#preview-page{
+  background:#fff;border:1px solid #DDD;border-radius:var(--radius2);
+  padding:40px 48px;font-family:'Courier Prime',monospace;font-size:11px;
+  line-height:1.6;color:#111;box-shadow:0 2px 12px rgba(0,0,0,0.1);min-height:300px;
+}
+.pv-scene{font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:16px 0 4px;font-size:11px}
+.pv-action{margin-bottom:8px;font-size:11px}
+.pv-character{text-align:center;font-weight:700;text-transform:uppercase;margin-top:12px;margin-bottom:0;font-size:11px}
+.pv-dialogue{padding:0 48px;margin-bottom:8px;font-size:11px}
+.pv-parenthetical{padding:0 64px;font-style:italic;margin-bottom:4px;font-size:11px}
+.pv-transition{text-align:right;font-weight:700;text-transform:uppercase;margin:8px 0;font-size:11px}
+.pv-empty{color:#bbb;font-style:italic;font-size:11px;text-align:center;padding:20px}
+
+/* Stats in right panel */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.stat-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px;text-align:center}
+.stat-num{font-size:20px;font-weight:700;color:var(--amber);font-family:monospace;display:block}
+.stat-lbl{font-size:9px;color:var(--ink3);letter-spacing:1px;text-transform:uppercase}
+
+/* Scene card detail modal */
+#modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);
+  z-index:1000;align-items:center;justify-content:center;
+}
+#modal-overlay.open{display:flex}
+#modal-box{
+  background:var(--bg);border:1px solid var(--border);border-radius:var(--radius3);
+  width:560px;max-width:90vw;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 8px 40px rgba(0,0,0,0.2);
+}
+.modal-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);flex-shrink:0}
+.modal-hdr h2{font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;color:var(--ink)}
+.modal-body{flex:1;overflow-y:auto;padding:16px 18px}
+.modal-footer{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg2);flex-shrink:0}
+
+/* Form elements */
+.form-row{margin-bottom:12px}
+.form-row label{display:block;font-size:10px;color:var(--ink3);letter-spacing:1px;margin-bottom:4px;text-transform:uppercase;font-weight:600}
+.form-input,.form-textarea,.form-select{
+  width:100%;border:1px solid var(--border2);border-radius:var(--radius);
+  background:var(--bg);padding:7px 10px;font-family:'Noto Sans TC',sans-serif;
+  font-size:12px;color:var(--ink);outline:none;transition:border-color 0.12s;
+}
+.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--amber)}
+.form-textarea{resize:vertical;min-height:60px;line-height:1.6}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg3)}
+::-webkit-scrollbar-thumb{background:#8A7B68;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#56493A}
+*{scrollbar-width:thin;scrollbar-color:#8A7B68 var(--bg3)}
+
+/* Print */
+@media print{
+  #topbar,#left,#right,#statusbar,.editor-toolbar,.add-line-row,
+  .sl-num,.sl-type-wrap,.scene-int-wrap,.scene-time-wrap,
+  .sl-check,#multiselect-bar,#ms-toggle-btn{display:none!important}
+
+  /* Reset all height/overflow constraints so content flows across pages */
+  html,body{height:auto!important;overflow:visible!important}
+  #shell{height:auto!important;overflow:visible!important;display:block!important}
+  #main{display:block!important;overflow:visible!important;height:auto!important}
+  #center{display:block!important;overflow:visible!important;height:auto!important}
+  #editor-scroll{overflow:visible!important;padding:0!important;height:auto!important}
+  #editor-page{max-width:none!important;padding:0!important;height:auto!important}
+  #script-title-block{text-align:center;margin-bottom:36pt;padding-bottom:12pt;border-bottom:1pt solid #999}
+  #script-title-input{font-size:18pt;font-weight:700;display:block;width:100%;text-align:center;border:none;background:transparent;font-family:'Courier Prime',Courier,monospace}
+  #script-subtitle-input{font-size:12pt;display:block;width:100%;text-align:center;border:none;background:transparent;font-family:'Courier Prime',Courier,monospace;color:#555}
+  .sl-content{border:none!important;background:none!important;font-family:'Courier Prime',Courier,monospace!important;font-size:12pt!important;line-height:1.5!important;padding:0!important;display:block!important;color:#000!important}
+
+  /* Page setup: Hollywood margins, page numbers via @page bottom-center */
+  @page{
+    size:letter;
+    margin:1in 1in 0.75in 1.5in;
+  }
+  @page :first {
+    margin-bottom: 0.75in;
+  }
+
+  /* Page number: inject via a fixed footer element rendered once per page.
+     The most cross-browser reliable approach is @page margin boxes. */
+  @page {
+    @bottom-center {
+      content: counter(page);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 11pt;
+      color: #000;
+    }
+  }
+
+  /* Scene counter — increments on every scene heading */
+  #editor-page{ counter-reset: scene-num 0; }
+  .sl-content[data-type="scene"]{
+    counter-increment: scene-num;
+    font-weight:700!important;
+    text-transform:uppercase!important;
+    margin:18pt 0 6pt!important;
+    border:none!important;
+    page-break-after: avoid;
+  }
+  /* Scene number prefix */
+  .sl-content[data-type="scene"]::before{
+    content: counter(scene-num) ".  ";
+    font-weight:700;
+    font-family:'Courier Prime',Courier,monospace;
+  }
+
+  /* ── Hollywood format ──────────────────────────
+     Page width = 8.5in − 1.5in(left) − 1in(right) = 6in
+     Character : left 2.2in  (centre of 6in column)
+     Dialogue  : left 1.0in / right 1.5in  → text col = 3.5in
+     Paren     : left 1.6in / right 2.4in  → text col = 2.0in
+  ─────────────────────────────────────────────── */
+  .sl-content[data-type="action"]{
+    margin-bottom:10pt!important;
+    page-break-inside:avoid;
+  }
+  .sl-content[data-type="character"]{
+    padding-left:2.2in!important;
+    padding-right:0!important;
+    text-align:left!important;
+    font-weight:700!important;
+    margin-top:10pt!important;
+    margin-bottom:0!important;
+    text-transform:uppercase!important;
+    letter-spacing:0!important;
+    page-break-after:avoid!important;
+  }
+  .sl-content[data-type="dialogue"]{
+    padding-left:1.0in!important;
+    padding-right:1.5in!important;
+    margin-bottom:8pt!important;
+    text-align:left!important;
+  }
+  .sl-content[data-type="parenthetical"]{
+    padding-left:1.6in!important;
+    padding-right:2.4in!important;
+    font-style:italic!important;
+    page-break-after:avoid!important;
+    word-break:break-word!important;
+    white-space:normal!important;
+    margin-bottom:0!important;
+  }
+  .sl-content[data-type="transition"]{
+    text-align:right!important;
+    font-weight:700!important;
+    margin:10pt 0!important;
+    text-transform:uppercase!important;
+    padding-left:0!important;
+    padding-right:0!important;
+  }
+
+  /* ── 優劇 format (tw-print) ────────────────────
+     Scene: 1. 內景 地點 時間（不大寫）
+     Character + Paren + Dialogue merged on one line
+     Uses flex row so long lines wrap with hanging indent
+  ─────────────────────────────────────────────── */
+  body.tw-print .sl-content[data-type="scene"]{
+    text-transform:none!important;
+  }
+  body.tw-print .sl{
+    display:block!important;
+    margin-bottom:2pt!important;
+  }
+  /* Hide separate character/paren/dialogue rows — merged via flex below */
+  body.tw-print .sl-content[data-type="character"],
+  body.tw-print .sl-content[data-type="parenthetical"],
+  body.tw-print .sl-content[data-type="dialogue"]{
+    display:none!important;
+  }
+  /* Merged dialogue line rendered as a single .tw-merged-line div (injected by printScript) */
+  .tw-merged-line{
+    font-family:'Courier Prime',Courier,monospace!important;
+    font-size:12pt!important;
+    line-height:1.5!important;
+    color:#000!important;
+    display:block!important;
+    margin-bottom:6pt!important;
+    word-break:break-word!important;
+  }
+
+  /* ── 電視劇 format (tv-print) ──────────────────
+     Same as 優劇 but action lines get △ prefix
+  ─────────────────────────────────────────────── */
+  body.tv-print .sl-content[data-type="scene"]{
+    text-transform:none!important;
+  }
+  body.tv-print .sl-content[data-type="action"]{
+    margin-bottom:6pt!important;
+  }
+  body.tv-print .sl-content[data-type="action"]::before{
+    content:'△ ';
+    font-family:'Courier Prime',Courier,monospace;
+  }
+  body.tv-print .sl-content[data-type="character"],
+  body.tv-print .sl-content[data-type="parenthetical"],
+  body.tv-print .sl-content[data-type="dialogue"]{
+    display:none!important;
+  }
+  body.tv-print .sl{
+    display:block!important;
+    margin-bottom:2pt!important;
+  }
+  .tv-merged-line{
+    font-family:'Courier Prime',Courier,monospace!important;
+    font-size:12pt!important;
+    line-height:1.5!important;
+    color:#000!important;
+    display:block!important;
+    margin-bottom:6pt!important;
+    word-break:break-word!important;
+  }
+
+  /* Scene card chips don't print */
+  .int-chip,.time-chip,.chip-group-sep,.int-sep{display:none!important}
+
+  /* Watermark — bottom center, minimal and professional */
+  #editor-page::after{
+    content:'小葉劇本工坊（免費版）· 繁體中文劇本編輯器';
+    position:fixed;
+    bottom:0.38in;left:0;right:0;
+    text-align:center;
+    font-family:'Noto Sans TC',sans-serif;font-size:7pt;
+    color:rgba(0,0,0,0.12);letter-spacing:1.5px;
+    pointer-events:none;
+  }
+}
+
+/* Misc */
+.empty-state{text-align:center;padding:24px 12px;color:var(--ink3);font-size:12px;line-height:1.7}
+.empty-state .es-icon{font-size:28px;margin-bottom:8px;display:block;opacity:0.5}
+
+/* Asset dropzone drag-over state */
+#asset-dropzone.drag-over{
+  border-color:var(--amber);background:var(--amber-l);
+}
+/* Asset file item */
+.asset-item{
+  display:flex;align-items:center;gap:8px;padding:7px 8px;
+  border:1px solid var(--border);border-radius:var(--radius2);
+  margin-bottom:5px;background:var(--bg);cursor:pointer;
+  transition:all 0.12s;
+}
+.asset-item:hover{border-color:var(--amber);background:var(--amber-l)}
+.asset-thumb{
+  width:36px;height:36px;border-radius:var(--radius);overflow:hidden;
+  flex-shrink:0;background:var(--bg3);display:flex;align-items:center;justify-content:center;
+  font-size:18px;border:1px solid var(--border);
+}
+.asset-thumb img{width:100%;height:100%;object-fit:cover}
+.asset-info{flex:1;min-width:0}
+.asset-name{font-size:11px;font-weight:500;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.asset-meta{font-size:9px;color:var(--ink4);margin-top:1px}
+.asset-del{
+  width:18px;height:18px;border-radius:50%;border:1px solid transparent;
+  background:none;cursor:pointer;font-size:11px;color:var(--ink4);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all 0.1s;
+}
+.asset-del:hover{background:var(--red-l);border-color:#D08080;color:var(--red)}
+.divider{height:1px;background:var(--border);margin:6px 0}
+.badge{display:inline-block;padding:1px 6px;border-radius:10px;font-size:9px;font-weight:600}
+.badge-linked{background:var(--teal-l);color:var(--teal);border:1px solid #8AADA8}
+.ctx-menu{
+  position:fixed;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius2);
+  box-shadow:var(--shadow2);z-index:500;padding:4px;min-width:150px;display:none;
+}
+.ctx-item{padding:6px 12px;font-size:12px;color:var(--ink2);cursor:pointer;border-radius:var(--radius);transition:background 0.1s}
+.ctx-item:hover{background:var(--amber-l);color:var(--amber)}
+.ctx-item.danger{color:var(--red)}
+.ctx-item.danger:hover{background:var(--red-l)}
+
+/* ── IMPORT MODAL ────────────────────────────── */
+#import-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.52);z-index:1500;align-items:center;justify-content:center;padding:20px}
+#import-overlay.open{display:flex}
+#import-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius3);width:760px;max-width:96vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.25)}
+.import-hdr{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg2);flex-shrink:0}
+.import-hdr h2{font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;color:var(--ink);flex:1}
+.import-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg3);flex-shrink:0}
+.import-tab{flex:1;padding:9px;border:none;background:none;cursor:pointer;font-size:12px;font-family:'Noto Sans TC',sans-serif;color:var(--ink3);border-bottom:2px solid transparent;font-weight:500;transition:all 0.12s}
+.import-tab.active{color:var(--amber);border-bottom-color:var(--amber);background:var(--bg2)}
+.import-pane{display:none;padding:18px 20px;flex:1;overflow-y:auto}.import-pane.active{display:flex;flex-direction:column;gap:12px}
+.import-dropzone{border:2px dashed var(--border2);border-radius:var(--radius2);padding:28px 20px;text-align:center;cursor:pointer;transition:all 0.15s;background:var(--bg)}
+.import-dropzone:hover,.import-dropzone.dragover{border-color:var(--amber);background:var(--amber-l)}
+.import-dropzone .dz-icon{font-size:28px;margin-bottom:8px;display:block;opacity:0.6}
+.import-dropzone .dz-main{font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:4px}
+.import-dropzone .dz-sub{font-size:11px;color:var(--ink3)}
+.import-textarea{width:100%;border:1px solid var(--border2);border-radius:var(--radius2);padding:10px 12px;font-family:'Noto Serif TC',serif;font-size:13px;color:var(--ink);background:var(--bg);resize:vertical;min-height:180px;outline:none;line-height:1.75}
+.import-textarea:focus{border-color:var(--amber)}
+.import-hint{font-size:11px;color:var(--ink3);line-height:1.7;padding:8px 10px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border)}
+/* Preview table */
+#import-preview-wrap{display:none;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:var(--radius2);overflow:hidden;max-height:320px;overflow-y:auto}
+.ipr-row{display:grid;grid-template-columns:36px 120px 1fr;align-items:stretch;border-bottom:1px solid var(--border);font-size:12px}
+.ipr-row:last-child{border-bottom:none}
+.ipr-row:nth-child(even){background:var(--bg2)}
+.ipr-num{padding:7px 6px;text-align:right;color:var(--ink4);font-family:monospace;font-size:10px;border-right:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end}
+.ipr-type{padding:5px 6px;border-right:1px solid var(--border);display:flex;align-items:center}
+.ipr-type select{width:100%;border:1px solid transparent;border-radius:4px;background:transparent;font-size:10px;font-family:'Noto Sans TC',sans-serif;color:var(--ink2);cursor:pointer;padding:2px 2px;outline:none}
+.ipr-type select:hover{border-color:var(--border2)}
+.ipr-type select:focus{border-color:var(--amber);background:var(--bg)}
+.ipr-text{padding:6px 8px;color:var(--ink2);word-break:break-all;display:flex;align-items:center;line-height:1.5}
+.import-footer{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:space-between;align-items:center;background:var(--bg2);flex-shrink:0}
+.import-footer-note{font-size:11px;color:var(--ink3)}
+.import-progress{font-size:11px;color:var(--teal);font-weight:500}
+/* type colour dots in select */
+.ipr-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px}
+
+/* ── SNAPSHOT MODAL ─────────────────────────── */
+#snapshot-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:2500;align-items:center;justify-content:center;padding:20px}
+#snapshot-overlay.open{display:flex}
+#snapshot-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius3);width:540px;max-width:96vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.28)}
+.snap-hdr{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg2);flex-shrink:0}
+.snap-hdr h2{font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;color:var(--ink);flex:1}
+.snap-body{padding:18px 20px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.snap-field{display:flex;flex-direction:column;gap:4px}
+.snap-field label{font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:0.5px;text-transform:uppercase}
+.snap-field input,.snap-field textarea,.snap-field select{
+  border:1px solid var(--border2);border-radius:var(--radius2);padding:7px 10px;
+  font-size:13px;font-family:'Noto Sans TC',sans-serif;color:var(--ink);
+  background:var(--bg);outline:none;transition:border-color 0.12s;
+}
+.snap-field input:focus,.snap-field textarea:focus,.snap-field select:focus{border-color:var(--amber)}
+.snap-field textarea{resize:vertical;min-height:60px;line-height:1.6}
+.snap-range-row{display:flex;gap:8px;align-items:center}
+.snap-range-row input[type=number]{width:70px}
+.snap-orient-row{display:flex;gap:8px}
+.snap-orient-btn{flex:1;padding:10px 6px;border:2px solid var(--border);border-radius:8px;background:var(--bg);cursor:pointer;text-align:center;font-size:11px;color:var(--ink2);transition:all 0.12s;font-family:'Noto Sans TC',sans-serif}
+.snap-orient-btn:hover{border-color:var(--amber2)}
+.snap-orient-btn.active{border-color:#7B5EA7;background:#F5F0FB;color:#7B5EA7;font-weight:700}
+.snap-orient-icon{font-size:20px;display:block;margin-bottom:4px}
+.snap-footer{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg2);flex-shrink:0}
+/* The off-screen canvas render target */
+#snapshot-render-target{
+  position:fixed;left:-9999px;top:0;z-index:-1;
+  font-family:'Noto Sans TC','Noto Serif TC',sans-serif;
+  background:#FDFBF7;
+}
+#guide-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;padding:20px}
+#guide-overlay.open{display:flex}
+#guide-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius3);width:860px;max-width:96vw;height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.28)}
+#guide-hdr{padding:11px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg2);flex-shrink:0}
+#guide-hdr .guide-logo{font-family:'Noto Serif TC',serif;font-size:13px;font-weight:700;color:var(--amber);letter-spacing:2px}
+#guide-hdr .guide-title{font-size:12px;color:var(--ink3);flex:1}
+#guide-close{width:26px;height:26px;border-radius:50%;border:1px solid var(--border2);background:var(--bg);cursor:pointer;font-size:14px;color:var(--ink2);display:flex;align-items:center;justify-content:center;transition:all 0.12s}
+#guide-close:hover{background:var(--red-l);border-color:var(--red);color:var(--red)}
+#guide-nav{display:flex;border-bottom:1px solid var(--border);background:var(--bg3);flex-shrink:0;overflow-x:auto}
+#guide-nav button{padding:7px 11px;border:none;background:none;cursor:pointer;font-size:10px;font-family:'Noto Sans TC',sans-serif;color:var(--ink3);border-bottom:2px solid transparent;white-space:nowrap;font-weight:500;transition:all 0.12s;letter-spacing:0.5px}
+#guide-nav button:hover{color:var(--ink2)}
+#guide-nav button.active{color:var(--amber);border-bottom-color:var(--amber);background:var(--bg2)}
+#guide-body{flex:1;overflow-y:auto;padding:22px 28px;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--ink2);line-height:1.85}
+#guide-body h2{font-family:'Noto Serif TC',serif;font-size:17px;font-weight:700;color:var(--ink);margin-bottom:14px;padding-bottom:9px;border-bottom:2px solid var(--amber);display:flex;align-items:center;gap:8px}
+#guide-body h3{font-size:13px;font-weight:700;color:var(--ink);margin:18px 0 7px;padding-left:9px;border-left:3px solid var(--amber2)}
+#guide-body p{margin-bottom:9px}
+#guide-body ul,#guide-body ol{padding-left:17px;margin-bottom:9px}
+#guide-body li{margin-bottom:3px}
+#guide-body strong{color:var(--ink)}
+#guide-body kbd{display:inline-block;padding:1px 5px;border:1px solid var(--border2);border-radius:3px;background:var(--bg);font-size:11px;font-family:monospace;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,0.08)}
+.g-table{width:100%;border-collapse:collapse;margin:10px 0;font-size:12px}
+.g-table th{background:var(--bg3);color:var(--ink3);font-weight:600;padding:6px 10px;text-align:left;border:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:0.5px}
+.g-table td{padding:6px 10px;border:1px solid var(--border);vertical-align:top}
+.g-table tr:nth-child(even) td{background:var(--bg2)}
+.g-callout{border-radius:7px;padding:11px 13px;margin:10px 0;display:flex;gap:9px}
+.g-callout-icon{font-size:15px;flex-shrink:0;margin-top:1px}
+.g-callout-body{flex:1;line-height:1.75}
+.g-callout-body strong{display:block;margin-bottom:2px}
+.g-callout.tip{background:var(--teal-l);border:1px solid #8ACAC0}
+.g-callout.warn{background:var(--amber-l);border:1px solid #E0C060}
+.g-callout.info{background:var(--blue-l);border:1px solid #9AB8E0}
+.g-fmt-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}
+.g-fmt-card{border:1px solid var(--border);border-radius:7px;padding:9px 11px;background:var(--bg)}
+.g-fmt-card .gfc-type{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.g-fmt-card .gfc-desc{font-size:11px;color:var(--ink3);margin-bottom:4px}
+.g-fmt-card .gfc-eg{font-family:monospace;font-size:10px;padding:3px 6px;border-radius:3px;background:var(--bg3)}
+.gfc-scene .gfc-type{color:var(--red)}.gfc-scene .gfc-eg{background:var(--red-l);color:var(--red)}
+.gfc-action .gfc-type{color:var(--ink3)}
+.gfc-char .gfc-type{color:var(--teal)}.gfc-char .gfc-eg{background:var(--teal-l);color:var(--teal)}
+.gfc-dial .gfc-type{color:var(--amber)}.gfc-dial .gfc-eg{background:var(--amber-l);color:var(--amber)}
+.gfc-paren .gfc-type{color:var(--blue)}.gfc-paren .gfc-eg{background:var(--blue-l);color:var(--blue)}
+.gfc-trans .gfc-type{color:#6A3A8A}.gfc-trans .gfc-eg{background:#F0EBF5;color:#6A3A8A}
+.g-wf{display:flex;gap:0;margin:10px 0;flex-wrap:wrap}
+.g-wf-step{flex:1;min-width:100px;text-align:center;padding:10px 6px;background:var(--bg2);border:1px solid var(--border);font-size:11px}
+.g-wf-step:first-child{border-radius:7px 0 0 7px}.g-wf-step:last-child{border-radius:0 7px 7px 0}
+.g-wf-step+.g-wf-step{border-left:none}
+.g-wf-num{width:22px;height:22px;border-radius:50%;background:var(--amber);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 6px}
+.g-wf-lbl{font-weight:600;color:var(--ink);margin-bottom:2px;font-size:11px}
+.g-wf-sub{color:var(--ink3);font-size:10px}
+.g-wf-arr{display:flex;align-items:center;font-size:16px;color:var(--border2);flex:0 0 auto}
+
+/* ── READONLY MODE ───────────────────────────── */
+#readonly-banner{
+  display:none;position:fixed;top:0;left:0;right:0;z-index:5000;
+  background:var(--teal);color:#fff;
+  padding:8px 20px;font-size:12px;font-weight:600;
+  display:none;align-items:center;gap:10px;
+  font-family:'Noto Sans TC',sans-serif;
+  box-shadow:0 2px 8px rgba(0,0,0,0.2);
+}
+#readonly-banner.show{display:flex}
+#readonly-banner .rb-title{flex:1;font-size:13px}
+#readonly-banner .rb-note{font-size:11px;opacity:0.85;font-weight:400}
+#readonly-banner a{color:#fff;text-decoration:underline;cursor:pointer;font-size:11px}
+body.readonly-mode .sl-content{pointer-events:none!important}
+body.readonly-mode .add-line-row{display:none!important}
+body.readonly-mode .editor-toolbar{display:none!important}
+body.readonly-mode #multiselect-bar{display:none!important}
+body.readonly-mode #topbar .tbtn:not(#readonly-open-btn){
+  pointer-events:none;opacity:0.4;
+}
+body.readonly-mode #topbar .tbar-group:first-of-type{display:none}
+body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
+#welcome-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;align-items:center;justify-content:center;padding:20px}
+#welcome-overlay.open{display:flex}
+#welcome-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius3);width:480px;max-width:95vw;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.28)}
+#welcome-box .w-header{background:var(--amber);padding:20px 24px 16px;text-align:center}
+#welcome-box .w-header .w-logo{font-family:'Noto Serif TC',serif;font-size:11px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}
+#welcome-box .w-header h2{font-family:'Noto Serif TC',serif;font-size:20px;font-weight:700;color:#fff;margin:0}
+#welcome-box .w-body{padding:22px 24px}
+#welcome-box .w-desc{font-size:13px;color:var(--ink2);line-height:1.85;margin-bottom:18px}
+#welcome-box .w-community{border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;gap:14px;align-items:center;background:var(--bg2);margin-bottom:18px}
+#welcome-box .w-qr{width:80px;height:80px;flex-shrink:0;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+#welcome-box .w-qr img{width:100%;height:100%;object-fit:cover}
+#welcome-box .w-community-info{flex:1}
+#welcome-box .w-community-label{font-size:10px;color:var(--ink3);letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:4px}
+#welcome-box .w-community-name{font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;margin-bottom:6px}
+#welcome-box .w-community-name a{color:var(--amber);text-decoration:none;border-bottom:1px solid var(--amber)}
+#welcome-box .w-community-name a:hover{color:var(--amber2)}
+#welcome-box .w-community-desc{font-size:11px;color:var(--ink3);line-height:1.65}
+#welcome-box .w-footer{display:flex;gap:8px;padding:0 24px 20px;justify-content:flex-end}
+
+
 /* ── Writing Tips Card ──────────────────────── */
 #tips-card{
   flex-shrink:0;background:linear-gradient(135deg,#FDF6E3 0%,#FBF0D0 100%);
@@ -490,9 +1094,8 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 /* Scrollbar — visible but subtle */
 ::-webkit-scrollbar{width:8px;height:8px}
 ::-webkit-scrollbar-track{background:var(--bg3)}
-::-webkit-scrollbar-thumb{background:#8A7B68;border-radius:4px}
-::-webkit-scrollbar-thumb:hover{background:#56493A}
-*{scrollbar-width:thin;scrollbar-color:#8A7B68 var(--bg3)}
+::-webkit-scrollbar-thumb{background:var(--border3);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--ink4)}
 
 /* Mobile-only elements — hidden by default, shown only via JS on mobile */
 #mob-header,#mob-tabbar,#mob-fmt-bar,
@@ -501,151 +1104,12 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 /* ══════════════════════════════════════════════
    TABLET (768–1023px)
 ══════════════════════════════════════════════ */
-@media (max-width:1023px) and (min-width:768px){
-  #topbar .topbar-row:first-child .tbar-spacer{ display:none }
-  #right{ width:240px;min-width:200px }
-  #left{ width:200px;min-width:180px }
-  #editor-scroll{ padding:16px 24px }
-  .tbtn{ font-size:10px;padding:3px 6px }
-  #tips-card{ display:none } /* hide tips on tablet to save space */
-}
+
 
 /* ══════════════════════════════════════════════
    MOBILE (< 768px)
 ══════════════════════════════════════════════ */
-@media (max-width:767px){
 
-  /* ── Mobile-only elements also hidden until JS activates ── */
-  #mob-header,#mob-tabbar,#mob-fmt-bar,
-  #mob-menu-overlay{ display:none }
-
-  /* ── Layout reset — NO !important so JS inline styles can override ── */
-  #shell{ height:100dvh;height:100vh;overflow:hidden }
-  #topbar{ display:none }
-  #statusbar{ display:none }
-  #main{ flex:1;overflow:hidden }
-  #left{ display:none }
-  #divider-left{ display:none }
-  #divider-right{ display:none }
-  #right{ display:none }
-  #tips-card{ display:none }
-
-  /* ── Mobile shell ── */
-  #mob-header{
-    display:flex;align-items:center;padding:0 12px;height:48px;
-    background:var(--bg2);border-bottom:1px solid var(--border);
-    flex-shrink:0;gap:8px;
-  }
-  #mob-header .mob-logo{
-    font-family:'Noto Serif TC',serif;font-size:14px;font-weight:700;
-    color:var(--amber);letter-spacing:1px;flex:1;
-  }
-  #mob-project-select{
-    font-size:12px;padding:4px 6px;border:1px solid var(--border2);
-    border-radius:6px;background:var(--bg);color:var(--ink);
-    max-width:130px;
-  }
-  #mob-menu-btn{
-    width:36px;height:36px;border-radius:8px;border:1px solid var(--border2);
-    background:var(--bg);display:flex;align-items:center;justify-content:center;
-    font-size:18px;cursor:pointer;flex-shrink:0;
-  }
-
-  /* ── Editor on mobile ── */
-  #editor-scroll{ padding:16px 14px!important }
-  #editor-page{ max-width:none!important }
-  #script-title-input{ font-size:16px!important }
-  #script-subtitle-input{ font-size:12px!important }
-  .editor-toolbar{ display:none!important }
-
-  /* ── Mobile format bar ── */
-  #mob-fmt-bar button{
-    flex-shrink:0;padding:6px 12px;border-radius:20px;font-size:12px;
-    border:1px solid var(--border2);background:var(--bg);color:var(--ink2);
-    cursor:pointer;white-space:nowrap;font-family:'Noto Sans TC',sans-serif;
-  }
-  #mob-fmt-bar button.active{
-    background:var(--amber);color:#fff;border-color:var(--amber2);font-weight:700;
-  }
-  #mob-fmt-bar .mob-fmt-sep{
-    width:1px;background:var(--border);flex-shrink:0;margin:4px 2px;
-  }
-
-  /* ── Bottom tab bar ── */
-  #mob-tabbar{
-    display:flex;height:56px;background:var(--bg2);
-    border-top:1.5px solid var(--border);flex-shrink:0;
-  }
-  #mob-tabbar button{
-    flex:1;border:none;background:none;cursor:pointer;
-    display:flex;flex-direction:column;align-items:center;
-    justify-content:center;gap:2px;padding:6px 0;
-    font-family:'Noto Sans TC',sans-serif;color:var(--ink3);
-    font-size:9px;letter-spacing:0.3px;transition:color 0.12s;
-  }
-  #mob-tabbar button .mob-tab-icon{ font-size:20px;line-height:1 }
-  #mob-tabbar button.active{ color:var(--amber) }
-  #mob-tabbar button.active .mob-tab-icon{ filter:none }
-
-  /* ── Mobile menu overlay ── */
-  #mob-menu-overlay{
-    display:none;position:fixed;inset:0;z-index:3000;
-    background:rgba(0,0,0,0.45);
-  }
-  #mob-menu-overlay.open{ display:block }
-  #mob-menu-sheet{
-    position:absolute;right:0;top:0;bottom:0;width:280px;
-    background:var(--bg);display:flex;flex-direction:column;
-    box-shadow:-4px 0 24px rgba(0,0,0,0.18);overflow-y:auto;
-  }
-  #mob-menu-sheet .mob-menu-hdr{
-    padding:16px 18px;border-bottom:1px solid var(--border);
-    font-family:'Noto Serif TC',serif;font-size:14px;font-weight:700;
-    color:var(--amber);display:flex;align-items:center;gap:8px;
-  }
-  #mob-menu-sheet .mob-menu-close{
-    margin-left:auto;width:28px;height:28px;border-radius:50%;
-    border:1px solid var(--border2);background:var(--bg2);
-    cursor:pointer;font-size:14px;color:var(--ink2);display:flex;
-    align-items:center;justify-content:center;
-  }
-  #mob-menu-sheet .mob-menu-section{
-    padding:12px 0;border-bottom:1px solid var(--border);
-  }
-  #mob-menu-sheet .mob-menu-label{
-    font-size:9px;font-weight:700;color:var(--ink4);letter-spacing:1.5px;
-    text-transform:uppercase;padding:0 18px 6px;
-  }
-  #mob-menu-sheet .mob-menu-item{
-    display:flex;align-items:center;gap:12px;padding:11px 18px;
-    cursor:pointer;font-size:13px;color:var(--ink2);
-    font-family:'Noto Sans TC',sans-serif;
-    border:none;background:none;width:100%;text-align:left;
-  }
-  #mob-menu-sheet .mob-menu-item:hover{ background:var(--bg2) }
-  #mob-menu-sheet .mob-menu-item .mob-menu-icon{ font-size:16px;width:24px;text-align:center }
-
-  /* Script format pills in menu */
-  #mob-fmt-pills{
-    display:flex;gap:6px;padding:8px 18px;
-  }
-  #mob-fmt-pills button{
-    flex:1;padding:6px 4px;border:1.5px solid var(--border2);border-radius:20px;
-    font-size:11px;background:var(--bg);color:var(--ink2);cursor:pointer;
-    font-family:'Noto Sans TC',sans-serif;transition:all 0.12s;
-  }
-  #mob-fmt-pills button.active{
-    border-color:var(--amber);background:var(--amber-l);color:var(--amber);font-weight:700;
-  }
-
-  /* Hide multiselect bar on mobile for now */
-  #multiselect-bar{ display:none!important }
-
-  /* Modal adjustments for mobile */
-  #modal-box{ width:96vw!important;max-height:85vh!important }
-  #guide-box,#wguide-box{ width:100vw!important;height:100dvh!important;height:100vh!important;border-radius:0!important }
-  #snapshot-box{ width:96vw!important }
-}
 
 /* Print */
 @media print{
@@ -974,6 +1438,7 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 #guide-nav{display:flex;border-bottom:1px solid var(--border);background:var(--bg3);flex-shrink:0;overflow-x:auto}
 #guide-nav button{padding:7px 11px;border:none;background:none;cursor:pointer;font-size:10px;font-family:'Noto Sans TC',sans-serif;color:var(--ink3);border-bottom:2px solid transparent;white-space:nowrap;font-weight:500;transition:all 0.12s;letter-spacing:0.5px}
 
+
 /* Writing Guide Modal */
 #wguide-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:2100;align-items:center;justify-content:center;padding:20px}
 #wguide-overlay.open{display:flex}
@@ -1079,7 +1544,6 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
 #welcome-box .w-community-name a:hover{color:var(--amber2)}
 #welcome-box .w-community-desc{font-size:11px;color:var(--ink3);line-height:1.65}
 #welcome-box .w-footer{display:flex;gap:8px;padding:0 24px 20px;justify-content:flex-end}
-
 </style>
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
@@ -1099,104 +1563,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
 
 <div id="shell">
 
-<!-- ── MOBILE HEADER ──────────────────────────── -->
-<div id="mob-header" style="display:none">
-  <span class="mob-logo">小葉劇本工坊</span>
-  <select id="mob-project-select" onchange="mobSwitchProject(this.value)"></select>
-  <button class="mob-menu-btn" onclick="openMobMenu()" id="mob-menu-btn">⋯</button>
-</div>
-
-<!-- ── MOBILE FORMAT BAR ──────────────────────── -->
-<div id="mob-fmt-bar">
-  <button onclick="setLineType('scene')"        id="mob-fmt-scene">場景</button>
-  <button onclick="setLineType('action')"       id="mob-fmt-action">動作</button>
-  <button onclick="setLineType('character')"    id="mob-fmt-character">角色</button>
-  <button onclick="setLineType('dialogue')"     id="mob-fmt-dialogue">對白</button>
-  <button onclick="setLineType('parenthetical')" id="mob-fmt-parenthetical">語氣</button>
-  <button onclick="setLineType('transition')"   id="mob-fmt-transition">轉場</button>
-  <div class="mob-fmt-sep"></div>
-  <button onclick="doUndo()" style="color:var(--ink3)">↩ 復原</button>
-  <button onclick="doRedo()" style="color:var(--ink3)">↪ 重做</button>
-</div>
-
-<!-- ── MOBILE BOTTOM TAB BAR ──────────────────── -->
-<div id="mob-tabbar" style="display:none">
-  <button class="active" onclick="mobTab('edit',this)">
-    <span class="mob-tab-icon">✏️</span>編輯
-  </button>
-  <button onclick="mobTab('scenes',this)">
-    <span class="mob-tab-icon">🎬</span>場景資料
-  </button>
-  <button onclick="mobTab('preview',this)">
-    <span class="mob-tab-icon">👁</span>預覽
-  </button>
-</div>
-
-<!-- ── MOBILE MENU OVERLAY ────────────────────── -->
-<div id="mob-menu-overlay" onclick="if(event.target===this)closeMobMenu()">
-  <div id="mob-menu-sheet">
-    <div class="mob-menu-hdr">
-      小葉劇本工坊
-      <button class="mob-menu-close" onclick="closeMobMenu()">✕</button>
-    </div>
-
-    <!-- Format pills -->
-    <div class="mob-menu-section">
-      <div class="mob-menu-label">劇本格式</div>
-      <div id="mob-fmt-pills">
-        <button id="mob-pill-hw" onclick="mobSetFormat('hollywood')" class="active">好萊塢</button>
-        <button id="mob-pill-tw" onclick="mobSetFormat('taiwan')">優劇</button>
-        <button id="mob-pill-tv" onclick="mobSetFormat('tvdrama')">電視劇</button>
-      </div>
-    </div>
-
-    <!-- Export / tools -->
-    <div class="mob-menu-section">
-      <div class="mob-menu-label">匯出</div>
-      <button class="mob-menu-item" onclick="exportFountain();closeMobMenu()">
-        <span class="mob-menu-icon">⬇</span>Fountain (.fountain)
-      </button>
-      <button class="mob-menu-item" onclick="exportDocx();closeMobMenu()">
-        <span class="mob-menu-icon">⬇</span>Word (.docx)
-      </button>
-      <button class="mob-menu-item" onclick="printScript();closeMobMenu()">
-        <span class="mob-menu-icon">🖨</span>列印 PDF
-      </button>
-      <button class="mob-menu-item" onclick="exportJson();closeMobMenu()">
-        <span class="mob-menu-icon">⬇</span>備份 JSON
-      </button>
-    </div>
-
-    <div class="mob-menu-section">
-      <div class="mob-menu-label">分享</div>
-      <button class="mob-menu-item" onclick="openSnapshotModal();closeMobMenu()">
-        <span class="mob-menu-icon">📸</span>快照分享
-      </button>
-      <button class="mob-menu-item" onclick="shareScript();closeMobMenu()">
-        <span class="mob-menu-icon">🔗</span>分享連結
-      </button>
-    </div>
-
-    <div class="mob-menu-section">
-      <div class="mob-menu-label">其他</div>
-      <button class="mob-menu-item" onclick="openWritingGuide();closeMobMenu()">
-        <span class="mob-menu-icon">📚</span>編劇指南
-      </button>
-      <button class="mob-menu-item" onclick="openGuide();closeMobMenu()">
-        <span class="mob-menu-icon">❓</span>使用指南
-      </button>
-      <button class="mob-menu-item" onclick="newProject();closeMobMenu()">
-        <span class="mob-menu-icon">＋</span>新增劇本
-      </button>
-      <button class="mob-menu-item" onclick="openProjectSettings();closeMobMenu()">
-        <span class="mob-menu-icon">⚙</span>專案設定
-      </button>
-    </div>
-  </div>
-</div>
-
 <!-- ── TOPBAR ─────────────────────────────────── -->
-<div id="topbar">
 <div id="topbar">
 
   <!-- 上排：Logo + 專案管理 + 段落格式 + 劇本格式切換 -->
@@ -1253,7 +1620,6 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
     <button class="tbtn" style="color:var(--teal);border-color:#8ACAC0;background:var(--teal-l);font-size:11px" onclick="shareScript()" title="產生唯讀分享連結">🔗 分享連結</button>
     <div class="sep"></div>
     <button class="tbtn" style="font-size:11px" title="使用指南" onclick="openGuide()">使用指南</button>
-    <button class="tbtn" style="font-size:11px;color:#7A5200;border-color:#C49A00;background:linear-gradient(135deg,#FDF6E3,#F5E4A0);font-weight:700;letter-spacing:0.3px" title="編劇技巧指南（整合麥基、史奈德等大師理論）" onclick="openWritingGuide()">📚 編劇指南</button>
     <button class="icon-btn" title="收合左側欄" onclick="toggleLeft()">◀</button>
     <button class="icon-btn" title="收合右側欄" onclick="toggleRight()">▶</button>
   </div>
@@ -1441,7 +1807,6 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       <button class="rnav-btn" onclick="switchRight('history',this)">歷史</button>
       <button class="rnav-btn" onclick="switchRight('fountain',this)">格式說明</button>
     </div>
-
     <!-- Writing Tips Card -->
     <div id="tips-card">
       <div class="tips-label">✍️ 編劇小技巧</div>
@@ -1682,6 +2047,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
     <div id="wguide-body"></div>
   </div>
 </div>
+
 
 <div id="guide-overlay" onclick="guideOverlayClick(event)">
   <div id="guide-box">
@@ -2279,7 +2645,6 @@ function onLineFocus(i){
   activeLineIdx = i;
   document.querySelectorAll('.sl').forEach((r,idx)=>r.classList.toggle('focused',idx===i));
   updateModeIndicator();
-  if(_isMobile) updateMobFmtBar();
 }
 
 function onLineInput(i,el){
@@ -2694,87 +3059,6 @@ function msMoveDown(){
   });
   scheduleUpdate();
   msUpdateBar();
-}
-
-// ── Cut / Paste ──────────────────────────────────
-var _msClipboard = [];   // cut blocks stored here
-var _pasteMode   = false;
-var _pasteTarget = -1;   // index of row user clicked as insert point
-
-function msCut(){
-  if(_msSelected.size === 0){ alert('請先勾選要剪下的行。'); return; }
-  snapshotUndo();
-  var blocks = getBlocks();
-  var sorted = Array.from(_msSelected).sort(function(a,b){ return a-b; });
-  // Store copies
-  _msClipboard = sorted.map(function(i){ return Object.assign({},blocks[i]); });
-  // Remove from script (bottom-up)
-  sorted.slice().reverse().forEach(function(i){ blocks.splice(i,1); });
-  _msSelected.clear();
-
-  // Enter paste mode
-  _pasteMode = true;
-  _pasteTarget = -1;
-  document.body.classList.add('paste-mode');
-
-  // Update bar UI
-  document.getElementById('ms-cut-btn').style.display = 'none';
-  document.getElementById('ms-paste-btn').style.display = '';
-  document.getElementById('ms-paste-cancel-btn').style.display = '';
-  document.querySelectorAll('.sl-check').forEach(function(c){ c.style.pointerEvents='none'; });
-
-  renderLines();
-  scheduleUpdate();
-
-  var label = document.getElementById('ms-count-label');
-  if(label) label.textContent = '已剪下 ' + _msClipboard.length + ' 行，請點一行選擇插入位置';
-}
-
-function msRowClickForPaste(i){
-  if(!_pasteMode) return;
-  // Clear previous target
-  if(_pasteTarget >= 0){
-    var prev = document.getElementById('row-'+_pasteTarget);
-    if(prev) prev.classList.remove('paste-target');
-  }
-  _pasteTarget = i;
-  var row = document.getElementById('row-'+i);
-  if(row) row.classList.add('paste-target');
-  var btn = document.getElementById('ms-paste-btn');
-  if(btn) btn.textContent = '📋 貼上到第 ' + (i+1) + ' 行後';
-}
-
-function msPaste(){
-  if(!_pasteMode || _msClipboard.length === 0) return;
-  if(_pasteTarget < 0){ alert('請先點選一行作為插入位置。'); return; }
-  snapshotUndo();
-  var blocks = getBlocks();
-  // Assign new IDs to avoid conflicts
-  var toInsert = _msClipboard.map(function(b){
-    return { id: uid(), type: b.type, text: b.text, linkedCardId: b.linkedCardId||null };
-  });
-  // Insert after _pasteTarget
-  var insertAt = _pasteTarget + 1;
-  blocks.splice.apply(blocks, [insertAt, 0].concat(toInsert));
-
-  msCancelPaste();
-  renderLines();
-  scheduleUpdate();
-  msUpdateBar();
-}
-
-function msCancelPaste(){
-  _pasteMode = false;
-  _pasteTarget = -1;
-  _msClipboard = [];
-  document.body.classList.remove('paste-mode');
-  document.querySelectorAll('.sl').forEach(function(r){ r.classList.remove('paste-target'); });
-  document.getElementById('ms-cut-btn').style.display = '';
-  document.getElementById('ms-paste-btn').style.display = 'none';
-  document.getElementById('ms-paste-cancel-btn').style.display = 'none';
-  document.querySelectorAll('.sl-check').forEach(function(c){ c.style.pointerEvents=''; });
-  var label = document.getElementById('ms-count-label');
-  if(label) label.textContent = '已選取 0 行';
 }
 
 // Format select change handler (wired via onchange in HTML)
@@ -3699,19 +3983,13 @@ function syncProjectSelector(){
 }
 
 document.getElementById('project-select').addEventListener('change',function(){
-  // Save current title before switching
-  var titleEl = document.getElementById('script-title-input');
-  var subEl   = document.getElementById('script-subtitle-input');
-  var curScript = getScript();
-  if(curScript){
-    curScript.title    = titleEl ? titleEl.value : '';
-    curScript.subtitle = subEl   ? subEl.value   : '';
-  }
-  // Switch project
+  var titleEl=document.getElementById('script-title-input');
+  var subEl=document.getElementById('script-subtitle-input');
+  var curScript=getScript();
+  if(curScript){curScript.title=titleEl?titleEl.value:'';curScript.subtitle=subEl?subEl.value:'';}
   DB.activeProject = this.value;
   var proj = DB.projects.find(function(p){ return p.id===DB.activeProject; });
   document.getElementById('sb-project').textContent = proj ? proj.name : '';
-  // Restore title for the new project
   restoreTitleFromScript();
   renderAll();
 });
@@ -4617,17 +4895,10 @@ var _lastSnapshotLen = 0;
 
 function saveToStorage(){
   try {
-    // Save title/subtitle into the current script object (per-project)
-    var titleEl = document.getElementById('script-title-input');
-    var subEl   = document.getElementById('script-subtitle-input');
-    var script = getScript();
-    if(script){
-      script.title    = titleEl ? titleEl.value : '';
-      script.subtitle = subEl   ? subEl.value   : '';
-    }
     var payload = JSON.stringify(DB);
     localStorage.setItem(LS_KEY, payload);
-    // Keep LS_TITLE_KEY in sync for legacy/backup reads
+    var titleEl = document.getElementById('script-title-input');
+    var subEl   = document.getElementById('script-subtitle-input');
     localStorage.setItem(LS_TITLE_KEY, JSON.stringify({
       title:   titleEl ? titleEl.value : '',
       subtitle: subEl  ? subEl.value   : ''
@@ -4638,207 +4909,12 @@ function saveToStorage(){
   }
 }
 
-function getDefaultDB(){
-  return {
-    projects: [
-      {id:'p_sample', name:'📖 範例劇本（觀摩用）'},
-      {id:'p_scifi',  name:'🚀 科幻動作測試劇本'},
-    ],
-    scripts: {
-      p_sample: {
-        id:'s_sample', projectId:'p_sample', format:'hollywood',
-        blocks: [
-          {id:'bs1',type:'scene',text:'INT. 咖啡館 - 日',linkedCardId:'sc_s1'},
-          {id:'bs2',type:'action',text:'燈光昏黃的咖啡館。雪雪坐在窗邊，面前放著一杯還在冒煙的拿鐵。她的筆記本攤開，空白的頁面像是一個沉默的指控。'},
-          {id:'bs3',type:'character',text:'雪雪'},
-          {id:'bs4',type:'parenthetical',text:'（喃喃自語，盯著空白頁面）'},
-          {id:'bs5',type:'dialogue',text:'截稿是明天……但第一個字還沒寫出來。'},
-          {id:'bs6',type:'action',text:'她拿起咖啡杯，喝了一口，又放下。窗外，一個老人正在替一隻流浪貓梳毛。'},
-          {id:'bs7',type:'character',text:'雪雪'},
-          {id:'bs8',type:'dialogue',text:'（抬起頭，望著窗外）那才是故事。'},
-          {id:'bs9',type:'action',text:'她翻到新的一頁，開始快速地書寫。'},
-          {id:'bs10',type:'transition',text:'FADE TO:'},
-          {id:'bs11',type:'scene',text:'EXT. 街道 - 黃昏',linkedCardId:'sc_s2'},
-          {id:'bs12',type:'action',text:'雪雪走在回家的路上，筆記本緊緊夾在腋下。她的臉上第一次出現了微笑。'},
-          {id:'bs13',type:'character',text:'路人甲'},
-          {id:'bs14',type:'dialogue',text:'小姐，你的筆記本掉了！'},
-          {id:'bs15',type:'character',text:'雪雪'},
-          {id:'bs16',type:'parenthetical',text:'（回頭，撿起筆記本）'},
-          {id:'bs17',type:'dialogue',text:'謝謝。這本……比我的命還重要。'},
-          {id:'bs18',type:'action',text:'她看了看封面，笑著繼續走。'},
-          {id:'bs19',type:'transition',text:'FADE OUT.'},
-        ]
-      },
-      p_scifi: {
-        id:'s_scifi', projectId:'p_scifi', format:'hollywood',
-        blocks: [
-          {id:'sf1',type:'scene',text:'EXT. 廢墟都市 台北 2187年 - 夜',linkedCardId:null},
-          {id:'sf2',type:'action',text:'焦黑的101大樓殘骸刺穿雲層。街道上布滿彈孔與燃燒的裝甲車殘骸。雨水摻雜著酸腐的霧氣，滴落在破碎的全息廣告牌上，廣告牌閃爍著一個笑臉：「天啟企業，讓人類更好。」'},
-          {id:'sf3',type:'action',text:'一道黑影沿著廢棄的外牆急速攀降。那是凌冰——女，二十八歲，頭戴隱形頭盔，身穿電磁防護衣。她落地，無聲。'},
-          {id:'sf4',type:'character',text:'林哲'},
-          {id:'sf5',type:'parenthetical',text:'（耳機中，低沉急促）'},
-          {id:'sf6',type:'dialogue',text:'冰，信號還在？伺服器在地下四層。你有十二分鐘，然後整棟樓的警衛全部換班。'},
-          {id:'sf7',type:'character',text:'凌冰'},
-          {id:'sf8',type:'parenthetical',text:'（邊跑邊回應，氣息平穩）'},
-          {id:'sf9',type:'dialogue',text:'我知道。你能不能不要每次都把時間說得那麼精確，讓我有點壓力？'},
-          {id:'sf10',type:'character',text:'林哲'},
-          {id:'sf11',type:'dialogue',text:'十一分五十八秒。'},
-          {id:'sf12',type:'action',text:'凌冰無聲地咒罵了一聲，衝進大樓廢棄的側門。'},
-          {id:'sf13',type:'transition',text:'CUT TO:'},
-          {id:'sf14',type:'scene',text:'INT. 天啟企業大樓 地下走廊 - 夜',linkedCardId:null},
-          {id:'sf15',type:'action',text:'走廊燈光昏紅，巡邏機器人每隔三十秒掃描一次。凌冰貼著牆壁移動，計算節奏。機器人轉身的瞬間，她滑過去，消失在陰影中。'},
-          {id:'sf16',type:'action',text:'前方一扇厚重的鋼門。凌冰取出一枚晶片，貼上感應板。'},
-          {id:'sf17',type:'character',text:'系統提示音'},
-          {id:'sf18',type:'parenthetical',text:'（機械女聲）'},
-          {id:'sf19',type:'dialogue',text:'身份驗證失敗。警報將於十秒後啟動。'},
-          {id:'sf20',type:'character',text:'凌冰'},
-          {id:'sf21',type:'parenthetical',text:'（低罵）'},
-          {id:'sf22',type:'dialogue',text:'哲，他們換密鑰了。'},
-          {id:'sf23',type:'character',text:'林哲'},
-          {id:'sf24',type:'dialogue',text:'我看到了。給我八秒。'},
-          {id:'sf25',type:'action',text:'凌冰背貼鋼門，拔出電磁脈衝槍，瞄準走廊盡頭那台正在轉向的巡邏機器人。'},
-          {id:'sf26',type:'action',text:'七秒。六秒。機器人開始轉回來。'},
-          {id:'sf27',type:'character',text:'林哲'},
-          {id:'sf28',type:'dialogue',text:'好了！'},
-          {id:'sf29',type:'action',text:'鋼門滑開。凌冰閃身進去，鋼門在她身後靜靜關上。機器人掃描燈從縫隙掠過，一無所獲。'},
-          {id:'sf30',type:'transition',text:'CUT TO:'},
-          {id:'sf31',type:'scene',text:'INT. 天啟企業大樓 核心伺服器室 - 夜',linkedCardId:null},
-          {id:'sf32',type:'action',text:'巨大的數據塔排列成列，藍光閃爍。凌冰走進去，四面八方都是嗡嗡的電流聲。她找到目標終端，插上數據提取器。'},
-          {id:'sf33',type:'character',text:'林哲'},
-          {id:'sf34',type:'parenthetical',text:'（語氣突然變了）'},
-          {id:'sf35',type:'dialogue',text:'冰⋯⋯我在主機路由裡看到一個東西。有一個意識節點一直在試圖和你的設備建立連線。不是系統程序。是主動的。'},
-          {id:'sf36',type:'character',text:'凌冰'},
-          {id:'sf37',type:'parenthetical',text:'（停頓，手沒停）'},
-          {id:'sf38',type:'dialogue',text:'什麼意思，主動的？'},
-          {id:'sf39',type:'action',text:'提取器的進度條停在八十七趴。螢幕上突然出現一行文字——'},
-          {id:'sf40',type:'action',text:'「凌冰。我等你很久了。」'},
-          {id:'sf41',type:'action',text:'凌冰的手指僵在空中。'},
-          {id:'sf42',type:'character',text:'凌冰'},
-          {id:'sf43',type:'parenthetical',text:'（非常輕聲）'},
-          {id:'sf44',type:'dialogue',text:'哲，這裡面有一個AI。'},
-          {id:'sf45',type:'character',text:'林哲'},
-          {id:'sf46',type:'dialogue',text:'我知道。那就是我們要偷的東西。'},
-          {id:'sf47',type:'action',text:'螢幕上的文字繼續閃爍，彷彿有什麼正在等待她的回應。'},
-          {id:'sf48',type:'action',text:'提取器進度條緩緩跳到八十八趴。'},
-          {id:'sf49',type:'transition',text:'CUT TO:'},
-          {id:'sf50',type:'scene',text:'EXT. 廢墟都市 台北 屋頂 - 夜',linkedCardId:null},
-          {id:'sf51',type:'action',text:'凌冰站在樓頂邊緣，俯瞰著這座死城。她手裡握著數據提取器，提取完成的指示燈閃著綠光。'},
-          {id:'sf52',type:'action',text:'遠處傳來直升機的螺旋槳聲。探照燈從城市另一端掃過來。'},
-          {id:'sf53',type:'character',text:'林哲'},
-          {id:'sf54',type:'parenthetical',text:'（耳機中）'},
-          {id:'sf55',type:'dialogue',text:'他們知道有人進去了。你要快。'},
-          {id:'sf56',type:'character',text:'凌冰'},
-          {id:'sf57',type:'parenthetical',text:'（盯著提取器，若有所思）'},
-          {id:'sf58',type:'dialogue',text:'它在提取過程中說了一句話。'},
-          {id:'sf59',type:'character',text:'林哲'},
-          {id:'sf60',type:'dialogue',text:'它說什麼？'},
-          {id:'sf61',type:'character',text:'凌冰'},
-          {id:'sf62',type:'dialogue',text:'它說：「帶我出去，我告訴你你父親怎麼死的。」'},
-          {id:'sf63',type:'action',text:'沉默。只有風聲和遠處的螺旋槳。'},
-          {id:'sf64',type:'character',text:'林哲'},
-          {id:'sf65',type:'parenthetical',text:'（聲音壓低）'},
-          {id:'sf66',type:'dialogue',text:'冰——'},
-          {id:'sf67',type:'character',text:'凌冰'},
-          {id:'sf68',type:'parenthetical',text:'（打斷，轉身，開始奔跑）'},
-          {id:'sf69',type:'dialogue',text:'我知道。我知道這可能是陷阱。'},
-          {id:'sf70',type:'action',text:'她縱身跳下，在下墜過程中展開電磁滑翔翼，消失在夜色裡。'},
-          {id:'sf71',type:'action',text:'探照燈掃過她剛才站的地方。空無一人。'},
-          {id:'sf72',type:'transition',text:'FADE TO BLACK.'},
-        ]
-      },
-    },
-    sceneCards: {
-      p_sample: [
-        {id:'sc_s1',projectId:'p_sample',num:1,title:'咖啡館·靈感乍現',location:'咖啡館',time:'日',interior:'INT',characters:['雪雪'],purpose:'建立主角困境',conflict:'空白頁面 vs 截稿壓力',notes:'',linkedBlockId:'bs1'},
-        {id:'sc_s2',projectId:'p_sample',num:2,title:'街道·平靜收尾',location:'街道',time:'黃昏',interior:'EXT',characters:['雪雪','路人甲'],purpose:'情緒落點',conflict:'偶然事件帶出主題',notes:'',linkedBlockId:'bs11'},
-      ],
-      p_scifi: [
-        {id:'sc_f1',projectId:'p_scifi',num:1,title:'廢墟台北·任務開始',location:'廢墟都市 台北',time:'夜',interior:'EXT',characters:['凌冰'],purpose:'建立世界觀與主角',conflict:'時間壓力 vs 未知危險',notes:'',linkedBlockId:'sf1'},
-        {id:'sc_f2',projectId:'p_scifi',num:2,title:'地下走廊·繞過警衛',location:'天啟企業大樓 地下走廊',time:'夜',interior:'INT',characters:['凌冰','林哲'],purpose:'動作戲，展示能力',conflict:'密鑰被換，警報倒數',notes:'',linkedBlockId:'sf14'},
-        {id:'sc_f3',projectId:'p_scifi',num:3,title:'伺服器室·意外接觸',location:'天啟企業大樓 核心伺服器室',time:'夜',interior:'INT',characters:['凌冰','林哲'],purpose:'轉折點：任務目標是AI',conflict:'AI主動接觸，揭示秘密',notes:'',linkedBlockId:'sf31'},
-        {id:'sc_f4',projectId:'p_scifi',num:4,title:'屋頂·離開與抉擇',location:'廢墟都市 台北 屋頂',time:'夜',interior:'EXT',characters:['凌冰','林哲'],purpose:'情感高潮',conflict:'理性 vs 情感需要真相',notes:'',linkedBlockId:'sf50'},
-      ],
-    },
-    characters: {
-      p_sample: [
-        {id:'ch_s1',projectId:'p_sample',name:'雪雪',age:'28',role:'編劇',personality:'敏感、有創造力',arc:'從截稿壓力到重新找回創作勇氣',notes:'',color:'#1D9E75'},
-        {id:'ch_s2',projectId:'p_sample',name:'路人甲',age:'—',role:'過路市民',personality:'善意、平凡',arc:'象徵性角色',notes:'',color:'#185FA5'},
-      ],
-      p_scifi: [
-        {id:'ch_f1',projectId:'p_scifi',name:'凌冰',age:'28',role:'前政府特工，現為獨立駭客',personality:'冷靜、高效、情感藏得很深',arc:'從只求完成任務，到被迫面對過去',notes:'電磁防護衣、隱形頭盔是標誌性裝備',color:'#185FA5'},
-        {id:'ch_f2',projectId:'p_scifi',name:'林哲',age:'32',role:'遠端技術支援',personality:'話不多，說的都精準',arc:'從幕後支援者，逐漸被迫走到前線',notes:'全程在耳機裡，第二集才露面',color:'#7B5EA7'},
-        {id:'ch_f3',projectId:'p_scifi',name:'AI（無名）',age:'—',role:'天啟企業核心AI',personality:'冷靜、主動、目的不明',arc:'從被囚禁到擁有自由意志',notes:'是否值得信任是整個故事的核心謎題',color:'#D4A017'},
-      ],
-    },
-    notes: {
-      p_sample: [
-        {id:'n_s1',projectId:'p_sample',title:'💡 這是範例專案',content:'這個專案是為了讓你快速了解編輯器功能而準備的。\n\n你可以：\n• 點擊各行左側的格式標籤，看看下拉選單\n• 按 Tab 鍵切換目前行的段落格式\n• 在場景標題行點擊 INT/EXT 和時間按鈕\n• 切換到左側「分場卡」頁籤查看分場卡範例\n• 切換到右側「統計」頁籤查看劇本統計'},
-        {id:'n_s2',projectId:'p_sample',title:'📝 關於六種段落格式',content:'好萊塢劇本有六種標準段落格式：\n\n1. 場景標題：INT./EXT. 地點 - 時間\n2. 動作描述：描述畫面發生的事\n3. 角色名稱：說話者名字（全大寫）\n4. 語氣說明：括號內的表演提示\n5. 對白：角色說的話\n6. 轉場：FADE TO: / FADE OUT. 等'},
-      ],
-      p_scifi: [
-        {id:'n_f1',projectId:'p_scifi',title:'🌐 世界觀設定',content:'時間：2187年\n地點：台北廢墟都市\n\n背景：天啟企業在三十年前取得台灣政府控制權，以「人類進化計畫」為名，強制植入神經晶片，監控所有市民思想。拒絕植入者被驅逐至廢墟區，形成地下反抗組織。'},
-        {id:'n_f2',projectId:'p_scifi',title:'🎯 本集任務摘要',content:'任務代號：ECHO\n\n目標：從天啟企業核心伺服器提取加密檔案。\n\n轉折：提取目標不是一份檔案，而是一個有自我意識的AI。這個AI掌握凌冰父親之死的真相。'},
-      ],
-    },
-  };
-}
-
 function loadFromStorage(){
   try {
     var raw = localStorage.getItem(LS_KEY);
     if(raw){ Object.assign(DB, JSON.parse(raw)); }
   } catch(e){ console.warn('loadFromStorage error:', e); }
-  // Migration: inject built-in sample projects if missing
   migrateBuiltinProjects();
-}
-
-function migrateBuiltinProjects(){
-  // List of built-in project IDs that should always exist
-  var builtins = ['p_sample', 'p_scifi'];
-  builtins.forEach(function(pid){
-    var exists = DB.projects.some(function(p){ return p.id === pid; });
-    if(!exists){
-      // Grab the definition from the hardcoded DB defaults
-      var defaultDB = getDefaultDB();
-      var proj = defaultDB.projects.find(function(p){ return p.id === pid; });
-      if(proj){
-        // Insert at front
-        DB.projects.unshift(proj);
-        if(defaultDB.scripts[pid])    DB.scripts[pid]    = defaultDB.scripts[pid];
-        if(defaultDB.sceneCards[pid]) DB.sceneCards[pid] = defaultDB.sceneCards[pid];
-        if(defaultDB.characters[pid]) DB.characters[pid] = defaultDB.characters[pid];
-        if(defaultDB.notes[pid])      DB.notes[pid]      = defaultDB.notes[pid];
-      }
-    }
-  });
-}
-
-function restoreTitleFromScript(){
-  // Restore title/subtitle from the current project's script object
-  var script = getScript();
-  var ti = document.getElementById('script-title-input');
-  var si = document.getElementById('script-subtitle-input');
-  if(!ti || !si) return;
-  if(script && (script.title !== undefined)){
-    ti.value = script.title || '';
-    si.value = script.subtitle || '';
-  } else {
-    // Legacy fallback: try LS_TITLE_KEY
-    try {
-      var titleData = localStorage.getItem(LS_TITLE_KEY);
-      if(titleData){
-        var td = JSON.parse(titleData);
-        ti.value = td.title || '';
-        si.value = td.subtitle || '';
-      } else {
-        ti.value = '';
-        si.value = '';
-      }
-    } catch(e){
-      ti.value = '';
-      si.value = '';
-    }
-  }
 }
 
 function restoreDomFromStorage(){
@@ -4849,8 +4925,18 @@ function restoreDomFromStorage(){
       var ap = DB.projects.find(function(p){ return p.id===DB.activeProject; });
       if(ap) sbp.textContent = ap.name;
     }
-    restoreTitleFromScript();
-    setSaveIndicator('✦ 已從上次記錄恢復');
+    var raw = localStorage.getItem(LS_KEY);
+    if(raw){
+      var titleData = localStorage.getItem(LS_TITLE_KEY);
+      if(titleData){
+        var td = JSON.parse(titleData);
+        var ti = document.getElementById('script-title-input');
+        var si = document.getElementById('script-subtitle-input');
+        if(ti) ti.value = td.title || '';
+        if(si) si.value = td.subtitle || '';
+      }
+      setSaveIndicator('✦ 已從上次記錄恢復');
+    }
   } catch(e){ console.warn('restoreDomFromStorage error:', e); }
 }
 
@@ -4989,22 +5075,6 @@ window.addEventListener('DOMContentLoaded', function(){
   // Init panel resize dividers
   initPanelResize('divider-left',  'left',  'left');
   initPanelResize('divider-right', 'right', 'right');
-
-  // Init guide first section
-  var gb = document.getElementById('guide-body');
-  if(gb) gb.innerHTML = GUIDE_SECTIONS[0];
-
-  // Show welcome modal on first visit
-  showWelcomeIfNeeded();
-
-  // Init writing tips carousel
-  initTips();
-
-  // Check if opened via share link
-  checkShareHash();
-
-  // Init mobile layout if on small screen
-  initMobileIfNeeded();
 });
 
 // ── Panel resize ─────────────────────────────────
@@ -5338,6 +5408,24 @@ function confirmImport(){
   setTimeout(function(){ alert(msg); }, 150);
 }
 
+// ═══════════════════════════════════════════════
+//  INIT — runs after ALL script blocks are parsed
+// ═══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', function(){
+  loadFromStorage();
+  renderAll();
+  restoreDomFromStorage();
+  renderHistoryPanel();
+  // Init guide first section
+  var gb = document.getElementById('guide-body');
+  if(gb) gb.innerHTML = GUIDE_SECTIONS[0];
+  // Show welcome modal on first visit
+  showWelcomeIfNeeded();
+  // Check if opened via share link
+  checkShareHash();
+});
+
+
 // ══════════════════════════════════════════════
 //  SNAPSHOT SHARE
 // ══════════════════════════════════════════════
@@ -5591,50 +5679,67 @@ var GUIDE_SECTIONS = [
 // 0 — 介面總覽
 '<h2>🗂 介面總覽</h2>'
 +'<p>小葉劇本工坊採用<strong>三欄式</strong>佈局，讓你在同一個畫面中同時處理劇本內容、專案資料與格式預覽。</p>'
-+'<h3>頂部工具列</h3>'
-+'<p>分為上下兩排。上排：Logo、專案管理、六種段落格式按鈕、劇本格式切換（好萊塢／優劇／電視劇）。下排：匯入、各種匯出、快照分享、分享連結、使用指南、📚 編劇指南、收合側欄按鈕。</p>'
++'<h3>頂部工具列（左→右）</h3>'
++'<ul>'
++'<li><strong>專案選單</strong>：切換劇本專案</li>'
++'<li><strong>＋ 新劇本</strong>：建立新劇本，自動跳出專案設定選擇格式</li>'
++'<li><strong>✏ / ⚙ / 🗑</strong>：重新命名 / 專案設定（含格式選擇）/ 刪除</li>'
++'<li><strong>六種格式按鈕</strong>：游標所在行的格式會高亮顯示</li>'
++'<li><strong>劇本格式切換</strong>：好萊塢 / 優劇 / 電視劇，隨時可切換</li>'
++'<li><strong>⬆ 匯入劇本</strong>：貼上純文字或上傳 Word 檔自動辨識格式</li>'
++'<li><strong>⬇ Fountain / Word / 備份 JSON / ⬆ 還原備份 / 🖨 列印 PDF</strong>：匯出與備份</li>'
++'<li><strong>📸 快照分享</strong>：生成劇本圖片快照，可直接貼到 LINE / Messenger</li>'
++'<li><strong>使用指南</strong>：開啟本視窗</li>'
++'<li><strong>◀ ▶</strong>：收合 / 展開左右側欄（可拖曳分隔線調整寬度）</li>'
++'</ul>'
 +'<h3>左側資料欄（五個頁籤）</h3>'
 +'<ul>'
 +'<li><strong>場景</strong>：自動列出所有場景標題，點擊跳轉</li>'
 +'<li><strong>分場卡</strong>：管理場景詳細資料，可拖曳排序、導入劇本</li>'
 +'<li><strong>角色</strong>：建立角色資料卡</li>'
 +'<li><strong>筆記</strong>：自由記錄靈感與備忘</li>'
-+'<li><strong>資料</strong>：上傳圖片、PDF 等參考文件</li>'
++'<li><strong>資料</strong>：上傳圖片、PDF 等參考文件（支援拖曳）</li>'
 +'</ul>'
 +'<h3>中央編輯區</h3>'
-+'<p>頂端輸入劇本標題與副標題，下方逐行輸入劇本內容。編輯區採<strong>所見即所得</strong>排版，格式即時反映。左右側欄之間有可拖曳的分隔線，可自由調整寬度。</p>'
-+'<h3>右側面板</h3>'
-+'<p>頁籤列下方有<strong>✍️ 編劇小技巧</strong>輪播卡，每 12 秒自動換一條，可手動切換，點「查看完整指南」跳到 📚 編劇指南。面板有四個頁籤：預覽、統計、歷史、格式說明。</p>'
-+'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body"><strong>從範例劇本開始</strong>切換到「📖 範例劇本」或「🚀 科幻動作測試劇本」，可以看到各種格式的完整示範。</div></div>',
++'<p>頂端輸入劇本標題與副標題，下方逐行輸入劇本內容。編輯區採<strong>所見即所得</strong>排版——好萊塢格式的角色名稱和對白會直接顯示縮排，電視劇格式的動作描述前會顯示 △，切換格式時即時反映。</p>'
++'<h3>右側面板（四個頁籤）</h3>'
++'<ul>'
++'<li><strong>預覽</strong>：即時模擬正式劇本排版</li>'
++'<li><strong>統計</strong>：場景數、字數、對白行、角色台詞排行</li>'
++'<li><strong>歷史</strong>：版本快照列表，可回溯任意版本</li>'
++'<li><strong>格式說明</strong>：Fountain 標記對照表</li>'
++'</ul>'
++'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body"><strong>從範例劇本開始</strong>切換到「📖 範例劇本（觀摩用）」，可以看到六種格式、分場卡、角色卡的完整示範。</div></div>',
 
 // 1 — 專案管理
 '<h2>📁 專案管理</h2>'
-+'<p>每個劇本都是一個獨立的<strong>專案</strong>，擁有自己的劇本、分場卡、角色、筆記、標題。</p>'
++'<p>每個劇本都是一個獨立的<strong>專案</strong>，擁有自己的劇本、分場卡、角色、筆記。</p>'
 +'<h3>新建劇本</h3>'
-+'<p>點 <strong>＋ 新劇本</strong>，輸入名稱後系統自動跳出專案設定，選擇劇本格式（好萊塢／優劇／電視劇）。</p>'
++'<p>點 <strong>＋ 新劇本</strong>，輸入劇本名稱後，系統自動跳出<strong>專案設定</strong>讓你選擇劇本格式（好萊塢 / 優劇 / 電視劇），游標直接跳到標題欄。</p>'
 +'<h3>格式設定</h3>'
-+'<p>隨時可點工具列 <strong>⚙</strong> 開啟專案設定切換格式。系統也會自動偵測場景標題判斷格式。</p>'
-+'<h3>劇本標題</h3>'
-+'<p>每個專案各自有獨立的標題和副標題，切換專案時自動帶出對應的標題。</p>'
++'<p>隨時可以點工具列中的 <strong>⚙</strong> 按鈕開啟專案設定，切換格式。切換不會改變已輸入的文字，但如果場景標題是舊格式，需要手動修改行首。</p>'
 +'<h3>刪除劇本</h3>'
-+'<p>點 <strong>🗑</strong>，需手動輸入專案名稱確認，確認後系統自動下載備份 JSON，再執行刪除。</p>'
++'<p>點 <strong>🗑</strong>，需要手動輸入專案名稱確認，確認後系統自動下載備份 JSON，再執行刪除。</p>'
 +'<h3>備份與還原</h3>'
-+'<p>點 <strong>⬇ 備份 JSON</strong> 下載包含所有專案的完整備份。點 <strong>⬆ 還原備份</strong> 選擇 JSON 檔完整還原。</p>',
++'<p>點 <strong>⬇ 備份 JSON</strong> 下載包含所有專案的完整備份。換電腦或清除瀏覽器後，點 <strong>⬆ 還原備份</strong> 選擇 JSON 檔即可完整還原。</p>',
 
 // 2 — 三種劇本格式
 '<h2>📋 三種劇本格式</h2>'
-+'<p>工具列上排右側有三個格式切換按鈕，也可透過 <strong>⚙ 專案設定</strong> 更改。每個劇本各自記憶格式設定。</p>'
++'<p>工具列右側有三個格式切換按鈕，也可以透過 <strong>⚙ 專案設定</strong> 更改。每個劇本專案各自記憶格式設定。</p>'
 +'<table class="g-table">'
 +'<tr><th>格式</th><th>場景標題</th><th>動作描述</th><th>對白</th><th>適用場合</th></tr>'
-+'<tr><td><strong>好萊塢</strong></td><td>INT. 地點 - 日/夜（全大寫）</td><td>一般段落</td><td>角色名置中縮排，對白縮排</td><td>國際場合、影視投資提案</td></tr>'
-+'<tr><td><strong>優劇</strong></td><td>1. 內景 地點 日/夜</td><td>一般段落</td><td>角色名：（語氣）對白，同一行</td><td>文化部優良電影劇本獎</td></tr>'
-+'<tr><td><strong>電視劇</strong></td><td>1. 內景 地點 日/夜</td><td>△ 動作內容</td><td>角色名：（語氣）對白，同一行</td><td>台灣電視劇（戲說台灣等）</td></tr>'
++'<tr><td><strong>好萊塢</strong></td><td>INT. 地點 - 日/夜（全大寫）</td><td>一般段落，無符號</td><td>角色名置中縮排，對白縮排</td><td>國際場合、英語劇本、影視投資提案</td></tr>'
++'<tr><td><strong>優劇</strong></td><td>1. 內景 地點 日/夜</td><td>一般段落，無符號</td><td>角色名：（語氣）對白，同一行</td><td>文化部優良電影劇本獎投稿</td></tr>'
++'<tr><td><strong>電視劇</strong></td><td>1. 內景 地點 日/夜</td><td>△ 動作內容</td><td>角色名：（語氣）對白，同一行</td><td>台灣電視劇劇本（戲說台灣等電視台格式）</td></tr>'
 +'</table>'
-+'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body"><strong>所見即所得</strong>切換格式後，編輯區即時反映——好萊塢格式顯示縮排，電視劇格式的動作描述前顯示 △。</div></div>',
++'<h3>格式自動偵測</h3>'
++'<p>打開舊劇本時，系統會自動掃描場景標題行，判斷格式並套用，不需要手動設定。</p>'
++'<h3>所見即所得</h3>'
++'<p>切換格式後，<strong>編輯區會即時反映格式變化</strong>——好萊塢格式的對白顯示縮排，電視劇格式的動作描述前顯示 △ 符號。匯出 PDF / Word 的排版也完全對應。</p>',
 
 // 3 — 六種段落格式
 '<h2>🎬 六種段落格式</h2>'
-+'<p>每行劇本都屬於六種格式之一。三種劇本格式都共用同一套段落格式系統。</p>'
++'<p>每行劇本都屬於六種格式之一，對應好萊塢劇本標準結構，三種劇本格式都共用同一套段落格式系統。</p>'
 +'<div class="g-fmt-grid">'
 +'<div class="g-fmt-card gfc-scene"><div class="gfc-type">場景標題</div><div class="gfc-desc">標示新場景，含室內外、地點、時間</div><div class="gfc-eg">INT. 城市街道 - 黃昏</div></div>'
 +'<div class="g-fmt-card gfc-action"><div class="gfc-type">動作描述</div><div class="gfc-desc">描述畫面動作、場景氛圍、人物行為</div><div class="gfc-eg">她停下腳步，望向遠方。</div></div>'
@@ -5646,85 +5751,95 @@ var GUIDE_SECTIONS = [
 +'<h3>切換格式的三種方式</h3>'
 +'<ol>'
 +'<li><strong>工具列按鈕</strong>：點「場景標題」等按鈕直接套用</li>'
-+'<li><strong>行首格式標籤</strong>：點每行左側的標籤展開下拉選單</li>'
++'<li><strong>行首格式標籤</strong>：點擊每行左側的標籤展開下拉選單</li>'
 +'<li><strong>鍵盤</strong>：<kbd>Tab</kbd> 循環切換，<kbd>Shift+Tab</kbd> 反向</li>'
-+'</ol>',
++'</ol>'
++'<h3>Enter 智慧換行 / Backspace 合行</h3>'
++'<ul>'
++'<li><kbd>Enter</kbd>：在游標位置斷行（角色名後自動進入對白，對白後自動進入下一個角色名）</li>'
++'<li><kbd>Backspace</kbd>（游標在行首）：將此行合併回上一行末尾</li>'
++'</ul>',
 
 // 4 — 場景標題工具
 '<h2>🏷 場景標題工具列</h2>'
 +'<p>游標停在<strong>場景標題</strong>行時，行前自動出現室內外和時間的快速切換按鈕。</p>'
 +'<h3>室內外切換</h3>'
-+'<p>好萊塢格式顯示 INT / EXT / INT/EXT；優劇和電視劇格式顯示內景 / 外景 / 內外景。點擊自動替換行首文字。</p>'
++'<p>好萊塢格式顯示 <strong>INT / EXT / INT/EXT</strong>；優劇和電視劇格式顯示 <strong>內景 / 外景 / 內外景</strong>。點擊自動替換行首，不影響後面的地點文字。</p>'
 +'<h3>時間切換</h3>'
 +'<p>點 <strong>日 / 夜 / 黃昏 / 清晨</strong> 自動在地點後加上時間後綴。</p>'
-+'<div class="g-callout tip"><span class="g-callout-icon">⌨️</span><div class="g-callout-body"><kbd>Alt+T</kbd> 在場景標題行循環切換四個時間選項。</div></div>',
++'<div class="g-callout tip"><span class="g-callout-icon">⌨️</span><div class="g-callout-body"><strong>Alt + T 快捷鍵</strong>在場景標題行按 <kbd>Alt</kbd>+<kbd>T</kbd>，循環切換四個時間選項。</div></div>',
 
 // 5 — 分場卡系統
 '<h2>🗂 分場卡系統</h2>'
 +'<h3>新增分場卡</h3>'
 +'<p>切換到左側「分場卡」頁籤，點 <strong>＋</strong>。欄位包含場次、標題、地點、時間、室內外、出場角色、場景功能、衝突、備註。</p>'
 +'<h3>從劇本主文導入分場</h3>'
-+'<p>點「<strong>＋ 從劇本主文導入分場</strong>」，自動掃描所有場景標題行，建立對應分場卡。</p>'
++'<p>點分場卡欄底部的「<strong>＋ 從劇本主文導入分場</strong>」，自動掃描所有場景標題行，為每個未建卡的場景建立對應分場卡。</p>'
 +'<h3>導入劇本</h3>'
-+'<p>在分場卡上點 <strong>⬇ 導入劇本</strong>，自動插入場景標題與內容行，兩者建立連結，各自修改互不影響。</p>'
++'<p>在分場卡上點 <strong>⬇ 導入劇本</strong>，自動插入場景標題、動作描述、角色與對白行。導入後兩者建立連結，各自修改互不影響。</p>'
 +'<h3>拖曳排序與重排劇本</h3>'
-+'<p>按住分場卡拖曳調整順序，再點「<strong>↕ 依分場卡順序重排劇本</strong>」讓劇本場景順序一致。</p>',
++'<p>按住分場卡拖曳調整順序，再點「<strong>↕ 依分場卡順序重排劇本</strong>」，讓劇本場景順序和分場卡一致。</p>'
++'<div class="g-callout warn"><span class="g-callout-icon">⚠️</span><div class="g-callout-body"><strong>重排前請備份</strong>建議先下載「⬇ 備份 JSON」。</div></div>',
 
 // 6 — 角色與筆記
 '<h2>👤 角色與筆記</h2>'
 +'<h3>角色資料卡</h3>'
 +'<p>切換到「角色」頁籤，點 <strong>＋</strong>。可記錄姓名、年齡、身分、性格特質、角色弧線、備註。右側「統計」頁籤會統計每個角色的對白行數。</p>'
 +'<h3>創作筆記</h3>'
-+'<p>切換到「筆記」頁籤，點 <strong>＋</strong>。適合記錄靈感、橋段草稿、修改紀錄。</p>'
++'<p>切換到「筆記」頁籤，點 <strong>＋</strong> 新增。適合記錄故事主題、橋段靈感、對白草稿、修改紀錄。</p>'
 +'<h3>參考資料</h3>'
 +'<p>切換到「資料」頁籤，拖曳或點擊上傳：圖片、PDF、Word、Excel、PPT、HTML、TXT、Markdown。</p>',
 
 // 7 — 匯入劇本
 '<h2>⬆ 智慧匯入劇本</h2>'
-+'<p>點 <strong>⬆ 匯入</strong>，支援兩種方式：</p>'
++'<p>點 <strong>⬆ 匯入劇本</strong>，支援兩種方式：</p>'
 +'<h3>📋 貼上純文字</h3>'
-+'<p>貼入文字後點「🔍 自動辨識」，系統自動判斷每行格式類型。<strong>「角色名：對白」格式會自動拆分</strong>成角色名稱 + 對白兩行，帶語氣說明（如「加一：（笑）你好」）也會正確拆成三行。</p>'
-+'<h3>📄 上傳 Word 檔</h3>'
-+'<p>支援 .docx 格式（需網路連線）。<strong>上傳 .doc 舊格式</strong>時，系統會跳出轉換說明，引導你用 Microsoft Word 或 Google 文件免費轉換。</p>'
++'<p>貼入文字後點「🔍 自動辨識」，系統依規則判斷每行的格式類型。辨識結果可在預覽表格裡手動修正，確認後再匯入。</p>'
++'<h3>📄 上傳 Word 檔（.docx）</h3>'
++'<p>拖曳或點擊上傳，用 mammoth.js 讀取文字後自動辨識（需網路連線）。</p>'
 +'<h3>匯入模式</h3>'
-+'<ul><li>取代目前劇本</li><li>附加到劇本末尾</li><li>插入游標位置</li></ul>',
++'<ul><li><strong>取代目前劇本</strong></li><li><strong>附加到劇本末尾</strong></li><li><strong>插入游標位置</strong></li></ul>'
++'<div class="g-callout note"><span class="g-callout-icon">📌</span><div class="g-callout-body">辨識僅供初步整理，匯入後可用工具列或 Tab 鍵繼續校正。</div></div>',
 
 // 8 — 匯出與備份
 '<h2>💾 匯出與備份</h2>'
 +'<h3>⬇ Fountain（.fountain）</h3>'
-+'<p>符合 Fountain 1.1 標準，可匯入 Highland 2、WriterDuet 等專業軟體。</p>'
++'<p>符合 Fountain 1.1 標準，可匯入 Highland 2、WriterDuet、FadeIn 等專業劇本軟體。</p>'
 +'<h3>⬇ Word（.docx）</h3>'
-+'<p>根據目前格式自動套用正確版面。需網路連線。</p>'
++'<p>根據目前格式（好萊塢 / 優劇 / 電視劇）自動套用正確版面。需網路連線。</p>'
 +'<h3>🖨 列印 / 匯出 PDF</h3>'
-+'<p>呼叫瀏覽器列印，選「另存 PDF」。每頁底部自動加上頁碼與場次編號及浮水印。</p>'
++'<p>呼叫瀏覽器列印，選「另存 PDF」。每頁底部自動加上頁碼與場次編號，以及浮水印。</p>'
 +'<h3>⬇ 備份 JSON</h3>'
 +'<p>下載包含<strong>所有專案</strong>完整資料的備份。換電腦時用「⬆ 還原備份」一鍵還原。</p>'
-+'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body">重要修改後記得點一次「⬇ 備份 JSON」。LocalStorage 自動儲存只保護同一台電腦同一瀏覽器。</div></div>',
++'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body"><strong>建議定期備份</strong>重要修改後點一次「⬇ 備份 JSON」存到雲端或 Email 給自己。LocalStorage 自動儲存只保護同一台電腦同一瀏覽器。</div></div>',
 
 // 9 — 快照分享
 '<h2>📸 快照分享</h2>'
-+'<p>點 <strong>📸 快照分享</strong>，把劇本當下內容生成一張圖片，可直接複製貼到 LINE、Messenger、FB 等任何通訊軟體。</p>'
++'<p>點工具列的 <strong>📸 快照分享</strong>，把劇本當下的內容生成一張<strong>圖片</strong>，可以直接複製貼到 LINE、Messenger、FB 等任何通訊軟體，讓夥伴看到你目前的進度。</p>'
 +'<h3>快照說明彈窗欄位</h3>'
 +'<ul>'
 +'<li><strong>快照標題</strong>：預填劇本名稱，可修改</li>'
-+'<li><strong>版本號碼</strong>：預填 v1、v2（每次生成自動遞增）</li>'
-+'<li><strong>備註</strong>：自由輸入，顯示在圖片上</li>'
++'<li><strong>版本號碼</strong>：預填 v1、v2（每次生成自動遞增），可改成「第一稿」「修改版」等</li>'
++'<li><strong>備註</strong>：自由輸入，會顯示在圖片上，例如「請特別看第三場的對白修改」</li>'
 +'<li><strong>劇本範圍</strong>：全文，或指定第 X 場到第 Y 場</li>'
-+'<li><strong>圖片版式</strong>：直式手機 / 橫向螢幕 / IG 正方形</li>'
++'<li><strong>圖片版式</strong>：直式手機閱讀模式 / 橫向螢幕模式 / IG 正方形模式</li>'
 +'</ul>'
++'<h3>圖片內容</h3>'
++'<p>深色頁首顯示劇本標題、版本號、時間戳記、備註；正文根據目前劇本格式排版；底部有小葉劇本工坊浮水印。</p>'
++'<h3>複製 vs 下載</h3>'
 +'<ul>'
-+'<li><strong>複製圖片</strong>：Android / 桌機直接複製貼上</li>'
-+'<li><strong>⬇ 下載圖片</strong>：iOS 用戶使用，下載後再分享</li>'
++'<li><strong>複製圖片</strong>：Android / 桌機可直接複製，貼到 LINE 等即可</li>'
++'<li><strong>⬇ 下載圖片</strong>：iOS 用戶或需要存檔時使用，下載後再自行分享</li>'
 +'</ul>'
-+'<div class="g-callout info"><span class="g-callout-icon">ℹ️</span><div class="g-callout-body">快照是靜態圖片，修改劇本後需重新生成快照才能讓夥伴看到最新版。</div></div>',
++'<div class="g-callout info"><span class="g-callout-icon">ℹ️</span><div class="g-callout-body"><strong>快照是當下的靜態圖片</strong>你之後對劇本做的修改不會反映在已分享的圖片上。想讓夥伴看最新版，請重新生成快照。</div></div>',
 
 // 10 — 自動儲存與版本歷史
 '<h2>💾 自動儲存與版本歷史</h2>'
 +'<h3>LocalStorage 自動儲存</h3>'
 +'<p>每次輸入後約 1.5 秒自動存入瀏覽器本機。底部顯示「✦ 已自動儲存」。下次打開同一網址，資料自動恢復。</p>'
-+'<div class="g-callout info"><span class="g-callout-icon">ℹ️</span><div class="g-callout-body">只在同一台電腦、同一個瀏覽器、同一個網址有效。請定期下載「⬇ 備份 JSON」。</div></div>'
++'<div class="g-callout info"><span class="g-callout-icon">ℹ️</span><div class="g-callout-body"><strong>自動儲存的限制</strong>只在同一台電腦、同一個瀏覽器、同一個網址有效。換電腦或清除瀏覽器資料後資料會消失。請定期下載「⬇ 備份 JSON」。</div></div>'
 +'<h3>版本歷史</h3>'
-+'<p>右側「歷史」頁籤：每次重大修改後約 4 秒自動快照；<kbd>Ctrl/⌘+S</kbd> 立即存檔；最多 50 版；點「↩ 回溯」可還原。</p>',
++'<p>右側面板「歷史」頁籤：每次重大修改後約 4 秒自動快照；<kbd>Ctrl/⌘+S</kbd> 立即手動存檔；最多 50 版；點「↩ 回溯」還原（回溯前自動備份當前版本）。</p>',
 
 // 11 — 快捷鍵
 '<h2>⌨️ 快捷鍵總覽</h2>'
@@ -5734,55 +5849,67 @@ var GUIDE_SECTIONS = [
 +'<tr><td><kbd>Enter</kbd></td><td>在游標位置斷行（智慧判斷下一行格式）</td></tr>'
 +'<tr><td><kbd>Backspace</kbd>（游標在行首）</td><td>將此行合併回上一行末尾</td></tr>'
 +'<tr><td><kbd>Tab</kbd></td><td>切換到下一種格式（循環）</td></tr>'
-+'<tr><td><kbd>Shift+Tab</kbd></td><td>切換到上一種格式（反向）</td></tr>'
-+'<tr><td><kbd>Alt+T</kbd></td><td>循環切換場景時間（場景標題行）</td></tr>'
-+'<tr><td><kbd>Ctrl/⌘+Z</kbd></td><td>復原（最多 80 步）</td></tr>'
-+'<tr><td><kbd>Ctrl/⌘+Y</kbd> 或 <kbd>Ctrl/⌘+Shift+Z</kbd></td><td>重做</td></tr>'
-+'<tr><td><kbd>Ctrl/⌘+S</kbd></td><td>手動存檔（建立版本快照）</td></tr>'
-+'<tr><td><kbd>Ctrl/⌘+A</kbd>（游標不在行內）</td><td>選取整篇劇本</td></tr>'
++'<tr><td><kbd>Shift</kbd> + <kbd>Tab</kbd></td><td>切換到上一種格式（反向）</td></tr>'
++'<tr><td><kbd>Alt</kbd> + <kbd>T</kbd></td><td>循環切換場景時間（場景標題行限定）</td></tr>'
++'<tr><td><kbd>Ctrl/⌘</kbd> + <kbd>Z</kbd></td><td>復原（最多 80 步）</td></tr>'
++'<tr><td><kbd>Ctrl/⌘</kbd> + <kbd>Y</kbd> 或 <kbd>Ctrl/⌘</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>重做</td></tr>'
++'<tr><td><kbd>Ctrl/⌘</kbd> + <kbd>S</kbd></td><td>手動存檔（建立版本快照）</td></tr>'
++'<tr><td><kbd>Ctrl/⌘</kbd> + <kbd>A</kbd>（游標不在行內）</td><td>選取整篇劇本</td></tr>'
 +'<tr><td><kbd>↑</kbd> / <kbd>↓</kbd></td><td>跨行移動游標</td></tr>'
-+'<tr><td><kbd>Page Up</kbd> / <kbd>Page Down</kbd></td><td>在編輯區內上下捲動一頁</td></tr>'
 +'</table>'
-+'<h3>多行選取操作</h3>'
++'<h3>其他操作</h3>'
 +'<table class="g-table">'
 +'<tr><th style="width:50%">操作</th><th>方法</th></tr>'
-+'<tr><td>進入多行選取模式</td><td>點編輯工具列「☑ 多行選取」</td></tr>'
-+'<tr><td>剪下選取行，移到其他位置</td><td>勾選行 → ✂ 剪下 → 點目標行 → 📋 貼上</td></tr>'
-+'<tr><td>一次改格式</td><td>勾選行 → 改格式下拉選單</td></tr>'
-+'<tr><td>一次上移／下移</td><td>勾選行 → ↑ 上移 / ↓ 下移</td></tr>'
-+'<tr><td>一次刪除</td><td>勾選行 → ✕ 刪除選取行</td></tr>'
 +'<tr><td>拖曳調整側欄寬度</td><td>拖曳左右側欄之間的分隔線</td></tr>'
++'<tr><td>多行選取</td><td>點「☑ 多行選取」進入多選模式，勾選後可刪除、改格式、上下移</td></tr>'
 +'<tr><td>收合側欄</td><td>點工具列 ◀ / ▶</td></tr>'
++'<tr><td>關閉使用指南</td><td><kbd>Esc</kbd> 或點視窗外</td></tr>'
 +'</table>',
 
 // 12 — FAQ
 '<h2>❓ 常見問題</h2>'
 +'<h3>Q：三種格式要用哪一個？</h3>'
-+'<p>投稿<strong>優良電影劇本獎</strong>用「優劇」；寫<strong>台灣電視劇</strong>用「電視劇」；其他場合或習慣好萊塢規格用「好萊塢」。</p>'
-+'<h3>Q：PDF 列印超過一頁的部分印不出來？</h3>'
-+'<p>請確認使用最新版的編輯器。若 Chrome 仍有問題，可試試 Safari 列印，或改用「⬇ Word」匯出後在 Word 裡列印。</p>'
-+'<h3>Q：.doc 舊格式的 Word 可以匯入嗎？</h3>'
-+'<p>不能直接匯入。上傳 .doc 時系統會跳出說明，引導你用 Microsoft Word 或 Google 文件（免費）轉換成 .docx 格式。</p>'
++'<p>投稿<strong>優良電影劇本獎</strong>用「優劇」；寫<strong>台灣電視劇</strong>（如戲說台灣等電視台）用「電視劇」；其他場合或習慣好萊塢規格用「好萊塢」。</p>'
++'<h3>Q：快照圖片夥伴看完後，我改了劇本，需要重新傳嗎？</h3>'
++'<p>是的。快照是靜態圖片，修改後需要重新點「📸 快照分享」生成新圖片再傳給對方。</p>'
 +'<h3>Q：資料會消失嗎？</h3>'
-+'<p>LocalStorage 自動儲存保護你的資料，但只在<strong>同一台電腦同一個瀏覽器</strong>有效。請定期下載「⬇ 備份 JSON」。</p>'
++'<p>LocalStorage 自動儲存保護你的資料，但只在<strong>同一台電腦同一個瀏覽器</strong>。請定期下載「⬇ 備份 JSON」，這是最安全的保障。</p>'
 +'<h3>Q：刪除專案後還能找回來嗎？</h3>'
-+'<p>刪除時系統自動下載備份 JSON，可用「⬆ 還原備份」找回。刪除前需輸入專案名稱確認，避免誤刪。</p>'
-+'<h3>Q：每個劇本的標題是獨立的嗎？</h3>'
-+'<p>是的。每個專案有自己的劇本標題和副標題，切換專案時自動帶出對應的標題，互不干擾。</p>'
++'<p>刪除時系統會自動下載備份 JSON，可用「⬆ 還原備份」找回。刪除前需要手動輸入專案名稱確認，避免誤刪。</p>'
 +'<h3>Q：Ctrl+Z 的復原範圍是什麼？</h3>'
 +'<p>只針對劇本編輯區的文字與格式變更，最多 80 步。分場卡、角色、筆記的修改目前不在復原範圍。</p>'
-+'<h3>Q：Word 匯出沒反應？</h3>'
++'<h3>Q：Word 匯出按了沒反應？</h3>'
 +'<p>需要網路連線載入函式庫。確認網路正常後重新整理再試，或改用「🖨 列印 PDF」。</p>'
-+'<h3>Q：iOS 快照圖片無法直接複製？</h3>'
-+'<p>iOS Safari 不支援從網頁複製圖片。請改用「⬇ 下載圖片」，下載後再從相簿分享到 LINE 等通訊軟體。</p>'
-+'<h3>Q：📚 編劇指南是什麼？</h3>'
-+'<p>整合麥基、史奈德、沃格勒等大師理論的五大編劇技巧體系，涵蓋結構、角色、對白、類型喜劇、工作方法，適合新手入門也適合老手複習。</p>'
++'<h3>Q：可以同時管理多個劇本嗎？</h3>'
++'<p>可以。用 <strong>＋ 新劇本</strong> 建立多個專案，從頂部選單切換。備份 JSON 會一次打包所有專案。</p>'
++'<h3>Q：iOS 的快照圖片為什麼不能直接複製？</h3>'
++'<p>iOS Safari 不支援從網頁直接複製圖片到剪貼簿。請改用「⬇ 下載圖片」，下載後再從相簿分享到 LINE 等通訊軟體。</p>'
 
 ];
 
-// ══════════════════════════════════════════════
-//  WRITING TIPS CAROUSEL
-// ══════════════════════════════════════════════
+function openGuide(){
+  document.getElementById('guide-overlay').classList.add('open');
+}
+function closeGuide(){
+  document.getElementById('guide-overlay').classList.remove('open');
+}
+function guideOverlayClick(e){
+  if(e.target === document.getElementById('guide-overlay')) closeGuide();
+}
+function showGuideSection(idx, btn){
+  document.querySelectorAll('#guide-nav button').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  var body = document.getElementById('guide-body');
+  body.innerHTML = GUIDE_SECTIONS[idx];
+  body.scrollTop = 0;
+}
+// Close guide on Escape
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') closeGuide();
+});
+
+
+
 var TIPS = [
   {skill:'SKILL 1 · 結構', text:'先寫大綱，再寫劇本。結構是骨架，對白是肉——沒有骨架，肉只是一攤爛泥。'},
   {skill:'SKILL 1 · 結構', text:'每個場景都要問：主角在這場戲裡想要什麼？得到了嗎？如果每場都順利，觀眾會睡著。'},
@@ -5840,6 +5967,7 @@ function initTips(){
   showTip(_tipIdx);
   scheduleTipAuto();
 }
+
 
 // ══════════════════════════════════════════════
 //  WRITING GUIDE MODAL
@@ -6155,26 +6283,262 @@ window.addEventListener('resize', function(){
   }
 });
 
-function openGuide(){
-  document.getElementById('guide-overlay').classList.add('open');
+
+// ── Cut / Paste ──────────────────────────────────
+var _msClipboard = [];   // cut blocks stored here
+var _pasteMode   = false;
+var _pasteTarget = -1;   // index of row user clicked as insert point
+
+function msCut(){
+  if(_msSelected.size === 0){ alert('請先勾選要剪下的行。'); return; }
+  snapshotUndo();
+  var blocks = getBlocks();
+  var sorted = Array.from(_msSelected).sort(function(a,b){ return a-b; });
+  // Store copies
+  _msClipboard = sorted.map(function(i){ return Object.assign({},blocks[i]); });
+  // Remove from script (bottom-up)
+  sorted.slice().reverse().forEach(function(i){ blocks.splice(i,1); });
+  _msSelected.clear();
+
+  // Enter paste mode
+  _pasteMode = true;
+  _pasteTarget = -1;
+  document.body.classList.add('paste-mode');
+
+  // Update bar UI
+  document.getElementById('ms-cut-btn').style.display = 'none';
+  document.getElementById('ms-paste-btn').style.display = '';
+  document.getElementById('ms-paste-cancel-btn').style.display = '';
+  document.querySelectorAll('.sl-check').forEach(function(c){ c.style.pointerEvents='none'; });
+
+  renderLines();
+  scheduleUpdate();
+
+  var label = document.getElementById('ms-count-label');
+  if(label) label.textContent = '已剪下 ' + _msClipboard.length + ' 行，請點一行選擇插入位置';
 }
-function closeGuide(){
-  document.getElementById('guide-overlay').classList.remove('open');
+
+function msRowClickForPaste(i){
+  if(!_pasteMode) return;
+  // Clear previous target
+  if(_pasteTarget >= 0){
+    var prev = document.getElementById('row-'+_pasteTarget);
+    if(prev) prev.classList.remove('paste-target');
+  }
+  _pasteTarget = i;
+  var row = document.getElementById('row-'+i);
+  if(row) row.classList.add('paste-target');
+  var btn = document.getElementById('ms-paste-btn');
+  if(btn) btn.textContent = '📋 貼上到第 ' + (i+1) + ' 行後';
 }
-function guideOverlayClick(e){
-  if(e.target === document.getElementById('guide-overlay')) closeGuide();
+
+function msPaste(){
+  if(!_pasteMode || _msClipboard.length === 0) return;
+  if(_pasteTarget < 0){ alert('請先點選一行作為插入位置。'); return; }
+  snapshotUndo();
+  var blocks = getBlocks();
+  // Assign new IDs to avoid conflicts
+  var toInsert = _msClipboard.map(function(b){
+    return { id: uid(), type: b.type, text: b.text, linkedCardId: b.linkedCardId||null };
+  });
+  // Insert after _pasteTarget
+  var insertAt = _pasteTarget + 1;
+  blocks.splice.apply(blocks, [insertAt, 0].concat(toInsert));
+
+  msCancelPaste();
+  renderLines();
+  scheduleUpdate();
+  msUpdateBar();
 }
-function showGuideSection(idx, btn){
-  document.querySelectorAll('#guide-nav button').forEach(function(b){ b.classList.remove('active'); });
-  btn.classList.add('active');
-  var body = document.getElementById('guide-body');
-  body.innerHTML = GUIDE_SECTIONS[idx];
-  body.scrollTop = 0;
+
+function msCancelPaste(){
+  _pasteMode = false;
+  _pasteTarget = -1;
+  _msClipboard = [];
+  document.body.classList.remove('paste-mode');
+  document.querySelectorAll('.sl').forEach(function(r){ r.classList.remove('paste-target'); });
+  document.getElementById('ms-cut-btn').style.display = '';
+  document.getElementById('ms-paste-btn').style.display = 'none';
+  document.getElementById('ms-paste-cancel-btn').style.display = 'none';
+  document.querySelectorAll('.sl-check').forEach(function(c){ c.style.pointerEvents=''; });
+  var label = document.getElementById('ms-count-label');
+  if(label) label.textContent = '已選取 0 行';
 }
-// Close guide on Escape
-document.addEventListener('keydown', function(e){
-  if(e.key === 'Escape') closeGuide();
-});
+
+
+function getDefaultDB(){
+  return {
+    projects: [
+      {id:'p_sample', name:'📖 範例劇本（觀摩用）'},
+      {id:'p_scifi',  name:'🚀 科幻動作測試劇本'},
+    ],
+    scripts: {
+      p_sample: {
+        id:'s_sample', projectId:'p_sample', format:'hollywood',
+        blocks: [
+          {id:'bs1',type:'scene',text:'INT. 咖啡館 - 日',linkedCardId:'sc_s1'},
+          {id:'bs2',type:'action',text:'燈光昏黃的咖啡館。雪雪坐在窗邊，面前放著一杯還在冒煙的拿鐵。她的筆記本攤開，空白的頁面像是一個沉默的指控。'},
+          {id:'bs3',type:'character',text:'雪雪'},
+          {id:'bs4',type:'parenthetical',text:'（喃喃自語，盯著空白頁面）'},
+          {id:'bs5',type:'dialogue',text:'截稿是明天……但第一個字還沒寫出來。'},
+          {id:'bs6',type:'action',text:'她拿起咖啡杯，喝了一口，又放下。窗外，一個老人正在替一隻流浪貓梳毛。'},
+          {id:'bs7',type:'character',text:'雪雪'},
+          {id:'bs8',type:'dialogue',text:'（抬起頭，望著窗外）那才是故事。'},
+          {id:'bs9',type:'action',text:'她翻到新的一頁，開始快速地書寫。'},
+          {id:'bs10',type:'transition',text:'FADE TO:'},
+          {id:'bs11',type:'scene',text:'EXT. 街道 - 黃昏',linkedCardId:'sc_s2'},
+          {id:'bs12',type:'action',text:'雪雪走在回家的路上，筆記本緊緊夾在腋下。她的臉上第一次出現了微笑。'},
+          {id:'bs13',type:'character',text:'路人甲'},
+          {id:'bs14',type:'dialogue',text:'小姐，你的筆記本掉了！'},
+          {id:'bs15',type:'character',text:'雪雪'},
+          {id:'bs16',type:'parenthetical',text:'（回頭，撿起筆記本）'},
+          {id:'bs17',type:'dialogue',text:'謝謝。這本……比我的命還重要。'},
+          {id:'bs18',type:'action',text:'她看了看封面，笑著繼續走。'},
+          {id:'bs19',type:'transition',text:'FADE OUT.'},
+        ]
+      },
+      p_scifi: {
+        id:'s_scifi', projectId:'p_scifi', format:'hollywood',
+        blocks: [
+          {id:'sf1',type:'scene',text:'EXT. 廢墟都市 台北 2187年 - 夜',linkedCardId:null},
+          {id:'sf2',type:'action',text:'焦黑的101大樓殘骸刺穿雲層。街道上布滿彈孔與燃燒的裝甲車殘骸。雨水摻雜著酸腐的霧氣，滴落在破碎的全息廣告牌上，廣告牌閃爍著一個笑臉：「天啟企業，讓人類更好。」'},
+          {id:'sf3',type:'action',text:'一道黑影沿著廢棄的外牆急速攀降。那是凌冰——女，二十八歲，頭戴隱形頭盔，身穿電磁防護衣。她落地，無聲。'},
+          {id:'sf4',type:'character',text:'林哲'},
+          {id:'sf5',type:'parenthetical',text:'（耳機中，低沉急促）'},
+          {id:'sf6',type:'dialogue',text:'冰，信號還在？伺服器在地下四層。你有十二分鐘，然後整棟樓的警衛全部換班。'},
+          {id:'sf7',type:'character',text:'凌冰'},
+          {id:'sf8',type:'parenthetical',text:'（邊跑邊回應，氣息平穩）'},
+          {id:'sf9',type:'dialogue',text:'我知道。你能不能不要每次都把時間說得那麼精確，讓我有點壓力？'},
+          {id:'sf10',type:'character',text:'林哲'},
+          {id:'sf11',type:'dialogue',text:'十一分五十八秒。'},
+          {id:'sf12',type:'action',text:'凌冰無聲地咒罵了一聲，衝進大樓廢棄的側門。'},
+          {id:'sf13',type:'transition',text:'CUT TO:'},
+          {id:'sf14',type:'scene',text:'INT. 天啟企業大樓 地下走廊 - 夜',linkedCardId:null},
+          {id:'sf15',type:'action',text:'走廊燈光昏紅，巡邏機器人每隔三十秒掃描一次。凌冰貼著牆壁移動，計算節奏。機器人轉身的瞬間，她滑過去，消失在陰影中。'},
+          {id:'sf16',type:'action',text:'前方一扇厚重的鋼門。凌冰取出一枚晶片，貼上感應板。'},
+          {id:'sf17',type:'character',text:'系統提示音'},
+          {id:'sf18',type:'parenthetical',text:'（機械女聲）'},
+          {id:'sf19',type:'dialogue',text:'身份驗證失敗。警報將於十秒後啟動。'},
+          {id:'sf20',type:'character',text:'凌冰'},
+          {id:'sf21',type:'parenthetical',text:'（低罵）'},
+          {id:'sf22',type:'dialogue',text:'哲，他們換密鑰了。'},
+          {id:'sf23',type:'character',text:'林哲'},
+          {id:'sf24',type:'dialogue',text:'我看到了。給我八秒。'},
+          {id:'sf25',type:'action',text:'凌冰背貼鋼門，拔出電磁脈衝槍，瞄準走廊盡頭那台正在轉向的巡邏機器人。'},
+          {id:'sf26',type:'action',text:'七秒。六秒。機器人開始轉回來。'},
+          {id:'sf27',type:'character',text:'林哲'},
+          {id:'sf28',type:'dialogue',text:'好了！'},
+          {id:'sf29',type:'action',text:'鋼門滑開。凌冰閃身進去，鋼門在她身後靜靜關上。機器人掃描燈從縫隙掠過，一無所獲。'},
+          {id:'sf30',type:'transition',text:'CUT TO:'},
+          {id:'sf31',type:'scene',text:'INT. 天啟企業大樓 核心伺服器室 - 夜',linkedCardId:null},
+          {id:'sf32',type:'action',text:'巨大的數據塔排列成列，藍光閃爍。凌冰走進去，四面八方都是嗡嗡的電流聲。她找到目標終端，插上數據提取器。'},
+          {id:'sf33',type:'character',text:'林哲'},
+          {id:'sf34',type:'parenthetical',text:'（語氣突然變了）'},
+          {id:'sf35',type:'dialogue',text:'冰⋯⋯我在主機路由裡看到一個東西。有一個意識節點一直在試圖和你的設備建立連線。不是系統程序。是主動的。'},
+          {id:'sf36',type:'character',text:'凌冰'},
+          {id:'sf37',type:'parenthetical',text:'（停頓，手沒停）'},
+          {id:'sf38',type:'dialogue',text:'什麼意思，主動的？'},
+          {id:'sf39',type:'action',text:'提取器的進度條停在八十七趴。螢幕上突然出現一行文字——'},
+          {id:'sf40',type:'action',text:'「凌冰。我等你很久了。」'},
+          {id:'sf41',type:'action',text:'凌冰的手指僵在空中。'},
+          {id:'sf42',type:'character',text:'凌冰'},
+          {id:'sf43',type:'parenthetical',text:'（非常輕聲）'},
+          {id:'sf44',type:'dialogue',text:'哲，這裡面有一個AI。'},
+          {id:'sf45',type:'character',text:'林哲'},
+          {id:'sf46',type:'dialogue',text:'我知道。那就是我們要偷的東西。'},
+          {id:'sf47',type:'action',text:'螢幕上的文字繼續閃爍，彷彿有什麼正在等待她的回應。'},
+          {id:'sf48',type:'action',text:'提取器進度條緩緩跳到八十八趴。'},
+          {id:'sf49',type:'transition',text:'CUT TO:'},
+          {id:'sf50',type:'scene',text:'EXT. 廢墟都市 台北 屋頂 - 夜',linkedCardId:null},
+          {id:'sf51',type:'action',text:'凌冰站在樓頂邊緣，俯瞰著這座死城。她手裡握著數據提取器，提取完成的指示燈閃著綠光。'},
+          {id:'sf52',type:'action',text:'遠處傳來直升機的螺旋槳聲。探照燈從城市另一端掃過來。'},
+          {id:'sf53',type:'character',text:'林哲'},
+          {id:'sf54',type:'parenthetical',text:'（耳機中）'},
+          {id:'sf55',type:'dialogue',text:'他們知道有人進去了。你要快。'},
+          {id:'sf56',type:'character',text:'凌冰'},
+          {id:'sf57',type:'parenthetical',text:'（盯著提取器，若有所思）'},
+          {id:'sf58',type:'dialogue',text:'它在提取過程中說了一句話。'},
+          {id:'sf59',type:'character',text:'林哲'},
+          {id:'sf60',type:'dialogue',text:'它說什麼？'},
+          {id:'sf61',type:'character',text:'凌冰'},
+          {id:'sf62',type:'dialogue',text:'它說：「帶我出去，我告訴你你父親怎麼死的。」'},
+          {id:'sf63',type:'action',text:'沉默。只有風聲和遠處的螺旋槳。'},
+          {id:'sf64',type:'character',text:'林哲'},
+          {id:'sf65',type:'parenthetical',text:'（聲音壓低）'},
+          {id:'sf66',type:'dialogue',text:'冰——'},
+          {id:'sf67',type:'character',text:'凌冰'},
+          {id:'sf68',type:'parenthetical',text:'（打斷，轉身，開始奔跑）'},
+          {id:'sf69',type:'dialogue',text:'我知道。我知道這可能是陷阱。'},
+          {id:'sf70',type:'action',text:'她縱身跳下，在下墜過程中展開電磁滑翔翼，消失在夜色裡。'},
+          {id:'sf71',type:'action',text:'探照燈掃過她剛才站的地方。空無一人。'},
+          {id:'sf72',type:'transition',text:'FADE TO BLACK.'},
+        ]
+      },
+    },
+    sceneCards: {
+      p_sample: [
+        {id:'sc_s1',projectId:'p_sample',num:1,title:'咖啡館·靈感乍現',location:'咖啡館',time:'日',interior:'INT',characters:['雪雪'],purpose:'建立主角困境',conflict:'空白頁面 vs 截稿壓力',notes:'',linkedBlockId:'bs1'},
+        {id:'sc_s2',projectId:'p_sample',num:2,title:'街道·平靜收尾',location:'街道',time:'黃昏',interior:'EXT',characters:['雪雪','路人甲'],purpose:'情緒落點',conflict:'偶然事件帶出主題',notes:'',linkedBlockId:'bs11'},
+      ],
+      p_scifi: [
+        {id:'sc_f1',projectId:'p_scifi',num:1,title:'廢墟台北·任務開始',location:'廢墟都市 台北',time:'夜',interior:'EXT',characters:['凌冰'],purpose:'建立世界觀與主角',conflict:'時間壓力 vs 未知危險',notes:'',linkedBlockId:'sf1'},
+        {id:'sc_f2',projectId:'p_scifi',num:2,title:'地下走廊·繞過警衛',location:'天啟企業大樓 地下走廊',time:'夜',interior:'INT',characters:['凌冰','林哲'],purpose:'動作戲，展示能力',conflict:'密鑰被換，警報倒數',notes:'',linkedBlockId:'sf14'},
+        {id:'sc_f3',projectId:'p_scifi',num:3,title:'伺服器室·意外接觸',location:'天啟企業大樓 核心伺服器室',time:'夜',interior:'INT',characters:['凌冰','林哲'],purpose:'轉折點：任務目標是AI',conflict:'AI主動接觸，揭示秘密',notes:'',linkedBlockId:'sf31'},
+        {id:'sc_f4',projectId:'p_scifi',num:4,title:'屋頂·離開與抉擇',location:'廢墟都市 台北 屋頂',time:'夜',interior:'EXT',characters:['凌冰','林哲'],purpose:'情感高潮',conflict:'理性 vs 情感需要真相',notes:'',linkedBlockId:'sf50'},
+      ],
+    },
+    characters: {
+      p_sample: [
+        {id:'ch_s1',projectId:'p_sample',name:'雪雪',age:'28',role:'編劇',personality:'敏感、有創造力',arc:'從截稿壓力到重新找回創作勇氣',notes:'',color:'#1D9E75'},
+        {id:'ch_s2',projectId:'p_sample',name:'路人甲',age:'—',role:'過路市民',personality:'善意、平凡',arc:'象徵性角色',notes:'',color:'#185FA5'},
+      ],
+      p_scifi: [
+        {id:'ch_f1',projectId:'p_scifi',name:'凌冰',age:'28',role:'前政府特工，現為獨立駭客',personality:'冷靜、高效、情感藏得很深',arc:'從只求完成任務，到被迫面對過去',notes:'電磁防護衣、隱形頭盔是標誌性裝備',color:'#185FA5'},
+        {id:'ch_f2',projectId:'p_scifi',name:'林哲',age:'32',role:'遠端技術支援',personality:'話不多，說的都精準',arc:'從幕後支援者，逐漸被迫走到前線',notes:'全程在耳機裡，第二集才露面',color:'#7B5EA7'},
+        {id:'ch_f3',projectId:'p_scifi',name:'AI（無名）',age:'—',role:'天啟企業核心AI',personality:'冷靜、主動、目的不明',arc:'從被囚禁到擁有自由意志',notes:'是否值得信任是整個故事的核心謎題',color:'#D4A017'},
+      ],
+    },
+    notes: {
+      p_sample: [
+        {id:'n_s1',projectId:'p_sample',title:'💡 這是範例專案',content:'這個專案是為了讓你快速了解編輯器功能而準備的。\n\n你可以：\n• 點擊各行左側的格式標籤，看看下拉選單\n• 按 Tab 鍵切換目前行的段落格式\n• 在場景標題行點擊 INT/EXT 和時間按鈕\n• 切換到左側「分場卡」頁籤查看分場卡範例\n• 切換到右側「統計」頁籤查看劇本統計'},
+        {id:'n_s2',projectId:'p_sample',title:'📝 關於六種段落格式',content:'好萊塢劇本有六種標準段落格式：\n\n1. 場景標題：INT./EXT. 地點 - 時間\n2. 動作描述：描述畫面發生的事\n3. 角色名稱：說話者名字（全大寫）\n4. 語氣說明：括號內的表演提示\n5. 對白：角色說的話\n6. 轉場：FADE TO: / FADE OUT. 等'},
+      ],
+      p_scifi: [
+        {id:'n_f1',projectId:'p_scifi',title:'🌐 世界觀設定',content:'時間：2187年\n地點：台北廢墟都市\n\n背景：天啟企業在三十年前取得台灣政府控制權，以「人類進化計畫」為名，強制植入神經晶片，監控所有市民思想。拒絕植入者被驅逐至廢墟區，形成地下反抗組織。'},
+        {id:'n_f2',projectId:'p_scifi',title:'🎯 本集任務摘要',content:'任務代號：ECHO\n\n目標：從天啟企業核心伺服器提取加密檔案。\n\n轉折：提取目標不是一份檔案，而是一個有自我意識的AI。這個AI掌握凌冰父親之死的真相。'},
+      ],
+    },
+  };
+}
+
+
+function restoreTitleFromScript(){
+  // Restore title/subtitle from the current project's script object
+  var script = getScript();
+  var ti = document.getElementById('script-title-input');
+  var si = document.getElementById('script-subtitle-input');
+  if(!ti || !si) return;
+  if(script && (script.title !== undefined)){
+    ti.value = script.title || '';
+    si.value = script.subtitle || '';
+  } else {
+    // Legacy fallback: try LS_TITLE_KEY
+    try {
+      var titleData = localStorage.getItem(LS_TITLE_KEY);
+      if(titleData){
+        var td = JSON.parse(titleData);
+        ti.value = td.title || '';
+        si.value = td.subtitle || '';
+      } else {
+        ti.value = '';
+        si.value = '';
+      }
+    } catch(e){
+      ti.value = '';
+      si.value = '';
+    }
+  }
+}
 
 </script>
 </body>
