@@ -763,6 +763,36 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 #guide-nav button{padding:7px 11px;border:none;background:none;cursor:pointer;font-size:10px;font-family:'Noto Sans TC',sans-serif;color:var(--ink3);border-bottom:2px solid transparent;white-space:nowrap;font-weight:500;transition:all 0.12s;letter-spacing:0.5px}
 #guide-nav button:hover{color:var(--ink2)}
 #guide-nav button.active{color:var(--amber);border-bottom-color:var(--amber);background:var(--bg2)}
+
+/* ── Writing Guide Modal ── */
+#wguide-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:2100;align-items:center;justify-content:center;padding:20px}
+#wguide-overlay.open{display:flex}
+#wguide-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius3);width:900px;max-width:96vw;height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.28)}
+#wguide-hdr{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#3A2800 0%,#5A3E00 100%);flex-shrink:0}
+#wguide-hdr .wg-logo{font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;color:#F5D78E;letter-spacing:2px}
+#wguide-hdr .wg-sub{font-size:11px;color:rgba(245,215,142,0.7);flex:1}
+#wguide-close{width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);cursor:pointer;font-size:14px;color:#fff;display:flex;align-items:center;justify-content:center;transition:all 0.12s}
+#wguide-close:hover{background:rgba(255,100,100,0.3)}
+#wguide-nav{display:flex;border-bottom:1px solid var(--border);background:var(--bg3);flex-shrink:0;overflow-x:auto}
+#wguide-nav button{padding:8px 14px;border:none;background:none;cursor:pointer;font-size:11px;font-family:'Noto Sans TC',sans-serif;color:var(--ink3);border-bottom:2px solid transparent;white-space:nowrap;font-weight:600;transition:all 0.12s;letter-spacing:0.5px}
+#wguide-nav button:hover{color:var(--amber2)}
+#wguide-nav button.active{color:var(--amber);border-bottom-color:var(--amber);background:var(--bg2)}
+#wguide-body{flex:1;overflow-y:auto;padding:28px 32px;line-height:1.85}
+#wguide-body h2{font-family:'Noto Serif TC',serif;font-size:17px;font-weight:700;color:var(--ink);margin:0 0 6px;padding-bottom:8px;border-bottom:2px solid var(--amber-l)}
+#wguide-body h3{font-size:13px;font-weight:700;color:var(--amber2);margin:20px 0 8px;letter-spacing:0.5px}
+#wguide-body p{font-size:13px;color:var(--ink2);margin-bottom:12px}
+#wguide-body ul,#wguide-body ol{padding-left:18px;margin-bottom:12px}
+#wguide-body li{font-size:13px;color:var(--ink2);margin-bottom:7px;line-height:1.75}
+#wguide-body .skill-badge{display:inline-block;background:var(--amber-l);color:var(--amber2);border:1px solid var(--amber2);border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:12px;font-family:'Noto Sans TC',sans-serif}
+#wguide-body .tip-card{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:6px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--ink2);line-height:1.75}
+#wguide-body .tip-card strong{color:var(--ink);display:block;margin-bottom:3px;font-size:12px}
+#wguide-body blockquote{border-left:3px solid var(--amber2);padding-left:14px;margin:12px 0;font-style:italic;color:var(--ink3);font-size:12px}
+/* Hero Journey table */
+#wguide-body .wg-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px}
+#wguide-body .wg-table th{background:var(--amber-l);color:var(--amber2);font-weight:700;padding:7px 10px;border:1px solid var(--border);text-align:left;font-size:11px}
+#wguide-body .wg-table td{padding:7px 10px;border:1px solid var(--border);color:var(--ink2);vertical-align:top;line-height:1.6}
+#wguide-body .wg-table tr:nth-child(even) td{background:var(--bg2)}
+#wguide-body .act-badge{display:inline-block;background:var(--amber);color:#fff;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;white-space:nowrap}
 #guide-body{flex:1;overflow-y:auto;padding:22px 28px;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--ink2);line-height:1.85}
 #guide-body h2{font-family:'Noto Serif TC',serif;font-size:17px;font-weight:700;color:var(--ink);margin-bottom:14px;padding-bottom:9px;border-bottom:2px solid var(--amber);display:flex;align-items:center;gap:8px}
 #guide-body h3{font-size:13px;font-weight:700;color:var(--ink);margin:18px 0 7px;padding-left:9px;border-left:3px solid var(--amber2)}
@@ -919,6 +949,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
     <button class="tbtn" style="color:var(--teal);border-color:#8ACAC0;background:var(--teal-l);font-size:11px" onclick="shareScript()" title="產生唯讀分享連結">🔗 分享連結</button>
     <div class="sep"></div>
     <button class="tbtn" style="font-size:11px" title="使用指南" onclick="openGuide()">使用指南</button>
+    <button class="tbtn" style="font-size:11px;color:#7A5200;border-color:#C49A00;background:linear-gradient(135deg,#FDF6E3,#F5E4A0);font-weight:700;letter-spacing:0.3px" title="編劇技巧指南" onclick="openWritingGuide()">📚 編劇指南</button>
     <button class="icon-btn" title="收合左側欄" onclick="toggleLeft()">◀</button>
     <button class="icon-btn" title="收合右側欄" onclick="toggleRight()">▶</button>
   </div>
@@ -1313,6 +1344,26 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
 <div id="snapshot-render-target"></div>
 
 <!-- ── GUIDE MODAL ─────────────────────────────── -->
+<!-- ── WRITING GUIDE MODAL ──────────────────────── -->
+<div id="wguide-overlay" onclick="if(event.target===this)closeWritingGuide()">
+  <div id="wguide-box">
+    <div id="wguide-hdr">
+      <span class="wg-logo">📚 編劇技巧指南</span>
+      <span class="wg-sub">整合麥基、史奈德、沃格勒等大師理論</span>
+      <button id="wguide-close" onclick="closeWritingGuide()">✕</button>
+    </div>
+    <div id="wguide-nav">
+      <button class="active" onclick="showWGuideSection(0,this)">SKILL 1 結構</button>
+      <button onclick="showWGuideSection(1,this)">SKILL 2 角色</button>
+      <button onclick="showWGuideSection(2,this)">SKILL 3 對白</button>
+      <button onclick="showWGuideSection(3,this)">SKILL 4 類型喜劇</button>
+      <button onclick="showWGuideSection(4,this)">SKILL 5 工作方法</button>
+      <button onclick="showWGuideSection(5,this)">SKILL 6 三幕 & 英雄旅程</button>
+    </div>
+    <div id="wguide-body"></div>
+  </div>
+</div>
+
 <div id="guide-overlay" onclick="guideOverlayClick(event)">
   <div id="guide-box">
     <div id="guide-hdr">
@@ -5377,6 +5428,138 @@ var GUIDE_SECTIONS = [
 +'<p>iOS Safari 不支援從網頁直接複製圖片到剪貼簿。請改用「⬇ 下載圖片」，下載後再從相簿分享到 LINE 等通訊軟體。</p>'
 
 ];
+
+// ══════════════════════════════════════════════
+//  WRITING GUIDE MODAL
+// ══════════════════════════════════════════════
+var WGUIDE_SECTIONS = [
+
+// 0 — SKILL 1 結構
+'<h2>SKILL 1 · 精準的情節與結構設計</h2>'
++'<div class="skill-badge">Story Structure & Plotting</div>'
++'<p>參考大師：Robert McKee《故事的解剖》、Blake Snyder《先讓英雄救貓咪》</p>'
++'<h3>先結構後血肉</h3>'
++'<div class="tip-card"><strong>核心原則</strong>在動筆之前，先產出「15個劇情節拍」或「40張場景卡（案板）」。結構是骨架，對白是肉——沒有骨架，肉只是一攤爛泥。電視影集要確保故事具備 A、B、C 交錯的故事線。</div>'
++'<h3>設計無法回頭的臨界點</h3>'
++'<div class="tip-card"><strong>觸發事件</strong>必須設定一個「觸發事件」（Inciting Incident），徹底打破主角的生活平衡。這個事件要夠大，讓「回頭」變得不可能。</div>'
++'<div class="tip-card"><strong>漸進式困境</strong>隨著故事推進，佈下「漸進式困境」——確保主角面對的風險與挑戰越來越大，每次行動都將他們推向更危險的臨界點。</div>'
++'<h3>活用原型力量</h3>'
++'<div class="tip-card"><strong>英雄旅程原型</strong>善用導師、陰影、門檻守衛、搗蛋鬼等原型角色功能，但必須賦予具體的人性與血肉。拒絕死板的樣板人物——原型是功能，不是人格。</div>'
++'<blockquote>「每個場景都要問：主角在這場戲裡想要什麼？得到了嗎？如果每場都順利，觀眾會睡著。」</blockquote>',
+
+// 1 — SKILL 2 角色
+'<h2>SKILL 2 · 卡司設計與多維角色塑造</h2>'
++'<div class="skill-badge">Character & Cast Design</div>'
++'<p>參考大師：Robert McKee《故事的解剖》、Christopher Vogler《作家之路》</p>'
++'<h3>分離「人物塑造」與「人物真相」</h3>'
++'<div class="tip-card"><strong>人物塑造（Character）</strong>只是外在的年齡、職業、外表與特徵——這些是包裝。</div>'
++'<div class="tip-card"><strong>人物真相（Characterization）</strong>真正的「人物真相」必須透過「高壓下的兩難選擇」來揭示。你安排的危機越深，角色的本性揭露就越真實。</div>'
++'<h3>打造多維矛盾體與太陽系卡司</h3>'
++'<div class="tip-card"><strong>主角是矛盾體</strong>主角必須是全劇最多維的矛盾體（如：明智卻愚蠢、有愛心卻殘忍）。單一維度的人是紙片，不是角色。</div>'
++'<div class="tip-card"><strong>太陽系卡司</strong>配角（行星）的存在是為了激發主角不同維度的矛盾與特質——每個配角都是一面照出主角某個面向的鏡子。</div>'
++'<h3>賦予正向素質與意志力</h3>'
++'<div class="tip-card"><strong>正向素質（Goodness）</strong>主角必須擁有某種能讓觀眾共鳴的正向素質，哪怕他做了很多壞事。沒有這個素質，觀眾不願意跟著他走兩小時——可以是勇氣、幽默、對某人的愛，任何一種都行。</div>'
++'<div class="tip-card"><strong>意志力（Will）</strong>主角必須有強烈的意志力推動故事發展。沒有主動性的主角只是被故事推著走，觀眾會失去興趣。</div>'
++'<blockquote>「角色的真相不在介紹頁，在危機裡。把他逼到牆角，他才會告訴你他是誰。」</blockquote>',
+
+// 2 — SKILL 3 對白
+'<h2>SKILL 3 · 潛文本與對白解剖</h2>'
++'<div class="skill-badge">Dialogue & Subtext</div>'
++'<p>參考大師：Robert McKee《故事的解剖》、David Mamet 對白理論</p>'
++'<h3>對白即行動，嚴禁直白</h3>'
++'<div class="tip-card"><strong>核心概念</strong>沒有人在現實中會把內心話完全說出口。在寫對白前，先分析角色的「場景目標（欲望）」。對白必須是角色為了達成欲望所採取的武器或行動，不是他的日記。</div>'
++'<div class="tip-card"><strong>潛文本（Subtext）</strong>真正的情感藏在台詞的「底下」。觀眾感受到的，往往是角色沒說出口的那些話。</div>'
++'<h3>隱藏解說（Exposition）</h3>'
++'<div class="tip-card"><strong>嚴禁為交代背景而說話</strong>必須將背景資訊轉化為角色間衝突的彈藥，在衝突與反擊中不露痕跡地傳遞給觀眾。一旦觀眾察覺到「這是在解釋給我聽」，出戲感就產生了。</div>'
++'<h3>精簡與句式設計</h3>'
++'<div class="tip-card"><strong>精簡原則</strong>刪除所有不必要的日常廢話。每一句台詞都要做事。</div>'
++'<div class="tip-card"><strong>懸疑句式</strong>把核心字眼留到句子最後說出——「我殺了你……的貓。」製造緊繃感，讓觀眾屏住呼吸。</div>'
++'<blockquote>「如果角色在對白裡把話說完了，觀眾就沒有思考的空間了。留白才是力量。」</blockquote>',
+
+// 3 — SKILL 4 類型喜劇
+'<h2>SKILL 4 · 掌握類型與喜劇方程式</h2>'
++'<div class="skill-badge">Genre & Comedy Tools</div>'
++'<p>參考大師：Steve Kaplan《喜劇藝術》、Blake Snyder 類型理論</p>'
++'<h3>非英雄的掙扎</h3>'
++'<div class="tip-card"><strong>喜劇核心</strong>喜劇的核心是一個缺乏必備技能的平凡人（非英雄），面對難如登天的難關苦苦掙扎，為了獲勝不擇手段。觀眾笑的是他的掙扎，不是他說的笑話。</div>'
++'<h3>確立盲目的「世界觀」</h3>'
++'<div class="tip-card"><strong>荒謬的內在邏輯</strong>不要讓角色單純為了搞笑而搞笑。必須為角色建立一套不合邏輯、不理性的「世界觀」，而角色在這個荒謬的世界觀中，自認行事充滿邏輯且合宜。</div>'
++'<h3>直線與波浪型的碰撞</h3>'
++'<div class="tip-card"><strong>喜劇對白黃金組合</strong>安排「直線（正經人、觀眾視角）」與「波浪型（搞怪者、盲目者）」的碰撞。搞怪者通常處於「看到什麼卻又不知道自己看到什麼」的狀態——他的盲目才是笑點的來源。</div>'
++'<blockquote>「搞笑角色必須對自己的行為完全認真。他不知道自己可笑，所以才可笑。」</blockquote>',
+
+// 4 — SKILL 5 工作方法
+'<h2>SKILL 5 · 專業編劇的工作心法</h2>'
++'<div class="skill-badge">Workflow & Self-Correction</div>'
++'<p>整合麥基、史奈德、沃格勒的工作方法論</p>'
++'<h3>強制步驟大綱先行</h3>'
++'<div class="tip-card"><strong>禁止跳過大綱</strong>禁止未經大綱規劃直接寫完整劇本。必須先產出只包含「場景、動作、轉折點」的步驟大綱，經過邏輯驗證後，再填入對白與細節描述。</div>'
++'<h3>邏輯警察審查</h3>'
++'<div class="tip-card"><strong>每場戲寫完後自問</strong>啟動「邏輯警察」機制：「在這個世界觀下，這種情況真的會發生嗎？」避免強造邏輯或為遷就特定場景而扭曲角色行為。角色必須按照他的本性行動，不是按照劇情需要行動。</div>'
++'<h3>拔除固定鉚釘（Pull the Pin）</h3>'
++'<div class="tip-card"><strong>砍掉重練的勇氣</strong>如果發現場景無聊、平淡或角色像機器人，必須具備「砍掉重練」的機制——刪除無效場景，重新尋找能展現角色深層性格的衝突與轉折。</div>'
++'<div class="tip-card"><strong>最重要的原則</strong>絕不在無效的架構上只修改字句。場景問題不是用詞問題，是衝突問題。</div>'
++'<h3>自我檢核清單</h3>'
++'<ul>'
++'<li>這個場景裡有衝突嗎？</li>'
++'<li>主角在這場戲裡主動做了什麼？</li>'
++'<li>這場戲結束後，主角的處境有沒有改變？</li>'
++'<li>這個角色說這句話的目的是什麼？</li>'
++'<li>如果拿掉這場戲，故事會不會繼續？</li>'
++'</ul>',
+
+// 5 — SKILL 6 三幕劇 & 英雄旅程
+'<h2>SKILL 6 · 三幕劇藍圖與英雄旅程對照</h2>'
++'<div class="skill-badge">Three-Act Structure & Hero\'s Journey</div>'
++'<p>參考大師：Christopher Vogler《作家之路》、Joseph Campbell《千面英雄》、《韓國影劇故事結構聖經》</p>'
++'<h3>📊 三幕劇黃金比例</h3>'
++'<p>三幕劇的標準篇幅比例為 <strong>1 : 2 : 1</strong>，第二幕最長，並以「中間點」分為上下半場。</p>'
++'<table class="wg-table">'
++'<tr><th>幕次</th><th>篇幅比例</th><th>核心節拍</th><th>關鍵轉折點</th></tr>'
++'<tr><td><span class="act-badge">第一幕</span><br>開端・布局</td><td style="text-align:center;font-weight:700">25%</td><td><strong>觸發事件（契機）</strong><br>打破平衡，主角被迫或主動接下挑戰。</td><td>布局<br>（進入第一道門檻）</td></tr>'
++'<tr><td><span class="act-badge">第二幕上</span><br>展開</td><td style="text-align:center;font-weight:700">25%</td><td><strong>漸進式困境</strong><br>主角跨越門檻，開始面對一連串試煉。</td><td style="text-align:center;font-weight:700;color:var(--red)">👉 中間點（Midpoint）👈<br>戲劇性最強、最急存亡的關頭</td></tr>'
++'<tr><td><span class="act-badge">第二幕下</span><br>危機</td><td style="text-align:center;font-weight:700">25%</td><td><strong>靈魂黑夜・一無所有</strong><br>看似計畫失敗，主角跌入最低谷。</td><td>第三幕銜接點<br>（覺醒）</td></tr>'
++'<tr><td><span class="act-badge">第三幕</span><br>高潮・結局</td><td style="text-align:center;font-weight:700">25%</td><td><strong>故事高潮</strong><br>主角重振旗鼓，以新體悟迎擊最終決戰。</td><td>結局<br>（建立新秩序）</td></tr>'
++'</table>'
++'<h3>📊 英雄旅程 12 階段與三幕劇對照</h3>'
++'<p>沃格勒將坎伯的「英雄旅程」完美鑲嵌進好萊塢三幕劇結構中：</p>'
++'<table class="wg-table">'
++'<tr><th>三幕劇</th><th>英雄旅程階段</th><th>情節動作與心理狀態</th></tr>'
++'<tr><td rowspan="5"><span class="act-badge">第一幕</span><br>隔離・啟程</td><td>1. 平凡世界</td><td>展現主角原本的生活狀態、背景與內心的缺失。</td></tr>'
++'<tr><td>2. 歷險的召喚</td><td>意外或使者帶來挑戰，建立主角的目標。</td></tr>'
++'<tr><td>3. 拒絕召喚</td><td>展現主角對未知的恐懼或不情願，暫時退縮。</td></tr>'
++'<tr><td>4. 遇上師傅</td><td>師傅提供智慧、保護或法寶，幫助主角克服恐懼。</td></tr>'
++'<tr><td>5. 跨越第一道門檻</td><td>主角下定決心，真正踏入未知世界，無法回頭。</td></tr>'
++'<tr><td rowspan="4"><span class="act-badge">第二幕</span><br>下凡・啟蒙・考驗</td><td>6. 試煉、盟友、敵人</td><td>在新世界學習規則，結交盟友並與敵人發生衝突。</td></tr>'
++'<tr><td>7. 進逼洞穴最深處</td><td>來到最危險的邊緣（反派大本營或內心深淵），進行準備。</td></tr>'
++'<tr><td>8. 苦難折磨 ★中間點</td><td>故事的中心危機，面臨死亡或最大恐懼，經歷死與重生。</td></tr>'
++'<tr><td>9. 獎賞（取得寶劍）</td><td>克服危機後，取得寶物、知識或認同。</td></tr>'
++'<tr><td rowspan="3"><span class="act-badge">第三幕</span><br>回歸・解決</td><td>10. 回歸之路</td><td>敵對勢力展開報復，主角被迫逃離或迎擊殘餘威脅。</td></tr>'
++'<tr><td>11. 復甦（高潮）</td><td>最終的生死交關，經歷最後淨化，證明主角已徹底蛻變。</td></tr>'
++'<tr><td>12. 帶著仙丹妙藥歸返</td><td>帶著寶藏或經驗回到平凡世界，改變了自己與周遭世界。</td></tr>'
++'</table>'
++'<div class="tip-card"><strong>💡 應用指令建議</strong>在構思長篇故事時，嚴格對齊「1:2:1 的三幕劇比例」與「英雄旅程12階段」。確保「苦難折磨（中間點）」剛好落在故事正中央；並且在進入第三幕前，必須經歷「回歸之路」的反撲與「復甦（高潮）」的終極蛻變，絕不能遺漏任何一個心理節拍。</div>',
+
+];
+
+function openWritingGuide(idx){
+  var i = idx || 0;
+  var body = document.getElementById('wguide-body');
+  if(body){ body.innerHTML = WGUIDE_SECTIONS[i]; body.scrollTop = 0; }
+  document.querySelectorAll('#wguide-nav button').forEach(function(b,j){ b.classList.toggle('active', j===i); });
+  document.getElementById('wguide-overlay').classList.add('open');
+}
+
+function closeWritingGuide(){
+  document.getElementById('wguide-overlay').classList.remove('open');
+}
+
+function showWGuideSection(idx, btn){
+  var body = document.getElementById('wguide-body');
+  if(body){ body.innerHTML = WGUIDE_SECTIONS[idx]; body.scrollTop = 0; }
+  document.querySelectorAll('#wguide-nav button').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+}
 
 function openGuide(){
   document.getElementById('guide-overlay').classList.add('open');
