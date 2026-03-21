@@ -454,10 +454,14 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
   #topbar,#left,#right,#statusbar,.editor-toolbar,.add-line-row,
   .sl-num,.sl-type-wrap,.scene-int-wrap,.scene-time-wrap,
   .sl-check,#multiselect-bar,#ms-toggle-btn{display:none!important}
-  #main{display:block!important}
-  #center{display:block!important;overflow:visible!important}
-  #editor-scroll{overflow:visible!important;padding:0!important}
-  #editor-page{max-width:none!important;padding:0!important}
+
+  /* Reset all height/overflow constraints so content flows across pages */
+  html,body{height:auto!important;overflow:visible!important}
+  #shell{height:auto!important;overflow:visible!important;display:block!important}
+  #main{display:block!important;overflow:visible!important;height:auto!important}
+  #center{display:block!important;overflow:visible!important;height:auto!important}
+  #editor-scroll{overflow:visible!important;padding:0!important;height:auto!important}
+  #editor-page{max-width:none!important;padding:0!important;height:auto!important}
   #script-title-block{text-align:center;margin-bottom:36pt;padding-bottom:12pt;border-bottom:1pt solid #999}
   #script-title-input{font-size:18pt;font-weight:700;display:block;width:100%;text-align:center;border:none;background:transparent;font-family:'Courier Prime',Courier,monospace}
   #script-subtitle-input{font-size:12pt;display:block;width:100%;text-align:center;border:none;background:transparent;font-family:'Courier Prime',Courier,monospace;color:#555}
