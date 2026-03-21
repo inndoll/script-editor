@@ -947,6 +947,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
     <div class="sep"></div>
     <button class="tbtn" style="color:#7B5EA7;border-color:#B89FD4;background:#F5F0FB;font-size:11px" onclick="openSnapshotModal()" title="生成劇本快照圖片，可分享至 LINE / Messenger">📸 快照分享</button>
     <button class="tbtn" style="color:var(--teal);border-color:#8ACAC0;background:var(--teal-l);font-size:11px" onclick="shareScript()" title="產生唯讀分享連結">🔗 分享連結</button>
+    <button class="tbtn" style="color:#2D6A4F;border-color:#74C69D;background:#D8F3DC;font-size:11px" onclick="openWhiteboardModal()" title="開啟線上故事白板（Excalidraw）">🗺 故事白板</button>
     <div class="sep"></div>
     <button class="tbtn" style="font-size:11px" title="使用指南" onclick="openGuide()">使用指南</button>
     <button class="tbtn" style="font-size:11px;color:#7A5200;border-color:#C49A00;background:linear-gradient(135deg,#FDF6E3,#F5E4A0);font-weight:700;letter-spacing:0.3px" title="編劇技巧指南" onclick="openWritingGuide()">📚 編劇指南</button>
@@ -1364,6 +1365,69 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       <button onclick="showWGuideSection(5,this)">SKILL 6 三幕 & 英雄旅程</button>
     </div>
     <div id="wguide-body"></div>
+  </div>
+</div>
+
+<!-- ── WHITEBOARD MODAL ──────────────────────────── -->
+<div id="wb-overlay" onclick="if(event.target===this)closeWhiteboardModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2500;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius3);width:560px;max-width:96vw;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.25)">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#1B4332,#2D6A4F);padding:16px 20px;display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span style="font-size:22px">🗺</span>
+      <div>
+        <div style="font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;color:#D8F3DC;letter-spacing:1px">故事白板</div>
+        <div style="font-size:11px;color:rgba(216,243,220,0.7);margin-top:2px">由 Excalidraw 提供 · 免費 · 不需帳號 · 繁體中文介面</div>
+      </div>
+      <button onclick="closeWhiteboardModal()" style="margin-left:auto;width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);cursor:pointer;font-size:14px;color:#fff;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+    <!-- Body -->
+    <div style="padding:20px 22px;overflow-y:auto;flex:1">
+      <p style="font-size:13px;color:var(--ink2);line-height:1.75;margin-bottom:16px">故事白板是一個自由的視覺化思考空間。在開始寫劇本之前，先在白板上把故事的骨架畫出來，能讓你在動筆時更有把握。</p>
+
+      <!-- 編劇用法建議 -->
+      <div style="font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px">編劇可以這樣用</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+
+        <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:6px;padding:10px 14px">
+          <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:4px">🧱 畫三幕劇結構</div>
+          <div style="font-size:11px;color:var(--ink2);line-height:1.7">畫一條橫線代表故事時間軸，分成四段（各佔25%）。在每個節點標上「觸發事件」、「中間點」、「靈魂黑夜」、「高潮」——這就是你的故事地圖，寫作時不會迷路。</div>
+        </div>
+
+        <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--teal);border-radius:6px;padding:10px 14px">
+          <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:4px">🌐 畫角色關係圖</div>
+          <div style="font-size:11px;color:var(--ink2);line-height:1.7">每個角色畫一個圓圈，用連線標出關係（愛、恨、秘密、利益）。把主角放中央，讓每個配角的連線都能激發主角的某個矛盾面——這就是「太陽系卡司」的視覺化。</div>
+        </div>
+
+        <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:6px;padding:10px 14px">
+          <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:4px">🃏 排場景卡（案板）</div>
+          <div style="font-size:11px;color:var(--ink2);line-height:1.7">每個場景用一個方框，寫上「地點、主角目標、結果」三行字。排好後看整體：每場戲的結果有沒有讓主角更接近或更遠離目標？如果連續幾場都很順利，觀眾會睡著。</div>
+        </div>
+
+        <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:6px;padding:10px 14px">
+          <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:4px">🧠 腦力激盪對白潛文本</div>
+          <div style="font-size:11px;color:var(--ink2);line-height:1.7">畫兩欄：左欄寫「角色真正想要的」，右欄寫「角色說出口的話」。兩欄之間的落差，就是潛文本。距離越大，對白越有張力。</div>
+        </div>
+
+      </div>
+
+      <!-- 基礎操作 -->
+      <div style="font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px">基礎操作（30秒上手）</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:11px;color:var(--ink2);display:flex;flex-direction:column;gap:6px">
+        <div><strong>T</strong> 新增文字　<strong>R</strong> 新增方框　<strong>E</strong> 新增橢圓　<strong>A</strong> 畫箭頭</div>
+        <div>滑鼠滾輪縮放 · 拖曳空白處移動畫布</div>
+        <div>移到元素邊緣出現藍點 → 拖拉畫連線</div>
+        <div>右上角選單可匯出圖片或儲存檔案</div>
+      </div>
+
+      <div style="background:var(--amber-l);border:1px solid var(--amber2);border-radius:6px;padding:9px 12px;font-size:11px;color:var(--ink2);margin-bottom:18px">
+        💡 白板內容不會自動和劇本同步，整理好後截圖或匯出另存。
+      </div>
+
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="tbtn" onclick="closeWhiteboardModal()">取消</button>
+        <button class="tbtn primary" onclick="goToWhiteboard()">前往故事白板 →</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -5593,6 +5657,17 @@ function showWGuideSection(idx, btn){
   if(body){ body.innerHTML = WGUIDE_SECTIONS[idx]; body.scrollTop = 0; }
   document.querySelectorAll('#wguide-nav button').forEach(function(b){ b.classList.remove('active'); });
   if(btn) btn.classList.add('active');
+}
+
+function openWhiteboardModal(){
+  document.getElementById('wb-overlay').style.display = 'flex';
+}
+function closeWhiteboardModal(){
+  document.getElementById('wb-overlay').style.display = 'none';
+}
+function goToWhiteboard(){
+  closeWhiteboardModal();
+  window.open('https://excalidraw.com/?lang=zh-TW', '_blank');
 }
 
 function openGuide(){
