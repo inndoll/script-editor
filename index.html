@@ -1002,7 +1002,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
     <button class="tbtn" style="color:var(--teal);border-color:#8ACAC0;background:var(--teal-l);font-size:11px" onclick="shareScript()" title="產生唯讀分享連結">🔗 分享連結</button>
     <div class="sep"></div>
     <button class="tbtn" style="font-size:11px" title="使用指南" onclick="openGuide()">使用指南</button>
-    <button class="tbtn" style="font-size:11px;color:#8B6000;border-color:#C49A00;background:#FDF6E3" title="編劇技巧指南（整合麥基、史奈德等大師理論）" onclick="openWritingGuide()">📚 編劇指南</button>
+    <button class="tbtn" style="font-size:11px;color:#7A5200;border-color:#C49A00;background:linear-gradient(135deg,#FDF6E3,#F5E4A0);font-weight:700;letter-spacing:0.3px" title="編劇技巧指南（整合麥基、史奈德等大師理論）" onclick="openWritingGuide()">📚 編劇指南</button>
     <button class="icon-btn" title="收合左側欄" onclick="toggleLeft()">◀</button>
     <button class="icon-btn" title="收合右側欄" onclick="toggleRight()">▶</button>
   </div>
@@ -4737,6 +4737,19 @@ window.addEventListener('DOMContentLoaded', function(){
   // Init panel resize dividers
   initPanelResize('divider-left',  'left',  'left');
   initPanelResize('divider-right', 'right', 'right');
+
+  // Init guide first section
+  var gb = document.getElementById('guide-body');
+  if(gb) gb.innerHTML = GUIDE_SECTIONS[0];
+
+  // Show welcome modal on first visit
+  showWelcomeIfNeeded();
+
+  // Init writing tips carousel
+  initTips();
+
+  // Check if opened via share link
+  checkShareHash();
 });
 
 // ── Panel resize ─────────────────────────────────
@@ -5070,26 +5083,6 @@ function confirmImport(){
   setTimeout(function(){ alert(msg); }, 150);
 }
 
-// ═══════════════════════════════════════════════
-//  INIT — runs after ALL script blocks are parsed
-// ═══════════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', function(){
-  loadFromStorage();
-  renderAll();
-  restoreDomFromStorage();
-  renderHistoryPanel();
-  // Init guide first section
-  var gb = document.getElementById('guide-body');
-  if(gb) gb.innerHTML = GUIDE_SECTIONS[0];
-  // Show welcome modal on first visit
-  showWelcomeIfNeeded();
-  // Init writing tips carousel
-  initTips();
-  // Check if opened via share link
-  checkShareHash();
-});
-
-
 // ══════════════════════════════════════════════
 //  SNAPSHOT SHARE
 // ══════════════════════════════════════════════
@@ -5343,67 +5336,50 @@ var GUIDE_SECTIONS = [
 // 0 — 介面總覽
 '<h2>🗂 介面總覽</h2>'
 +'<p>小葉劇本工坊採用<strong>三欄式</strong>佈局，讓你在同一個畫面中同時處理劇本內容、專案資料與格式預覽。</p>'
-+'<h3>頂部工具列（左→右）</h3>'
-+'<ul>'
-+'<li><strong>專案選單</strong>：切換劇本專案</li>'
-+'<li><strong>＋ 新劇本</strong>：建立新劇本，自動跳出專案設定選擇格式</li>'
-+'<li><strong>✏ / ⚙ / 🗑</strong>：重新命名 / 專案設定（含格式選擇）/ 刪除</li>'
-+'<li><strong>六種格式按鈕</strong>：游標所在行的格式會高亮顯示</li>'
-+'<li><strong>劇本格式切換</strong>：好萊塢 / 優劇 / 電視劇，隨時可切換</li>'
-+'<li><strong>⬆ 匯入劇本</strong>：貼上純文字或上傳 Word 檔自動辨識格式</li>'
-+'<li><strong>⬇ Fountain / Word / 備份 JSON / ⬆ 還原備份 / 🖨 列印 PDF</strong>：匯出與備份</li>'
-+'<li><strong>📸 快照分享</strong>：生成劇本圖片快照，可直接貼到 LINE / Messenger</li>'
-+'<li><strong>使用指南</strong>：開啟本視窗</li>'
-+'<li><strong>◀ ▶</strong>：收合 / 展開左右側欄（可拖曳分隔線調整寬度）</li>'
-+'</ul>'
++'<h3>頂部工具列</h3>'
++'<p>分為上下兩排。上排：Logo、專案管理、六種段落格式按鈕、劇本格式切換（好萊塢／優劇／電視劇）。下排：匯入、各種匯出、快照分享、分享連結、使用指南、📚 編劇指南、收合側欄按鈕。</p>'
 +'<h3>左側資料欄（五個頁籤）</h3>'
 +'<ul>'
 +'<li><strong>場景</strong>：自動列出所有場景標題，點擊跳轉</li>'
 +'<li><strong>分場卡</strong>：管理場景詳細資料，可拖曳排序、導入劇本</li>'
 +'<li><strong>角色</strong>：建立角色資料卡</li>'
 +'<li><strong>筆記</strong>：自由記錄靈感與備忘</li>'
-+'<li><strong>資料</strong>：上傳圖片、PDF 等參考文件（支援拖曳）</li>'
++'<li><strong>資料</strong>：上傳圖片、PDF 等參考文件</li>'
 +'</ul>'
 +'<h3>中央編輯區</h3>'
-+'<p>頂端輸入劇本標題與副標題，下方逐行輸入劇本內容。編輯區採<strong>所見即所得</strong>排版——好萊塢格式的角色名稱和對白會直接顯示縮排，電視劇格式的動作描述前會顯示 △，切換格式時即時反映。</p>'
-+'<h3>右側面板（四個頁籤）</h3>'
-+'<ul>'
-+'<li><strong>預覽</strong>：即時模擬正式劇本排版</li>'
-+'<li><strong>統計</strong>：場景數、字數、對白行、角色台詞排行</li>'
-+'<li><strong>歷史</strong>：版本快照列表，可回溯任意版本</li>'
-+'<li><strong>格式說明</strong>：Fountain 標記對照表</li>'
-+'</ul>'
-+'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body"><strong>從範例劇本開始</strong>切換到「📖 範例劇本（觀摩用）」，可以看到六種格式、分場卡、角色卡的完整示範。</div></div>',
++'<p>頂端輸入劇本標題與副標題，下方逐行輸入劇本內容。編輯區採<strong>所見即所得</strong>排版，格式即時反映。左右側欄之間有可拖曳的分隔線，可自由調整寬度。</p>'
++'<h3>右側面板</h3>'
++'<p>頁籤列下方有<strong>✍️ 編劇小技巧</strong>輪播卡，每 12 秒自動換一條，可手動切換，點「查看完整指南」跳到 📚 編劇指南。面板有四個頁籤：預覽、統計、歷史、格式說明。</p>'
++'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body"><strong>從範例劇本開始</strong>切換到「📖 範例劇本」或「🚀 科幻動作測試劇本」，可以看到各種格式的完整示範。</div></div>',
 
 // 1 — 專案管理
 '<h2>📁 專案管理</h2>'
-+'<p>每個劇本都是一個獨立的<strong>專案</strong>，擁有自己的劇本、分場卡、角色、筆記。</p>'
++'<p>每個劇本都是一個獨立的<strong>專案</strong>，擁有自己的劇本、分場卡、角色、筆記、標題。</p>'
 +'<h3>新建劇本</h3>'
-+'<p>點 <strong>＋ 新劇本</strong>，輸入劇本名稱後，系統自動跳出<strong>專案設定</strong>讓你選擇劇本格式（好萊塢 / 優劇 / 電視劇），游標直接跳到標題欄。</p>'
++'<p>點 <strong>＋ 新劇本</strong>，輸入名稱後系統自動跳出專案設定，選擇劇本格式（好萊塢／優劇／電視劇）。</p>'
 +'<h3>格式設定</h3>'
-+'<p>隨時可以點工具列中的 <strong>⚙</strong> 按鈕開啟專案設定，切換格式。切換不會改變已輸入的文字，但如果場景標題是舊格式，需要手動修改行首。</p>'
++'<p>隨時可點工具列 <strong>⚙</strong> 開啟專案設定切換格式。系統也會自動偵測場景標題判斷格式。</p>'
++'<h3>劇本標題</h3>'
++'<p>每個專案各自有獨立的標題和副標題，切換專案時自動帶出對應的標題。</p>'
 +'<h3>刪除劇本</h3>'
-+'<p>點 <strong>🗑</strong>，需要手動輸入專案名稱確認，確認後系統自動下載備份 JSON，再執行刪除。</p>'
++'<p>點 <strong>🗑</strong>，需手動輸入專案名稱確認，確認後系統自動下載備份 JSON，再執行刪除。</p>'
 +'<h3>備份與還原</h3>'
-+'<p>點 <strong>⬇ 備份 JSON</strong> 下載包含所有專案的完整備份。換電腦或清除瀏覽器後，點 <strong>⬆ 還原備份</strong> 選擇 JSON 檔即可完整還原。</p>',
++'<p>點 <strong>⬇ 備份 JSON</strong> 下載包含所有專案的完整備份。點 <strong>⬆ 還原備份</strong> 選擇 JSON 檔完整還原。</p>',
 
 // 2 — 三種劇本格式
 '<h2>📋 三種劇本格式</h2>'
-+'<p>工具列右側有三個格式切換按鈕，也可以透過 <strong>⚙ 專案設定</strong> 更改。每個劇本專案各自記憶格式設定。</p>'
++'<p>工具列上排右側有三個格式切換按鈕，也可透過 <strong>⚙ 專案設定</strong> 更改。每個劇本各自記憶格式設定。</p>'
 +'<table class="g-table">'
 +'<tr><th>格式</th><th>場景標題</th><th>動作描述</th><th>對白</th><th>適用場合</th></tr>'
-+'<tr><td><strong>好萊塢</strong></td><td>INT. 地點 - 日/夜（全大寫）</td><td>一般段落，無符號</td><td>角色名置中縮排，對白縮排</td><td>國際場合、英語劇本、影視投資提案</td></tr>'
-+'<tr><td><strong>優劇</strong></td><td>1. 內景 地點 日/夜</td><td>一般段落，無符號</td><td>角色名：（語氣）對白，同一行</td><td>文化部優良電影劇本獎投稿</td></tr>'
-+'<tr><td><strong>電視劇</strong></td><td>1. 內景 地點 日/夜</td><td>△ 動作內容</td><td>角色名：（語氣）對白，同一行</td><td>台灣電視劇劇本（戲說台灣等電視台格式）</td></tr>'
++'<tr><td><strong>好萊塢</strong></td><td>INT. 地點 - 日/夜（全大寫）</td><td>一般段落</td><td>角色名置中縮排，對白縮排</td><td>國際場合、影視投資提案</td></tr>'
++'<tr><td><strong>優劇</strong></td><td>1. 內景 地點 日/夜</td><td>一般段落</td><td>角色名：（語氣）對白，同一行</td><td>文化部優良電影劇本獎</td></tr>'
++'<tr><td><strong>電視劇</strong></td><td>1. 內景 地點 日/夜</td><td>△ 動作內容</td><td>角色名：（語氣）對白，同一行</td><td>台灣電視劇（戲說台灣等）</td></tr>'
 +'</table>'
-+'<h3>格式自動偵測</h3>'
-+'<p>打開舊劇本時，系統會自動掃描場景標題行，判斷格式並套用，不需要手動設定。</p>'
-+'<h3>所見即所得</h3>'
-+'<p>切換格式後，<strong>編輯區會即時反映格式變化</strong>——好萊塢格式的對白顯示縮排，電視劇格式的動作描述前顯示 △ 符號。匯出 PDF / Word 的排版也完全對應。</p>',
++'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body"><strong>所見即所得</strong>切換格式後，編輯區即時反映——好萊塢格式顯示縮排，電視劇格式的動作描述前顯示 △。</div></div>',
 
 // 3 — 六種段落格式
 '<h2>🎬 六種段落格式</h2>'
-+'<p>每行劇本都屬於六種格式之一，對應好萊塢劇本標準結構，三種劇本格式都共用同一套段落格式系統。</p>'
++'<p>每行劇本都屬於六種格式之一。三種劇本格式都共用同一套段落格式系統。</p>'
 +'<div class="g-fmt-grid">'
 +'<div class="g-fmt-card gfc-scene"><div class="gfc-type">場景標題</div><div class="gfc-desc">標示新場景，含室內外、地點、時間</div><div class="gfc-eg">INT. 城市街道 - 黃昏</div></div>'
 +'<div class="g-fmt-card gfc-action"><div class="gfc-type">動作描述</div><div class="gfc-desc">描述畫面動作、場景氛圍、人物行為</div><div class="gfc-eg">她停下腳步，望向遠方。</div></div>'
@@ -5415,95 +5391,85 @@ var GUIDE_SECTIONS = [
 +'<h3>切換格式的三種方式</h3>'
 +'<ol>'
 +'<li><strong>工具列按鈕</strong>：點「場景標題」等按鈕直接套用</li>'
-+'<li><strong>行首格式標籤</strong>：點擊每行左側的標籤展開下拉選單</li>'
++'<li><strong>行首格式標籤</strong>：點每行左側的標籤展開下拉選單</li>'
 +'<li><strong>鍵盤</strong>：<kbd>Tab</kbd> 循環切換，<kbd>Shift+Tab</kbd> 反向</li>'
-+'</ol>'
-+'<h3>Enter 智慧換行 / Backspace 合行</h3>'
-+'<ul>'
-+'<li><kbd>Enter</kbd>：在游標位置斷行（角色名後自動進入對白，對白後自動進入下一個角色名）</li>'
-+'<li><kbd>Backspace</kbd>（游標在行首）：將此行合併回上一行末尾</li>'
-+'</ul>',
++'</ol>',
 
 // 4 — 場景標題工具
 '<h2>🏷 場景標題工具列</h2>'
 +'<p>游標停在<strong>場景標題</strong>行時，行前自動出現室內外和時間的快速切換按鈕。</p>'
 +'<h3>室內外切換</h3>'
-+'<p>好萊塢格式顯示 <strong>INT / EXT / INT/EXT</strong>；優劇和電視劇格式顯示 <strong>內景 / 外景 / 內外景</strong>。點擊自動替換行首，不影響後面的地點文字。</p>'
++'<p>好萊塢格式顯示 INT / EXT / INT/EXT；優劇和電視劇格式顯示內景 / 外景 / 內外景。點擊自動替換行首文字。</p>'
 +'<h3>時間切換</h3>'
 +'<p>點 <strong>日 / 夜 / 黃昏 / 清晨</strong> 自動在地點後加上時間後綴。</p>'
-+'<div class="g-callout tip"><span class="g-callout-icon">⌨️</span><div class="g-callout-body"><strong>Alt + T 快捷鍵</strong>在場景標題行按 <kbd>Alt</kbd>+<kbd>T</kbd>，循環切換四個時間選項。</div></div>',
++'<div class="g-callout tip"><span class="g-callout-icon">⌨️</span><div class="g-callout-body"><kbd>Alt+T</kbd> 在場景標題行循環切換四個時間選項。</div></div>',
 
 // 5 — 分場卡系統
 '<h2>🗂 分場卡系統</h2>'
 +'<h3>新增分場卡</h3>'
 +'<p>切換到左側「分場卡」頁籤，點 <strong>＋</strong>。欄位包含場次、標題、地點、時間、室內外、出場角色、場景功能、衝突、備註。</p>'
 +'<h3>從劇本主文導入分場</h3>'
-+'<p>點分場卡欄底部的「<strong>＋ 從劇本主文導入分場</strong>」，自動掃描所有場景標題行，為每個未建卡的場景建立對應分場卡。</p>'
++'<p>點「<strong>＋ 從劇本主文導入分場</strong>」，自動掃描所有場景標題行，建立對應分場卡。</p>'
 +'<h3>導入劇本</h3>'
-+'<p>在分場卡上點 <strong>⬇ 導入劇本</strong>，自動插入場景標題、動作描述、角色與對白行。導入後兩者建立連結，各自修改互不影響。</p>'
++'<p>在分場卡上點 <strong>⬇ 導入劇本</strong>，自動插入場景標題與內容行，兩者建立連結，各自修改互不影響。</p>'
 +'<h3>拖曳排序與重排劇本</h3>'
-+'<p>按住分場卡拖曳調整順序，再點「<strong>↕ 依分場卡順序重排劇本</strong>」，讓劇本場景順序和分場卡一致。</p>'
-+'<div class="g-callout warn"><span class="g-callout-icon">⚠️</span><div class="g-callout-body"><strong>重排前請備份</strong>建議先下載「⬇ 備份 JSON」。</div></div>',
++'<p>按住分場卡拖曳調整順序，再點「<strong>↕ 依分場卡順序重排劇本</strong>」讓劇本場景順序一致。</p>',
 
 // 6 — 角色與筆記
 '<h2>👤 角色與筆記</h2>'
 +'<h3>角色資料卡</h3>'
 +'<p>切換到「角色」頁籤，點 <strong>＋</strong>。可記錄姓名、年齡、身分、性格特質、角色弧線、備註。右側「統計」頁籤會統計每個角色的對白行數。</p>'
 +'<h3>創作筆記</h3>'
-+'<p>切換到「筆記」頁籤，點 <strong>＋</strong> 新增。適合記錄故事主題、橋段靈感、對白草稿、修改紀錄。</p>'
++'<p>切換到「筆記」頁籤，點 <strong>＋</strong>。適合記錄靈感、橋段草稿、修改紀錄。</p>'
 +'<h3>參考資料</h3>'
 +'<p>切換到「資料」頁籤，拖曳或點擊上傳：圖片、PDF、Word、Excel、PPT、HTML、TXT、Markdown。</p>',
 
 // 7 — 匯入劇本
 '<h2>⬆ 智慧匯入劇本</h2>'
-+'<p>點 <strong>⬆ 匯入劇本</strong>，支援兩種方式：</p>'
++'<p>點 <strong>⬆ 匯入</strong>，支援兩種方式：</p>'
 +'<h3>📋 貼上純文字</h3>'
-+'<p>貼入文字後點「🔍 自動辨識」，系統依規則判斷每行的格式類型。辨識結果可在預覽表格裡手動修正，確認後再匯入。</p>'
-+'<h3>📄 上傳 Word 檔（.docx）</h3>'
-+'<p>拖曳或點擊上傳，用 mammoth.js 讀取文字後自動辨識（需網路連線）。</p>'
++'<p>貼入文字後點「🔍 自動辨識」，系統自動判斷每行格式類型。<strong>「角色名：對白」格式會自動拆分</strong>成角色名稱 + 對白兩行，帶語氣說明（如「加一：（笑）你好」）也會正確拆成三行。</p>'
++'<h3>📄 上傳 Word 檔</h3>'
++'<p>支援 .docx 格式（需網路連線）。<strong>上傳 .doc 舊格式</strong>時，系統會跳出轉換說明，引導你用 Microsoft Word 或 Google 文件免費轉換。</p>'
 +'<h3>匯入模式</h3>'
-+'<ul><li><strong>取代目前劇本</strong></li><li><strong>附加到劇本末尾</strong></li><li><strong>插入游標位置</strong></li></ul>'
-+'<div class="g-callout note"><span class="g-callout-icon">📌</span><div class="g-callout-body">辨識僅供初步整理，匯入後可用工具列或 Tab 鍵繼續校正。</div></div>',
++'<ul><li>取代目前劇本</li><li>附加到劇本末尾</li><li>插入游標位置</li></ul>',
 
 // 8 — 匯出與備份
 '<h2>💾 匯出與備份</h2>'
 +'<h3>⬇ Fountain（.fountain）</h3>'
-+'<p>符合 Fountain 1.1 標準，可匯入 Highland 2、WriterDuet、FadeIn 等專業劇本軟體。</p>'
++'<p>符合 Fountain 1.1 標準，可匯入 Highland 2、WriterDuet 等專業軟體。</p>'
 +'<h3>⬇ Word（.docx）</h3>'
-+'<p>根據目前格式（好萊塢 / 優劇 / 電視劇）自動套用正確版面。需網路連線。</p>'
++'<p>根據目前格式自動套用正確版面。需網路連線。</p>'
 +'<h3>🖨 列印 / 匯出 PDF</h3>'
-+'<p>呼叫瀏覽器列印，選「另存 PDF」。每頁底部自動加上頁碼與場次編號，以及浮水印。</p>'
++'<p>呼叫瀏覽器列印，選「另存 PDF」。每頁底部自動加上頁碼與場次編號及浮水印。</p>'
 +'<h3>⬇ 備份 JSON</h3>'
 +'<p>下載包含<strong>所有專案</strong>完整資料的備份。換電腦時用「⬆ 還原備份」一鍵還原。</p>'
-+'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body"><strong>建議定期備份</strong>重要修改後點一次「⬇ 備份 JSON」存到雲端或 Email 給自己。LocalStorage 自動儲存只保護同一台電腦同一瀏覽器。</div></div>',
++'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body">重要修改後記得點一次「⬇ 備份 JSON」。LocalStorage 自動儲存只保護同一台電腦同一瀏覽器。</div></div>',
 
 // 9 — 快照分享
 '<h2>📸 快照分享</h2>'
-+'<p>點工具列的 <strong>📸 快照分享</strong>，把劇本當下的內容生成一張<strong>圖片</strong>，可以直接複製貼到 LINE、Messenger、FB 等任何通訊軟體，讓夥伴看到你目前的進度。</p>'
++'<p>點 <strong>📸 快照分享</strong>，把劇本當下內容生成一張圖片，可直接複製貼到 LINE、Messenger、FB 等任何通訊軟體。</p>'
 +'<h3>快照說明彈窗欄位</h3>'
 +'<ul>'
 +'<li><strong>快照標題</strong>：預填劇本名稱，可修改</li>'
-+'<li><strong>版本號碼</strong>：預填 v1、v2（每次生成自動遞增），可改成「第一稿」「修改版」等</li>'
-+'<li><strong>備註</strong>：自由輸入，會顯示在圖片上，例如「請特別看第三場的對白修改」</li>'
++'<li><strong>版本號碼</strong>：預填 v1、v2（每次生成自動遞增）</li>'
++'<li><strong>備註</strong>：自由輸入，顯示在圖片上</li>'
 +'<li><strong>劇本範圍</strong>：全文，或指定第 X 場到第 Y 場</li>'
-+'<li><strong>圖片版式</strong>：直式手機閱讀模式 / 橫向螢幕模式 / IG 正方形模式</li>'
++'<li><strong>圖片版式</strong>：直式手機 / 橫向螢幕 / IG 正方形</li>'
 +'</ul>'
-+'<h3>圖片內容</h3>'
-+'<p>深色頁首顯示劇本標題、版本號、時間戳記、備註；正文根據目前劇本格式排版；底部有小葉劇本工坊浮水印。</p>'
-+'<h3>複製 vs 下載</h3>'
 +'<ul>'
-+'<li><strong>複製圖片</strong>：Android / 桌機可直接複製，貼到 LINE 等即可</li>'
-+'<li><strong>⬇ 下載圖片</strong>：iOS 用戶或需要存檔時使用，下載後再自行分享</li>'
++'<li><strong>複製圖片</strong>：Android / 桌機直接複製貼上</li>'
++'<li><strong>⬇ 下載圖片</strong>：iOS 用戶使用，下載後再分享</li>'
 +'</ul>'
-+'<div class="g-callout info"><span class="g-callout-icon">ℹ️</span><div class="g-callout-body"><strong>快照是當下的靜態圖片</strong>你之後對劇本做的修改不會反映在已分享的圖片上。想讓夥伴看最新版，請重新生成快照。</div></div>',
++'<div class="g-callout info"><span class="g-callout-icon">ℹ️</span><div class="g-callout-body">快照是靜態圖片，修改劇本後需重新生成快照才能讓夥伴看到最新版。</div></div>',
 
 // 10 — 自動儲存與版本歷史
 '<h2>💾 自動儲存與版本歷史</h2>'
 +'<h3>LocalStorage 自動儲存</h3>'
 +'<p>每次輸入後約 1.5 秒自動存入瀏覽器本機。底部顯示「✦ 已自動儲存」。下次打開同一網址，資料自動恢復。</p>'
-+'<div class="g-callout info"><span class="g-callout-icon">ℹ️</span><div class="g-callout-body"><strong>自動儲存的限制</strong>只在同一台電腦、同一個瀏覽器、同一個網址有效。換電腦或清除瀏覽器資料後資料會消失。請定期下載「⬇ 備份 JSON」。</div></div>'
++'<div class="g-callout info"><span class="g-callout-icon">ℹ️</span><div class="g-callout-body">只在同一台電腦、同一個瀏覽器、同一個網址有效。請定期下載「⬇ 備份 JSON」。</div></div>'
 +'<h3>版本歷史</h3>'
-+'<p>右側面板「歷史」頁籤：每次重大修改後約 4 秒自動快照；<kbd>Ctrl/⌘+S</kbd> 立即手動存檔；最多 50 版；點「↩ 回溯」還原（回溯前自動備份當前版本）。</p>',
++'<p>右側「歷史」頁籤：每次重大修改後約 4 秒自動快照；<kbd>Ctrl/⌘+S</kbd> 立即存檔；最多 50 版；點「↩ 回溯」可還原。</p>',
 
 // 11 — 快捷鍵
 '<h2>⌨️ 快捷鍵總覽</h2>'
@@ -5513,41 +5479,49 @@ var GUIDE_SECTIONS = [
 +'<tr><td><kbd>Enter</kbd></td><td>在游標位置斷行（智慧判斷下一行格式）</td></tr>'
 +'<tr><td><kbd>Backspace</kbd>（游標在行首）</td><td>將此行合併回上一行末尾</td></tr>'
 +'<tr><td><kbd>Tab</kbd></td><td>切換到下一種格式（循環）</td></tr>'
-+'<tr><td><kbd>Shift</kbd> + <kbd>Tab</kbd></td><td>切換到上一種格式（反向）</td></tr>'
-+'<tr><td><kbd>Alt</kbd> + <kbd>T</kbd></td><td>循環切換場景時間（場景標題行限定）</td></tr>'
-+'<tr><td><kbd>Ctrl/⌘</kbd> + <kbd>Z</kbd></td><td>復原（最多 80 步）</td></tr>'
-+'<tr><td><kbd>Ctrl/⌘</kbd> + <kbd>Y</kbd> 或 <kbd>Ctrl/⌘</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>重做</td></tr>'
-+'<tr><td><kbd>Ctrl/⌘</kbd> + <kbd>S</kbd></td><td>手動存檔（建立版本快照）</td></tr>'
-+'<tr><td><kbd>Ctrl/⌘</kbd> + <kbd>A</kbd>（游標不在行內）</td><td>選取整篇劇本</td></tr>'
++'<tr><td><kbd>Shift+Tab</kbd></td><td>切換到上一種格式（反向）</td></tr>'
++'<tr><td><kbd>Alt+T</kbd></td><td>循環切換場景時間（場景標題行）</td></tr>'
++'<tr><td><kbd>Ctrl/⌘+Z</kbd></td><td>復原（最多 80 步）</td></tr>'
++'<tr><td><kbd>Ctrl/⌘+Y</kbd> 或 <kbd>Ctrl/⌘+Shift+Z</kbd></td><td>重做</td></tr>'
++'<tr><td><kbd>Ctrl/⌘+S</kbd></td><td>手動存檔（建立版本快照）</td></tr>'
++'<tr><td><kbd>Ctrl/⌘+A</kbd>（游標不在行內）</td><td>選取整篇劇本</td></tr>'
 +'<tr><td><kbd>↑</kbd> / <kbd>↓</kbd></td><td>跨行移動游標</td></tr>'
++'<tr><td><kbd>Page Up</kbd> / <kbd>Page Down</kbd></td><td>在編輯區內上下捲動一頁</td></tr>'
 +'</table>'
-+'<h3>其他操作</h3>'
++'<h3>多行選取操作</h3>'
 +'<table class="g-table">'
 +'<tr><th style="width:50%">操作</th><th>方法</th></tr>'
++'<tr><td>進入多行選取模式</td><td>點編輯工具列「☑ 多行選取」</td></tr>'
++'<tr><td>剪下選取行，移到其他位置</td><td>勾選行 → ✂ 剪下 → 點目標行 → 📋 貼上</td></tr>'
++'<tr><td>一次改格式</td><td>勾選行 → 改格式下拉選單</td></tr>'
++'<tr><td>一次上移／下移</td><td>勾選行 → ↑ 上移 / ↓ 下移</td></tr>'
++'<tr><td>一次刪除</td><td>勾選行 → ✕ 刪除選取行</td></tr>'
 +'<tr><td>拖曳調整側欄寬度</td><td>拖曳左右側欄之間的分隔線</td></tr>'
-+'<tr><td>多行選取</td><td>點「☑ 多行選取」進入多選模式，勾選後可刪除、改格式、上下移</td></tr>'
 +'<tr><td>收合側欄</td><td>點工具列 ◀ / ▶</td></tr>'
-+'<tr><td>關閉使用指南</td><td><kbd>Esc</kbd> 或點視窗外</td></tr>'
 +'</table>',
 
 // 12 — FAQ
 '<h2>❓ 常見問題</h2>'
 +'<h3>Q：三種格式要用哪一個？</h3>'
-+'<p>投稿<strong>優良電影劇本獎</strong>用「優劇」；寫<strong>台灣電視劇</strong>（如戲說台灣等電視台）用「電視劇」；其他場合或習慣好萊塢規格用「好萊塢」。</p>'
-+'<h3>Q：快照圖片夥伴看完後，我改了劇本，需要重新傳嗎？</h3>'
-+'<p>是的。快照是靜態圖片，修改後需要重新點「📸 快照分享」生成新圖片再傳給對方。</p>'
++'<p>投稿<strong>優良電影劇本獎</strong>用「優劇」；寫<strong>台灣電視劇</strong>用「電視劇」；其他場合或習慣好萊塢規格用「好萊塢」。</p>'
++'<h3>Q：PDF 列印超過一頁的部分印不出來？</h3>'
++'<p>請確認使用最新版的編輯器。若 Chrome 仍有問題，可試試 Safari 列印，或改用「⬇ Word」匯出後在 Word 裡列印。</p>'
++'<h3>Q：.doc 舊格式的 Word 可以匯入嗎？</h3>'
++'<p>不能直接匯入。上傳 .doc 時系統會跳出說明，引導你用 Microsoft Word 或 Google 文件（免費）轉換成 .docx 格式。</p>'
 +'<h3>Q：資料會消失嗎？</h3>'
-+'<p>LocalStorage 自動儲存保護你的資料，但只在<strong>同一台電腦同一個瀏覽器</strong>。請定期下載「⬇ 備份 JSON」，這是最安全的保障。</p>'
++'<p>LocalStorage 自動儲存保護你的資料，但只在<strong>同一台電腦同一個瀏覽器</strong>有效。請定期下載「⬇ 備份 JSON」。</p>'
 +'<h3>Q：刪除專案後還能找回來嗎？</h3>'
-+'<p>刪除時系統會自動下載備份 JSON，可用「⬆ 還原備份」找回。刪除前需要手動輸入專案名稱確認，避免誤刪。</p>'
++'<p>刪除時系統自動下載備份 JSON，可用「⬆ 還原備份」找回。刪除前需輸入專案名稱確認，避免誤刪。</p>'
++'<h3>Q：每個劇本的標題是獨立的嗎？</h3>'
++'<p>是的。每個專案有自己的劇本標題和副標題，切換專案時自動帶出對應的標題，互不干擾。</p>'
 +'<h3>Q：Ctrl+Z 的復原範圍是什麼？</h3>'
 +'<p>只針對劇本編輯區的文字與格式變更，最多 80 步。分場卡、角色、筆記的修改目前不在復原範圍。</p>'
-+'<h3>Q：Word 匯出按了沒反應？</h3>'
++'<h3>Q：Word 匯出沒反應？</h3>'
 +'<p>需要網路連線載入函式庫。確認網路正常後重新整理再試，或改用「🖨 列印 PDF」。</p>'
-+'<h3>Q：可以同時管理多個劇本嗎？</h3>'
-+'<p>可以。用 <strong>＋ 新劇本</strong> 建立多個專案，從頂部選單切換。備份 JSON 會一次打包所有專案。</p>'
-+'<h3>Q：iOS 的快照圖片為什麼不能直接複製？</h3>'
-+'<p>iOS Safari 不支援從網頁直接複製圖片到剪貼簿。請改用「⬇ 下載圖片」，下載後再從相簿分享到 LINE 等通訊軟體。</p>'
++'<h3>Q：iOS 快照圖片無法直接複製？</h3>'
++'<p>iOS Safari 不支援從網頁複製圖片。請改用「⬇ 下載圖片」，下載後再從相簿分享到 LINE 等通訊軟體。</p>'
++'<h3>Q：📚 編劇指南是什麼？</h3>'
++'<p>整合麥基、史奈德、沃格勒等大師理論的五大編劇技巧體系，涵蓋結構、角色、對白、類型喜劇、工作方法，適合新手入門也適合老手複習。</p>'
 
 ];
 
