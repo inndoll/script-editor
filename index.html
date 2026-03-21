@@ -51,7 +51,7 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans TC',sans-serif;back
 }
 #right{width:280px;min-width:180px;max-width:500px;background:var(--bg2);border-left:none;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
 #left.collapsed{width:0;min-width:0;border-right:none}
-#center{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#center{flex:1;display:flex;flex-direction:column;min-height:0}
 #right{width:280px;min-width:200px;max-width:380px;background:var(--bg2);border-left:1.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
 #right.collapsed{width:0;min-width:0;border-left:none}
 #statusbar{height:24px;background:var(--bg3);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:16px;font-size:10px;color:var(--ink3);flex-shrink:0;font-family:monospace}
@@ -188,7 +188,7 @@ kbd{
   border-radius:3px;background:var(--bg);font-size:9px;font-family:monospace;color:var(--ink2);
 }
 
-#editor-scroll{flex:1;overflow-y:auto;padding:28px 48px}
+#editor-scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:28px 48px;-webkit-overflow-scrolling:touch}
 #editor-page{max-width:680px;margin:0 auto}
 
 /* Script lines */
@@ -6006,8 +6006,8 @@ function activateMobileLayout(){
 
   // Make shell a proper mobile flex column
   shell.style.cssText = 'display:flex;flex-direction:column;height:100dvh;height:100vh;overflow:hidden';
-  main.style.cssText  = 'flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0';
-  center.style.cssText= 'flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;width:100%';
+  main.style.cssText  = 'flex:1;display:flex;flex-direction:column;min-height:0;overflow:visible';
+  center.style.cssText= 'flex:1;display:flex;flex-direction:column;min-height:0;width:100%;overflow:visible';
 
   // Show mobile header and tabbar
   document.getElementById('mob-header').style.cssText  = 'display:flex;align-items:center;padding:0 12px;height:52px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;gap:8px';
@@ -6074,12 +6074,20 @@ function mobTab(tab, btn){
   if(tab === 'edit'){
     center.style.display = 'flex';
     center.style.flexDirection = 'column';
-    center.style.overflow = 'hidden';
     center.style.flex = '1';
     center.style.minHeight = '0';
+    center.style.overflow = 'visible';
     // Show mobile format bar
     fmtBar.style.cssText = 'display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;-webkit-overflow-scrolling:touch';
-    // Focus first line if nothing focused
+    // Ensure editor-scroll can scroll with touch gestures
+    var edScroll = document.getElementById('editor-scroll');
+    if(edScroll){
+      edScroll.style.flex = '1';
+      edScroll.style.overflowY = 'auto';
+      edScroll.style.overflowX = 'hidden';
+      edScroll.style.webkitOverflowScrolling = 'touch';
+      edScroll.style.padding = '16px 16px 80px';
+    }
     if(activeLineIdx === null){
       var firstLine = document.getElementById('line-0');
       if(firstLine) setTimeout(function(){ firstLine.focus(); }, 100);
