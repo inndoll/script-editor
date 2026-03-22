@@ -459,7 +459,8 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 @media print{
   #topbar,#left,#right,#statusbar,.editor-toolbar,.add-line-row,
   .sl-num,.sl-type-wrap,.scene-int-wrap,.scene-time-wrap,
-  .sl-check,#multiselect-bar,#ms-toggle-btn{display:none!important}
+  .sl-check,#multiselect-bar,#ms-toggle-btn,
+  .dur-badge,.beat-label,.beat-add-btn,#ghost-beat{display:none!important}
 
   /* Reset all height/overflow/flex constraints so content flows across pages */
   html,body{
@@ -1098,6 +1099,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       ⬆ 還原備份
       <input type="file" accept=".json" style="display:none" onchange="importJson(this)">
     </label>
+    <button class="tbtn primary" style="font-size:11px" onclick="printScript()">🖨 列印 PDF</button>
     <div class="sep"></div>
     <span style="font-size:10px;color:var(--ink3);flex-shrink:0">拍攝時長</span>
     <button id="dur-genre-film" class="tbtn dur-genre-btn active" onclick="setDurGenre('film')" title="電影模式：重視影像留白">🎬 電影</button>
@@ -6506,7 +6508,7 @@ function buildBeatLabel(blockIdx, block){
   }
   return '<span class="beat-add-btn" id="beat-lbl-'+blockIdx+'" '
     + 'onclick="event.stopPropagation();openBeatPicker('+blockIdx+')" '
-    + 'title="標記此場的結構節點">＋ 節點</span>';
+    + 'title="標記此場的結構節點">🎯 設定故事節點</span>';
 }
 
 var _beatPickerIdx = null;
@@ -6718,7 +6720,7 @@ function openBeatDiagnosis(){
   // 未標記提示
   var hintBanner = manualCount === 0
     ? '<div style="background:var(--amber-l);border:1px solid #E8C840;border-radius:7px;padding:9px 14px;margin-bottom:12px;font-size:11px;color:#7A5500;line-height:1.7">'
-      + '💡 在場景標題行旁點擊 <strong>＋ 節點</strong>，標記你認為的轉折點，系統就能比對與推算結果的差距。'
+      + '💡 在場景標題行旁點擊 <strong>🎯 設定故事節點</strong>，標記你認為的轉折點，系統就能比對與推算結果的差距。'
       + '</div>'
     : '';
 
