@@ -2032,6 +2032,38 @@ function renderCards(){
     var importBadge = c.linkedBlockId
       ? '<span class="badge badge-linked">已導入劇本</span>'
       : '<span class="badge" style="background:var(--amber-l);color:var(--amber);border:1px solid var(--border2);cursor:pointer" onclick="event.stopPropagation();importCard(\'' + c.id + '\')">⬇ 導入劇本</span>';
+
+    // 伏筆按鈕
+    var fsButtons = '<span class="badge" style="background:var(--bg3);color:var(--ink3);border:1px solid var(--border);cursor:pointer" onclick="event.stopPropagation();cardPlantAdd(\'' + c.id + '\')">📌 加伏筆</span>'
+      + '<span class="badge" style="background:var(--bg3);color:var(--ink3);border:1px solid var(--border);cursor:pointer;margin-left:3px" onclick="event.stopPropagation();cardHookAdd(\'' + c.id + '\')">🪝 收梗</span>';
+
+    // 伏筆標籤區
+    var fsTags = '';
+    var allTags = [];
+    if(c.plants && c.plants.length > 0){
+      c.plants.forEach(function(p){
+        allTags.push(
+          '<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px 2px 8px;border-radius:8px;background:#FFF3CC;color:#7A5500;border:1px solid #E8C840">'
+          + '📌 ' + esc(p.content.length > 14 ? p.content.slice(0,14)+'…' : p.content)
+          + '<span style="cursor:pointer;opacity:0.45;padding:0 2px" onclick="event.stopPropagation();cardPlantDelete(\'' + c.id + '\',\'' + p.id + '\')" title="刪除">&times;</span>'
+          + '</span>'
+        );
+      });
+    }
+    if(c.hooks && c.hooks.length > 0){
+      c.hooks.forEach(function(h){
+        allTags.push(
+          '<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px 2px 8px;border-radius:8px;background:var(--blue-l);color:var(--blue);border:1px solid #80A8D0">'
+          + '🪝 ' + esc(h.plantContent.length > 14 ? h.plantContent.slice(0,14)+'…' : h.plantContent)
+          + '<span style="cursor:pointer;opacity:0.45;padding:0 2px" onclick="event.stopPropagation();cardHookDelete(\'' + c.id + '\',\'' + h.id + '\')" title="刪除">&times;</span>'
+          + '</span>'
+        );
+      });
+    }
+    if(allTags.length > 0){
+      fsTags = '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">' + allTags.join('') + '</div>';
+    }
+
     var body = '<div class="card-body">'
       + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">'
       + '<div><div class="ci-title">' + c.num + '. ' + (esc(c.title)||'（未命名）') + '</div>'
@@ -2040,7 +2072,8 @@ function renderCards(){
       + '<span class="tag ' + (c.interior==='INT'?'tag-int':'tag-ext') + '">' + c.interior + '</span>'
       + '<span class="tag ' + (c.time==='夜'?'tag-night':'tag-day') + '">' + c.time + '</span>'
       + '</div></div>'
-      + '<div class="ci-tags">' + charTags + importBadge + '</div>'
+      + '<div class="ci-tags">' + charTags + importBadge + fsButtons + '</div>'
+      + fsTags
       + '</div>';
     return '<div class="card-item" draggable="true" data-card-id="' + c.id + '"'
       + ' oncontextmenu="showCtx(event,\'card\',\'' + c.id + '\')"'
@@ -6098,6 +6131,125 @@ function checkForeshadowConsistency(){
 // visualizer: 未來可在此實作「伏筆跨度圖」
 // function drawForeshadowVisualizer(containerId){ ... }
 
+// ═══════════════════════════════════════════════
+//  CARD FORESHADOW（分場卡獨立伏筆，不連動主文）
+// ═══════════════════════════════════════════════
+
+// ── 資料：每張分場卡帶 plants[] 和 hooks[] ───
+// card.plants = [{ id, content }]
+// card.hooks  = [{ id, plantIdx(在plants的index), plantCardId, plantContent }]
+
+// ── 加伏筆 ────────────────────────────────────
+function cardPlantAdd(cardId){
+  var text = prompt('這場要埋什麼梗？（關鍵字、道具、伏筆描述）');
+  if(!text || !text.trim()) return;
+  var cards = getCards();
+  var card = cards.find(function(c){ return c.id === cardId; });
+  if(!card) return;
+  if(!card.plants) card.plants = [];
+  card.plants.push({ id: 'cp_' + Date.now(), content: text.trim() });
+  saveToStorage();
+  renderCards();
+}
+
+// ── 刪伏筆 ────────────────────────────────────
+function cardPlantDelete(cardId, plantId){
+  var cards = getCards();
+  var card = cards.find(function(c){ return c.id === cardId; });
+  if(!card || !card.plants) return;
+  var plant = card.plants.find(function(p){ return p.id === plantId; });
+  if(!plant || !confirm('刪除伏筆「' + plant.content + '」？')) return;
+  card.plants = card.plants.filter(function(p){ return p.id !== plantId; });
+  // 同步清掉參照這個 plant 的 hooks
+  var allCards = getCards();
+  allCards.forEach(function(c){
+    if(c.hooks) c.hooks = c.hooks.filter(function(h){ return h.plantId !== plantId; });
+  });
+  saveToStorage();
+  renderCards();
+}
+
+// ── 收梗彈窗 ──────────────────────────────────
+var _cardHookCtx = null;
+var _cardHookPlants = [];
+
+function cardHookAdd(cardId){
+  var cards = getCards();
+  var card = cards.find(function(c){ return c.id === cardId; });
+  if(!card) return;
+
+  // 收集所有分場卡的 plants
+  _cardHookPlants = [];
+  cards.forEach(function(c){
+    if(!c.plants) return;
+    c.plants.forEach(function(p){
+      _cardHookPlants.push({ plant: p, card: c });
+    });
+  });
+
+  if(_cardHookPlants.length === 0){
+    alert('目前沒有任何伏筆可以收。請先在分場卡上點「📌 加伏筆」。');
+    return;
+  }
+
+  _cardHookCtx = { cardId: cardId };
+
+  var list = document.getElementById('card-hook-list');
+  list.innerHTML = _cardHookPlants.map(function(item, idx){
+    // 檢查這張卡是否已收過這個 plant
+    var alreadyHooked = card.hooks && card.hooks.some(function(h){ return h.plantId === item.plant.id; });
+    return '<div class="fs-hook-row' + (alreadyHooked ? '" style="opacity:0.4;pointer-events:none' : '') + '" onclick="doCardHook(' + idx + ')">'
+      + '<div style="font-weight:600;font-size:12px;margin-bottom:2px">📌 ' + esc(item.plant.content) + (alreadyHooked ? ' <span style="font-size:10px;color:var(--ink3)">（已登記）</span>' : '') + '</div>'
+      + '<div style="font-size:10px;color:var(--ink3)">鋪梗場次：' + esc(item.card.title || '未命名') + '</div>'
+      + '</div>';
+  }).join('');
+
+  document.getElementById('card-hook-overlay').style.display = 'flex';
+}
+
+function doCardHook(idx){
+  var chosen = _cardHookPlants[idx];
+  if(!chosen || !_cardHookCtx) return;
+  var cardId = _cardHookCtx.cardId; // 先存起來，closeCardHookModal 會清掉 _cardHookCtx
+  closeCardHookModal();
+
+  var cards = getCards();
+  var card = cards.find(function(c){ return c.id === cardId; });
+  if(!card) return;
+  if(!card.hooks) card.hooks = [];
+  card.hooks.push({
+    id: 'ch_' + Date.now(),
+    plantId: chosen.plant.id,
+    plantCardId: chosen.card.id,
+    plantContent: chosen.plant.content
+  });
+  saveToStorage();
+  renderCards();
+}
+
+function closeCardHookModal(){
+  document.getElementById('card-hook-overlay').style.display = 'none';
+  _cardHookCtx = null;
+}
+
+// ── 刪收梗 ────────────────────────────────────
+function cardHookDelete(cardId, hookId){
+  var cards = getCards();
+  var card = cards.find(function(c){ return c.id === cardId; });
+  if(!card || !card.hooks) return;
+  var hook = card.hooks.find(function(h){ return h.id === hookId; });
+  if(!hook || !confirm('移除收梗記錄「' + hook.plantContent + '」？')) return;
+  card.hooks = card.hooks.filter(function(h){ return h.id !== hookId; });
+  saveToStorage();
+  renderCards();
+}
+
+// 點背景關閉彈窗
+document.addEventListener('click', function(e){
+  var ov = document.getElementById('card-hook-overlay');
+  if(ov && e.target === ov) closeCardHookModal();
+});
+
 // Hook into existing newProject to init foreshadow array
 var _origNewProject = newProject;
 
@@ -6107,5 +6259,15 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 </script>
+
+<!-- CARD HOOK PICKER MODAL -->
+<div id="card-hook-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9100;align-items:center;justify-content:center">
+  <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:20px;width:380px;max-height:72vh;display:flex;flex-direction:column;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+    <div style="font-weight:700;font-size:14px;color:var(--ink)">🪝 選擇要收的梗</div>
+    <div style="font-size:11px;color:var(--ink3)">點選要在這場交代的伏筆：</div>
+    <div id="card-hook-list" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:6px;max-height:50vh"></div>
+    <button class="tbtn" onclick="closeCardHookModal()" style="align-self:flex-end">取消</button>
+  </div>
+</div>
 </body>
 </html>
