@@ -692,6 +692,25 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 .ctx-item.danger{color:var(--red)}
 .ctx-item.danger:hover{background:var(--red-l)}
 
+/* ── DURATION SYSTEM ─────────────────────────── */
+.dur-badge{
+  display:inline-flex;align-items:center;gap:3px;font-size:10px;
+  background:rgba(10,88,80,0.08);color:var(--teal);border:1px solid rgba(10,88,80,0.2);
+  border-radius:5px;padding:1px 6px;margin-left:6px;cursor:pointer;
+  font-family:monospace;font-weight:600;flex-shrink:0;
+  transition:background 0.15s;
+}
+.dur-badge:hover{background:rgba(10,88,80,0.15)}
+.dur-badge.has-override{background:rgba(10,88,80,0.18);border-color:var(--teal)}
+.dur-genre-btn{font-size:11px;padding:3px 9px;border-radius:4px;transition:all 0.12s}
+.dur-genre-btn.active{background:var(--teal-l);color:var(--teal);border-color:var(--teal);font-weight:700}
+#sb-duration{
+  margin-left:auto;margin-right:4px;
+  font-size:11px;color:var(--teal);font-weight:700;font-family:monospace;
+  background:rgba(10,88,80,0.08);border:1px solid rgba(10,88,80,0.2);
+  border-radius:5px;padding:1px 8px;
+}
+
 /* ── FORESHADOW ──────────────────────────────── */
 .fs-card{
   background:var(--bg);border:1px solid var(--border);border-radius:var(--radius2);
@@ -984,7 +1003,11 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       ⬆ 還原備份
       <input type="file" accept=".json" style="display:none" onchange="importJson(this)">
     </label>
-    <button class="tbtn primary" style="font-size:11px" onclick="printScript()">🖨 列印 PDF</button>
+    <div class="sep"></div>
+    <span style="font-size:10px;color:var(--ink3);flex-shrink:0">拍攝時長</span>
+    <button id="dur-genre-film" class="tbtn dur-genre-btn active" onclick="setDurGenre('film')" title="電影模式：重視影像留白">🎬 電影</button>
+    <button id="dur-genre-tv"   class="tbtn dur-genre-btn"        onclick="setDurGenre('tv')"   title="電視劇模式：對白驅動節奏快">📺 電視劇</button>
+    <button id="dur-genre-ad"   class="tbtn dur-genre-btn"        onclick="setDurGenre('ad')"   title="短影音/廣告模式：極致精簡">⚡ 短影音</button>
     <div class="sep"></div>
     <button class="tbtn" style="color:#7B5EA7;border-color:#B89FD4;background:#F5F0FB;font-size:11px" onclick="openSnapshotModal()" title="生成劇本快照圖片，可分享至 LINE / Messenger">📸 快照分享</button>
     <button class="tbtn" style="color:var(--teal);border-color:#8ACAC0;background:var(--teal-l);font-size:11px" onclick="shareScript()" title="產生唯讀分享連結">🔗 分享連結</button>
@@ -1251,7 +1274,8 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
   <span>場景：<b id="sb-scene">—</b></span>
   <span>行：<b id="sb-lines">0</b></span>
   <span>字：<b id="sb-chars">0</b></span>
-  <span id="sb-save" style="color:var(--teal);font-size:9px;margin-left:auto">✦ 已儲存</span>
+  <span id="sb-duration" title="預估拍攝總時長（點擊切換劇種模式）">⏱ —</span>
+  <span id="sb-save" style="color:var(--teal);font-size:9px;margin-left:4px">✦ 已儲存</span>
   <span style="margin-left:12px;opacity:0.5"><img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Finndoll.github.io%2Fscript-editor%2F&count_bg=%23C8BCA8&title_bg=%23E8E0D0&icon=&icon_color=%23E7E7E7&title=訪客&edge_flat=true" height="12" style="vertical-align:middle;border-radius:2px" alt="visitor count"></span>
 </div>
 </div>
@@ -1989,6 +2013,7 @@ function renderLines(){
       + '<div class="type-dropdown" id="typedd-'+i+'">' + typeDropdownItems + '</div>'
       + '</div>'
       + intChips
+      + (isScene ? '<span class="dur-badge' + (b.durOverride ? ' has-override' : '') + '" id="dur-'+i+'" onclick="event.stopPropagation();openDurOverride('+i+')" title="預估場次時長（點擊手動調整）">⏱ ' + getSceneDurLabel(i) + '</span>' : '')
       + '<div class="sl-content" contenteditable="true" data-type="'+b.type+'" data-idx="'+i+'" id="line-'+i+'" spellcheck="false"'
       + ' oninput="onLineInput('+i+',this)" onkeydown="onLineKey(event,'+i+')" onfocus="onLineFocus('+i+')">'
       + esc(b.text)
@@ -2138,6 +2163,7 @@ function onLineFocus(i){
 function onLineInput(i,el){
   getBlocks()[i].text = el.innerText.replace(/\n/g,' ');
   debouncedSnapshotUndo();   // coalesced undo snapshot on typing
+  scheduleDurUpdate();       // 即時更新時長估算
   // Keep scene chips in sync when user types manually
   if(getBlocks()[i].type==='scene'){
     const row = document.getElementById('row-'+i);
@@ -6127,7 +6153,215 @@ function checkForeshadowConsistency(){
   refreshPlotUI();
 }
 
-// ── visualizer stub (預留擴充) ─────────────────
+// ═══════════════════════════════════════════════
+//  DURATION ESTIMATION SYSTEM（拍攝時長估算）
+// ═══════════════════════════════════════════════
+
+// ── 劇種參數 ──────────────────────────────────
+var DUR_GENRES = {
+  film: {
+    label:'電影',
+    dialoguePerChar: 1/4,      // 4字/秒
+    actionPer10Chars: 2,        // 每10字≈2秒
+    sceneOverhead: 3,           // 每場固定呼吸時間(秒)
+  },
+  tv: {
+    label:'電視劇',
+    dialoguePerChar: 1/5,      // 5字/秒
+    actionPer10Chars: 1,        // 每10字≈1秒
+    sceneOverhead: 1,
+  },
+  ad: {
+    label:'短影音',
+    dialoguePerChar: 1/4.5,    // 4.5字/秒
+    actionPer10Chars: 0.6,      // 快切
+    sceneOverhead: 0.5,
+  }
+};
+
+// ── 取得目前劇種設定 ──────────────────────────
+function getDurGenre(){
+  var s = getScript();
+  return (s && s.durGenre) || 'film';
+}
+
+function setDurGenre(genre){
+  var s = getScript();
+  if(!s) return;
+  s.durGenre = genre;
+  saveToStorage();
+  // 更新按鈕狀態
+  ['film','tv','ad'].forEach(function(g){
+    var btn = document.getElementById('dur-genre-'+g);
+    if(btn) btn.classList.toggle('active', g === genre);
+  });
+  updateDurationDisplay();
+}
+
+// 切換到新專案時同步按鈕
+function syncDurGenreButtons(){
+  var genre = getDurGenre();
+  ['film','tv','ad'].forEach(function(g){
+    var btn = document.getElementById('dur-genre-'+g);
+    if(btn) btn.classList.toggle('active', g === genre);
+  });
+}
+
+// ── 計算單一行的秒數 ──────────────────────────
+function calcBlockSecs(block, params){
+  var t = (block.text || '').trim();
+  if(!t) return 0;
+  switch(block.type){
+    case 'dialogue':{
+      // 括號內容排除（語氣說明混在對白裡）
+      var clean = t.replace(/[（(][^）)]*[）)]/g, '').trim();
+      return clean.length * params.dialoguePerChar;
+    }
+    case 'parenthetical':
+      return 0.5; // 舞台指示不佔播放時間
+    case 'action':
+      return (t.length / 10) * params.actionPer10Chars;
+    case 'transition':
+      return 0.5;
+    case 'character':
+      return 0;
+    case 'scene':
+      return 0; // 由 calcSceneSecs 加 overhead
+    default:
+      return 0;
+  }
+}
+
+// ── 計算一個場次（scene block 到下一個 scene 之前）的秒數 ──
+function calcSceneSecs(sceneBlockIdx, blocks, params){
+  var total = params.sceneOverhead;
+  for(var i = sceneBlockIdx + 1; i < blocks.length; i++){
+    if(blocks[i].type === 'scene') break;
+    total += calcBlockSecs(blocks[i], params);
+  }
+  return total;
+}
+
+// ── 取得場次時長（含手動覆蓋）──────────────────
+function getSceneSecs(sceneBlockIdx){
+  var blocks = getBlocks();
+  var b = blocks[sceneBlockIdx];
+  if(b && b.durOverride !== undefined && b.durOverride !== null) return b.durOverride;
+  var genre = getDurGenre();
+  var params = DUR_GENRES[genre];
+  return calcSceneSecs(sceneBlockIdx, blocks, params);
+}
+
+// ── 格式化秒數為 m'ss" ────────────────────────
+function fmtSecs(secs){
+  secs = Math.round(secs);
+  var m = Math.floor(secs / 60);
+  var s = secs % 60;
+  return m + '\'' + (s < 10 ? '0' : '') + s + '"';
+}
+
+// ── 場景行標籤文字 ────────────────────────────
+function getSceneDurLabel(blockIdx){
+  return fmtSecs(getSceneSecs(blockIdx));
+}
+
+// ── 更新所有顯示 ──────────────────────────────
+function updateDurationDisplay(){
+  var blocks = getBlocks();
+  var totalSecs = 0;
+
+  blocks.forEach(function(b, i){
+    if(b.type !== 'scene') return;
+    var secs = getSceneSecs(i);
+    totalSecs += secs;
+    // 更新行內徽章（不重繪整個 renderLines，只改文字）
+    var badge = document.getElementById('dur-'+i);
+    if(badge){
+      badge.textContent = '⏱ ' + fmtSecs(secs);
+      badge.className = 'dur-badge' + (b.durOverride !== undefined && b.durOverride !== null ? ' has-override' : '');
+    }
+  });
+
+  // 更新 statusbar
+  var sb = document.getElementById('sb-duration');
+  if(sb) sb.textContent = '⏱ ' + fmtSecs(totalSecs);
+}
+
+// ── 手動覆蓋 modal ────────────────────────────
+var _durOverrideIdx = null;
+
+function openDurOverride(blockIdx){
+  var blocks = getBlocks();
+  var b = blocks[blockIdx];
+  if(!b || b.type !== 'scene') return;
+  _durOverrideIdx = blockIdx;
+
+  var genre = getDurGenre();
+  var params = DUR_GENRES[genre];
+  var autoSecs = calcSceneSecs(blockIdx, blocks, params);
+
+  document.getElementById('dur-override-scene-title').textContent = b.text || '（未命名場景）';
+  document.getElementById('dur-override-auto').textContent = fmtSecs(autoSecs) + '（' + Math.round(autoSecs) + ' 秒）';
+  var inp = document.getElementById('dur-override-input');
+  inp.value = (b.durOverride !== undefined && b.durOverride !== null) ? b.durOverride : '';
+  document.getElementById('dur-override-overlay').style.display = 'flex';
+  setTimeout(function(){ inp.focus(); inp.select(); }, 50);
+}
+
+function saveDurOverride(){
+  if(_durOverrideIdx === null) return;
+  var val = document.getElementById('dur-override-input').value.trim();
+  var blocks = getBlocks();
+  var b = blocks[_durOverrideIdx];
+  if(!b) return;
+  if(val === '' || isNaN(parseInt(val))){
+    b.durOverride = null;
+  } else {
+    b.durOverride = Math.max(0, parseInt(val));
+  }
+  closeDurOverride();
+  saveToStorage();
+  updateDurationDisplay();
+}
+
+function clearDurOverride(){
+  if(_durOverrideIdx === null) return;
+  var blocks = getBlocks();
+  var b = blocks[_durOverrideIdx];
+  if(b) b.durOverride = null;
+  closeDurOverride();
+  saveToStorage();
+  updateDurationDisplay();
+}
+
+function closeDurOverride(){
+  document.getElementById('dur-override-overlay').style.display = 'none';
+  _durOverrideIdx = null;
+}
+
+document.addEventListener('click', function(e){
+  var ov = document.getElementById('dur-override-overlay');
+  if(ov && e.target === ov) closeDurOverride();
+});
+
+// ── Hook 進 onLineInput，輸入時即時更新 ───────
+// （用 debounce 避免每字都重算）
+var _durUpdateTimer = null;
+function scheduleDurUpdate(){
+  clearTimeout(_durUpdateTimer);
+  _durUpdateTimer = setTimeout(updateDurationDisplay, 400);
+}
+
+// ── Hook 進 syncDurGenreButtons 到 syncProjectSelector ───
+var _origSyncProjectSelector = typeof syncProjectSelector === 'function' ? syncProjectSelector : null;
+
+// ── Init ──────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(function(){
+    syncDurGenreButtons();
+    updateDurationDisplay();
+  }, 350);
+});
 // visualizer: 未來可在此實作「伏筆跨度圖」
 // function drawForeshadowVisualizer(containerId){ ... }
 
@@ -6259,6 +6493,27 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 </script>
+
+<!-- DURATION OVERRIDE MODAL -->
+<div id="dur-override-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9200;align-items:center;justify-content:center">
+  <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:20px;width:300px;display:flex;flex-direction:column;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+    <div style="font-weight:700;font-size:14px;color:var(--ink)">⏱ 手動調整場次時長</div>
+    <div style="font-size:11px;color:var(--ink3)" id="dur-override-scene-title"></div>
+    <div style="font-size:11px;color:var(--ink3)">系統估算：<b id="dur-override-auto"></b></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:12px;color:var(--ink2)">手動指定秒數</span>
+      <input id="dur-override-input" type="number" min="0" max="3600" step="1"
+        style="width:80px;padding:4px 8px;border:1px solid var(--border2);border-radius:5px;font-size:13px;font-family:monospace;background:var(--bg);color:var(--ink)"
+        placeholder="留空=自動">
+      <span style="font-size:11px;color:var(--ink3)">秒</span>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="tbtn" onclick="clearDurOverride()" style="color:var(--red)">清除手動值</button>
+      <button class="tbtn" onclick="closeDurOverride()">取消</button>
+      <button class="tbtn primary" onclick="saveDurOverride()">確定</button>
+    </div>
+  </div>
+</div>
 
 <!-- CARD HOOK PICKER MODAL -->
 <div id="card-hook-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9100;align-items:center;justify-content:center">
