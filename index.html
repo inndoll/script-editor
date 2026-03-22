@@ -692,6 +692,41 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 .ctx-item.danger{color:var(--red)}
 .ctx-item.danger:hover{background:var(--red-l)}
 
+/* ── FORESHADOW ──────────────────────────────── */
+.fs-card{
+  background:var(--bg);border:1px solid var(--border);border-radius:var(--radius2);
+  padding:9px 11px;margin-bottom:7px;cursor:pointer;transition:box-shadow 0.15s;position:relative;
+}
+.fs-card:hover{box-shadow:var(--shadow2)}
+.fs-card.fs-resolved{opacity:0.6;border-style:dashed}
+.fs-badge{
+  position:absolute;top:7px;right:8px;font-size:10px;padding:1px 6px;border-radius:8px;font-weight:700;
+}
+.fs-badge.pending{background:#FFF3CC;color:#7A5500;border:1px solid #E8C840}
+.fs-badge.resolved{background:var(--green-l);color:var(--green);border:1px solid #80C890}
+.fs-quote{font-size:11px;color:var(--ink);font-style:italic;margin-bottom:5px;line-height:1.5;
+  border-left:2px solid var(--amber);padding-left:7px}
+.fs-meta{font-size:10px;color:var(--ink3);display:flex;flex-direction:column;gap:2px}
+.fs-meta b{color:var(--ink2)}
+.fs-span-badge{
+  display:inline-block;background:var(--blue-l);color:var(--blue);
+  border-radius:6px;padding:1px 6px;font-size:10px;font-weight:700;
+}
+.fs-act-tag{
+  display:inline-block;border-radius:6px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:4px;
+}
+.fs-act1{background:#FDE8E8;color:#7A1C1C}
+.fs-act2{background:#FFF3CC;color:#7A5500}
+.fs-act3{background:#E8F5EC;color:#1A5C2A}
+.fs-section-hdr{font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:1px;
+  text-transform:uppercase;margin:10px 0 5px;padding-bottom:3px;border-bottom:1px solid var(--border)}
+.fs-highlight{background:#FFF3AA;border-radius:2px;padding:0 1px}
+.fs-hook-row{
+  padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius2);cursor:pointer;
+  background:var(--bg);transition:background 0.1s;font-size:12px;
+}
+.fs-hook-row:hover{background:var(--amber-l);border-color:var(--amber)}
+
 /* ── IMPORT MODAL ────────────────────────────── */
 #import-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.52);z-index:1500;align-items:center;justify-content:center;padding:20px}
 #import-overlay.open{display:flex}
@@ -974,6 +1009,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       <button class="lnav-btn" onclick="switchLeft('chars',this)" title="角色">角色</button>
       <button class="lnav-btn" onclick="switchLeft('notes',this)" title="筆記">筆記</button>
       <button class="lnav-btn" onclick="switchLeft('assets',this)" title="參考資料">資料</button>
+      <button class="lnav-btn" id="lnav-foreshadow" onclick="switchLeft('foreshadow',this)" title="伏筆追蹤">伏筆</button>
     </div>
 
     <!-- SCENES -->
@@ -1075,6 +1111,16 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
         </div>
         <!-- File list -->
         <div id="assets-list" style="flex:1;overflow-y:auto;padding:0 8px 8px"></div>
+      </div>
+    </div>
+    <!-- FORESHADOW PANEL -->
+    <div class="left-panel" id="lpanel-foreshadow">
+      <div class="panel-hdr">
+        🔫 伏筆槍櫃
+        <span id="foreshadow-alert" style="display:none;background:var(--amber);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:700"></span>
+      </div>
+      <div class="left-content" style="padding:8px;overflow-y:auto">
+        <div id="foreshadow-list"><div class="empty-state"><span class="es-icon">🔫</span>尚無伏筆<br>在劇本中選取文字後右鍵→「📌 標記鋪梗」</div></div>
       </div>
     </div>
   </div>
@@ -1228,6 +1274,22 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
   <div class="ctx-item" onclick="ctxAction('edit')">✏ 編輯</div>
   <div class="divider"></div>
   <div class="ctx-item danger" onclick="ctxAction('delete')">✕ 刪除</div>
+</div>
+
+<!-- TEXT SELECTION CONTEXT MENU -->
+<div class="ctx-menu" id="sel-ctx-menu">
+  <div class="ctx-item" onclick="selCtxAction('plant')">📌 標記鋪梗</div>
+  <div class="ctx-item" id="sel-ctx-hook" onclick="selCtxAction('hook')">🪝 標記收梗</div>
+</div>
+
+<!-- HOOK PICKER MODAL -->
+<div id="hook-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9000;display:none;align-items:center;justify-content:center">
+  <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:20px;width:360px;max-height:70vh;display:flex;flex-direction:column;gap:10px">
+    <div style="font-weight:700;font-size:14px;color:var(--ink)">🪝 選擇要收的梗</div>
+    <div style="font-size:11px;color:var(--ink3)">選取的文字將與以下鋪梗建立連結：</div>
+    <div id="hook-pending-list" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:6px"></div>
+    <button class="tbtn" onclick="closeHookModal()" style="align-self:flex-end">取消</button>
+  </div>
 </div>
 
 <!-- ── IMPORT MODAL ──────────────────────────── -->
@@ -3306,6 +3368,8 @@ function newProject(){
   DB.sceneCards[id] = [];
   DB.characters[id] = [];
   DB.notes[id] = [];
+  if(!DB.foreshadow) DB.foreshadow = {};
+  DB.foreshadow[id] = [];
   DB.activeProject = id;
   syncProjectSelector();
   document.getElementById('sb-project').textContent = name.trim();
@@ -3457,6 +3521,7 @@ function deleteProject(){
   delete DB.sceneCards[id];
   delete DB.characters[id];
   delete DB.notes[id];
+  if(DB.foreshadow) delete DB.foreshadow[id];
   DB.activeProject = DB.projects[0].id;
   syncProjectSelector();
   document.getElementById('sb-project').textContent = DB.projects[0].name;
@@ -5766,9 +5831,279 @@ function showGuideSection(idx, btn){
   body.innerHTML = GUIDE_SECTIONS[idx];
   body.scrollTop = 0;
 }
-// Close guide on Escape
-document.addEventListener('keydown', function(e){
-  if(e.key === 'Escape') closeGuide();
+// ═══════════════════════════════════════════════
+//  FORESHADOW SYSTEM（伏筆追蹤）
+// ═══════════════════════════════════════════════
+
+// ── Data helpers ─────────────────────────────
+function getForeshadow(){
+  var pid = DB.activeProject;
+  if(!DB.foreshadow) DB.foreshadow = {};
+  if(!DB.foreshadow[pid]) DB.foreshadow[pid] = [];
+  return DB.foreshadow[pid];
+}
+
+// ── Scene index helpers ───────────────────────
+function getSceneTitle(blockIdx){
+  var blocks = getBlocks();
+  for(var i = blockIdx; i >= 0; i--){
+    if(blocks[i] && blocks[i].type === 'scene') return blocks[i].text || '（未命名場景）';
+  }
+  return '（劇本開頭）';
+}
+function getSceneIndex(blockIdx){
+  var blocks = getBlocks();
+  var count = 0;
+  for(var i = 0; i <= blockIdx && i < blocks.length; i++){
+    if(blocks[i].type === 'scene') count++;
+  }
+  return count; // 1-based
+}
+function getTotalScenes(){
+  return getBlocks().filter(function(b){ return b.type === 'scene'; }).length;
+}
+function getActLabel(sceneIdx, totalScenes){
+  if(totalScenes === 0) return {label:'第一幕', cls:'fs-act1'};
+  var ratio = sceneIdx / totalScenes;
+  if(ratio < 0.33) return {label:'第一幕', cls:'fs-act1'};
+  if(ratio < 0.67) return {label:'第二幕', cls:'fs-act2'};
+  return {label:'第三幕', cls:'fs-act3'};
+}
+
+// ── Selection context menu ────────────────────
+var _selCtxData = null; // {text, blockIdx}
+
+document.addEventListener('mouseup', function(e){
+  // Don't trigger inside modals or panels other than editor
+  if(e.target.closest('#hook-overlay') || e.target.closest('#sel-ctx-menu')) return;
+  setTimeout(function(){
+    var sel = window.getSelection();
+    var selMenu = document.getElementById('sel-ctx-menu');
+    if(!sel || sel.isCollapsed || !sel.toString().trim()){
+      selMenu.style.display = 'none';
+      _selCtxData = null;
+      return;
+    }
+    // Only show if selection is inside editor
+    var anchor = sel.anchorNode;
+    if(!anchor) return;
+    var lineEl = anchor.nodeType === 3 ? anchor.parentElement : anchor;
+    var contentEl = lineEl.closest ? lineEl.closest('.sl-content') : null;
+    if(!contentEl) { selMenu.style.display = 'none'; return; }
+    var idx = parseInt(contentEl.dataset.idx);
+    _selCtxData = { text: sel.toString().trim(), blockIdx: idx };
+    // Show hook option only if pending foreshadows exist
+    var hasPending = getForeshadow().some(function(f){ return f.status === 'pending'; });
+    document.getElementById('sel-ctx-hook').style.display = hasPending ? 'block' : 'none';
+    selMenu.style.display = 'block';
+    selMenu.style.left = e.clientX + 'px';
+    selMenu.style.top  = (e.clientY + 4) + 'px';
+  }, 10);
+});
+
+document.addEventListener('mousedown', function(e){
+  if(!e.target.closest('#sel-ctx-menu')) document.getElementById('sel-ctx-menu').style.display = 'none';
+});
+
+function selCtxAction(action){
+  document.getElementById('sel-ctx-menu').style.display = 'none';
+  if(!_selCtxData) return;
+  if(action === 'plant') addPlant(_selCtxData.blockIdx, _selCtxData.text);
+  else if(action === 'hook') openHookModal(_selCtxData.blockIdx, _selCtxData.text);
+  _selCtxData = null;
+}
+
+// ── addPlant ──────────────────────────────────
+function addPlant(blockIdx, text){
+  var list = getForeshadow();
+  var totalScenes = getTotalScenes();
+  var sceneIdx = getSceneIndex(blockIdx);
+  var act = getActLabel(sceneIdx, totalScenes);
+  var item = {
+    id: 'fs_' + Date.now(),
+    content: text,
+    plantBlockIdx: blockIdx,
+    plantSceneTitle: getSceneTitle(blockIdx),
+    plantSceneIdx: sceneIdx,
+    plantAct: act.label,
+    hookBlockIdx: null,
+    hookSceneTitle: null,
+    hookSceneIdx: null,
+    hookContent: null,
+    status: 'pending',
+    createdAt: new Date().toLocaleString('zh-TW', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})
+  };
+  list.push(item);
+  saveToStorage();
+  refreshPlotUI();
+  // Flash the left panel tab
+  var btn = document.getElementById('lnav-foreshadow');
+  if(btn){ btn.style.color='var(--amber)'; setTimeout(function(){ btn.style.color=''; }, 800); }
+  // Switch to foreshadow panel
+  switchLeft('foreshadow', document.getElementById('lnav-foreshadow'));
+}
+
+// ── linkHook ──────────────────────────────────
+function linkHook(foreshadowId, blockIdx, hookText){
+  var list = getForeshadow();
+  var item = list.find(function(f){ return f.id === foreshadowId; });
+  if(!item) return;
+  item.hookBlockIdx   = blockIdx;
+  item.hookSceneTitle = getSceneTitle(blockIdx);
+  item.hookSceneIdx   = getSceneIndex(blockIdx);
+  item.hookContent    = hookText;
+  item.status         = 'resolved';
+  saveToStorage();
+  refreshPlotUI();
+  closeHookModal();
+}
+
+// ── Hook modal ────────────────────────────────
+var _hookCtx = null; // {blockIdx, text}
+function openHookModal(blockIdx, text){
+  _hookCtx = {blockIdx, text};
+  var list = getForeshadow().filter(function(f){ return f.status === 'pending'; });
+  var container = document.getElementById('hook-pending-list');
+  if(list.length === 0){
+    container.innerHTML = '<div style="color:var(--ink3);font-size:12px;text-align:center;padding:20px">目前沒有待收的梗</div>';
+  } else {
+    container.innerHTML = list.map(function(f){
+      return '<div class="fs-hook-row" onclick="linkHook(\''+f.id+'\','+blockIdx+',\''+esc(text)+'\')">'
+        + '<div style="font-weight:600;font-size:12px;margin-bottom:3px">'+esc(f.content)+'</div>'
+        + '<div style="font-size:10px;color:var(--ink3)">鋪梗於：'+esc(f.plantSceneTitle)+'</div>'
+        + '</div>';
+    }).join('');
+  }
+  document.getElementById('hook-overlay').style.display = 'flex';
+}
+function closeHookModal(){
+  document.getElementById('hook-overlay').style.display = 'none';
+  _hookCtx = null;
+}
+document.addEventListener('click', function(e){
+  var ov = document.getElementById('hook-overlay');
+  if(e.target === ov) closeHookModal();
+});
+
+// ── refreshPlotUI ─────────────────────────────
+function refreshPlotUI(){
+  var list = getForeshadow();
+  var el   = document.getElementById('foreshadow-list');
+  var alert = document.getElementById('foreshadow-alert');
+  if(!el) return;
+
+  var pending  = list.filter(function(f){ return f.status === 'pending'; });
+  var resolved = list.filter(function(f){ return f.status === 'resolved'; });
+
+  // Update alert badge
+  if(pending.length > 0){
+    alert.style.display = 'inline';
+    alert.textContent   = pending.length + ' 個梗未收';
+  } else {
+    alert.style.display = 'none';
+  }
+
+  if(list.length === 0){
+    el.innerHTML = '<div class="empty-state"><span class="es-icon">🔫</span>尚無伏筆<br>在劇本中選取文字後右鍵→「📌 標記鋪梗」</div>';
+    return;
+  }
+
+  var totalScenes = getTotalScenes();
+
+  function renderCard(f){
+    var span = (f.hookSceneIdx && f.plantSceneIdx) ? Math.abs(f.hookSceneIdx - f.plantSceneIdx) : null;
+    var act  = getActLabel(f.plantSceneIdx, totalScenes);
+    var hookAct = f.hookSceneIdx ? getActLabel(f.hookSceneIdx, totalScenes) : null;
+    return '<div class="fs-card'+(f.status==='resolved'?' fs-resolved':'')+'" onclick="fsSrollTo(\''+f.id+'\')">'
+      + '<span class="fs-badge '+(f.status==='pending'?'pending':'resolved')+'">'+(f.status==='pending'?'⏳ 待收梗':'✅ 已完成')+'</span>'
+      + '<div class="fs-quote">'+esc(f.content)+'</div>'
+      + '<div class="fs-meta">'
+      + '<div>📌 鋪梗：<b>'+esc(f.plantSceneTitle)+'</b> <span class="fs-act-tag '+act.cls+'">'+act.label+'</span></div>'
+      + (f.status==='resolved'
+          ? '<div>🪝 收梗：<b>'+esc(f.hookSceneTitle)+'</b>'+(hookAct?' <span class="fs-act-tag '+hookAct.cls+'">'+hookAct.label+'</span>':'')+'</div>'
+            + (f.hookContent ? '<div style="font-style:italic;color:var(--ink3);font-size:10px">「'+esc(f.hookContent)+'」</div>' : '')
+          : '')
+      + (span !== null ? '<div>跨度：<span class="fs-span-badge">'+span+' 場</span></div>' : '')
+      + '<div style="color:var(--ink4);font-size:10px">建立：'+f.createdAt+'</div>'
+      + '</div>'
+      + '<div style="display:flex;gap:5px;margin-top:7px">'
+      + (f.status==='pending' ? '<button class="tbtn" style="font-size:10px;padding:2px 7px" onclick="event.stopPropagation();fsManualHook(\''+f.id+'\')">🪝 手動收梗</button>' : '')
+      + '<button class="tbtn danger" style="font-size:10px;padding:2px 7px" onclick="event.stopPropagation();fsDelete(\''+f.id+'\')">✕</button>'
+      + '</div>'
+      + '</div>';
+  }
+
+  var html = '';
+  if(pending.length > 0){
+    html += '<div class="fs-section-hdr">⏳ 待收梗（'+pending.length+'）</div>';
+    html += pending.map(renderCard).join('');
+  }
+  if(resolved.length > 0){
+    html += '<div class="fs-section-hdr">✅ 已完成（'+resolved.length+'）</div>';
+    html += resolved.map(renderCard).join('');
+  }
+  el.innerHTML = html;
+}
+
+// ── Scroll to scene ───────────────────────────
+function fsSrollTo(foreshadowId){
+  var list = getForeshadow();
+  var item = list.find(function(f){ return f.id === foreshadowId; });
+  if(!item) return;
+  var idx = item.status === 'resolved' ? item.hookBlockIdx : item.plantBlockIdx;
+  if(idx === null || idx === undefined) idx = item.plantBlockIdx;
+  var row = document.getElementById('row-'+idx);
+  if(row) row.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+// ── Manual hook (click a line in editor) ──────
+var _waitingHookId = null;
+function fsManualHook(foreshadowId){
+  _waitingHookId = foreshadowId;
+  // Switch to editor and show a tip
+  switchLeft('scenes', document.querySelector('.lnav-btn'));
+  var tip = document.createElement('div');
+  tip.id = 'fs-hook-tip';
+  tip.style.cssText = 'position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:var(--amber);color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;z-index:2000;pointer-events:none';
+  tip.textContent = '🪝 現在選取劇本中的收梗文字，右鍵→「🪝 標記收梗」';
+  document.body.appendChild(tip);
+  setTimeout(function(){ var t=document.getElementById('fs-hook-tip'); if(t) t.remove(); _waitingHookId=null; }, 6000);
+}
+
+// ── Delete ────────────────────────────────────
+function fsDelete(foreshadowId){
+  if(!confirm('確定要刪除這個伏筆記錄？')) return;
+  var list = getForeshadow();
+  DB.foreshadow[DB.activeProject] = list.filter(function(f){ return f.id !== foreshadowId; });
+  saveToStorage();
+  refreshPlotUI();
+}
+
+// ── checkConsistency: call on block delete ────
+function checkForeshadowConsistency(){
+  var list = getForeshadow();
+  var blocks = getBlocks();
+  var len = blocks.length;
+  list.forEach(function(f){
+    if(f.plantBlockIdx >= len){ f.plantBlockIdx = Math.max(0, len-1); f.plantSceneTitle='（已刪除場次）'; }
+    if(f.hookBlockIdx !== null && f.hookBlockIdx >= len){
+      f.hookBlockIdx = null; f.hookSceneTitle = null; f.hookSceneIdx = null;
+      f.status = 'pending'; f.hookContent = null;
+    }
+  });
+  refreshPlotUI();
+}
+
+// ── visualizer stub (預留擴充) ─────────────────
+// visualizer: 未來可在此實作「伏筆跨度圖」
+// function drawForeshadowVisualizer(containerId){ ... }
+
+// Hook into existing newProject to init foreshadow array
+var _origNewProject = newProject;
+
+// Init foreshadow on load
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(refreshPlotUI, 300);
 });
 
 </script>
