@@ -32,12 +32,33 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans TC',sans-serif;back
   box-shadow:var(--shadow);
 }
 .topbar-row{
-  display:flex;align-items:center;padding:0 12px;gap:8px;height:38px;
+  display:flex;align-items:center;padding:0 14px;gap:6px;height:46px;
   flex-shrink:0;
 }
-.topbar-row+.topbar-row{
-  border-top:1px solid var(--border);background:var(--bg3);
+/* C-style 三區塊 */
+.tb-left{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.tb-center{flex:1;display:flex;align-items:center;justify-content:center}
+.tb-right{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+/* 中央格式切換 Tab Bar */
+.fmt-tabbar{
+  background:var(--bg3);border-radius:8px;padding:3px;
+  display:flex;gap:2px;border:1px solid var(--border);
 }
+.fmt-tab{
+  padding:5px 14px;border-radius:6px;font-size:11px;font-family:'Noto Sans TC',sans-serif;
+  cursor:pointer;border:none;background:transparent;color:var(--ink3);
+  font-weight:500;transition:all 0.15s;white-space:nowrap;
+}
+.fmt-tab:hover{background:var(--bg);color:var(--ink2)}
+.fmt-tab.active{background:var(--amber);color:#fff;font-weight:700;box-shadow:0 1px 4px rgba(184,122,0,0.3)}
+/* 右側小圖示按鈕 */
+.tb-icon{
+  width:30px;height:30px;border-radius:7px;display:flex;align-items:center;
+  justify-content:center;font-size:14px;cursor:pointer;
+  border:1px solid transparent;background:transparent;
+  transition:all 0.12s;color:var(--ink2);flex-shrink:0;
+}
+.tb-icon:hover{background:var(--bg3);border-color:var(--border)}
 #main{display:flex;flex:1;overflow:hidden}
 #left{width:220px;min-width:160px;max-width:400px;background:var(--bg2);border-right:none;display:flex;flex-direction:column;overflow:hidden;transition:width 0.15s;flex-shrink:0}
 .panel-divider{
@@ -1050,73 +1071,65 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
 
 <!-- ── TOPBAR ─────────────────────────────────── -->
 <div id="topbar">
-
-  <!-- 上排：Logo + 專案管理 + 段落格式 + 劇本格式切換 -->
   <div class="topbar-row">
-    <div style="display:flex;align-items:baseline;gap:5px;flex-shrink:0">
-      <span class="logo">小葉劇本工坊</span>
-      <span class="logo-sub">Pro</span>
-    </div>
-    <div class="sep"></div>
 
-    <!-- Project selector -->
-    <select id="project-select" class="form-select" style="width:150px;padding:3px 7px;font-size:12px"></select>
-    <button class="tbtn" style="color:var(--green);border-color:#8AC4A0;background:var(--green-l);font-weight:600;font-size:11px" title="建立新劇本專案" onclick="newProject()">＋ 新劇本</button>
-    <button class="icon-btn" title="重新命名目前劇本" onclick="renameProject()" style="font-size:13px">✏</button>
-    <button class="icon-btn" title="專案設定（格式等）" onclick="openProjectSettings()" style="font-size:13px">⚙</button>
-    <button class="icon-btn" title="刪除目前劇本" onclick="deleteProject()" style="font-size:13px;color:var(--red)">🗑</button>
-
-    <div class="sep"></div>
-
-    <!-- Format toolbar -->
-    <div class="tbar-group" id="format-btns">
-      <button class="tbtn fmt-btn" id="fmtbtn-scene"          data-type="scene"         onclick="setLineType('scene')"         title="場景標題 (Tab)">場景標題</button>
-      <button class="tbtn fmt-btn" id="fmtbtn-action"         data-type="action"        onclick="setLineType('action')"        title="動作描述 (Tab)">動作描述</button>
-      <button class="tbtn fmt-btn" id="fmtbtn-character"      data-type="character"     onclick="setLineType('character')"     title="角色名稱 (Tab)">角色名稱</button>
-      <button class="tbtn fmt-btn" id="fmtbtn-dialogue"       data-type="dialogue"      onclick="setLineType('dialogue')"      title="對白 (Tab)">對白</button>
-      <button class="tbtn fmt-btn" id="fmtbtn-parenthetical"  data-type="parenthetical" onclick="setLineType('parenthetical')" title="語氣說明 (Tab)">語氣說明</button>
-      <button class="tbtn fmt-btn" id="fmtbtn-transition"     data-type="transition"    onclick="setLineType('transition')"    title="轉場 (Tab)">轉場</button>
+    <!-- 左：Logo + 專案管理 -->
+    <div class="tb-left">
+      <div style="display:flex;align-items:baseline;gap:5px;flex-shrink:0">
+        <span class="logo">小葉劇本工坊</span>
+        <span class="logo-sub">Pro</span>
+      </div>
+      <div class="sep"></div>
+      <select id="project-select" class="form-select" style="width:140px;padding:3px 7px;font-size:12px"></select>
+      <button class="tbtn" style="color:var(--green);border-color:#8AC4A0;background:var(--green-l);font-weight:600;font-size:11px;padding:4px 9px" title="建立新劇本專案" onclick="newProject()">＋</button>
+      <button class="icon-btn" title="重新命名目前劇本" onclick="renameProject()">✏</button>
+      <button class="icon-btn" title="專案設定" onclick="openProjectSettings()">⚙</button>
+      <button class="icon-btn" title="刪除目前劇本" onclick="deleteProject()" style="color:var(--red)">🗑</button>
     </div>
 
-    <div class="tbar-spacer"></div>
-
-    <!-- Format mode toggle -->
-    <div class="tbar-group">
-      <span style="font-size:10px;color:var(--ink3);letter-spacing:0.5px;flex-shrink:0">劇本格式</span>
-      <button id="fmt-toggle-hw" class="tbtn fmt-toggle active" onclick="setScriptFormat('hollywood')" title="好萊塢格式：INT./EXT. 地點 - 時間">好萊塢</button>
-      <button id="fmt-toggle-tw" class="tbtn fmt-toggle" onclick="setScriptFormat('taiwan')" title="優劇格式：內景／外景 地點 時間（優良電影劇本獎）">優劇</button>
-      <button id="fmt-toggle-tv" class="tbtn fmt-toggle" onclick="setScriptFormat('tvdrama')" title="電視劇格式：△ 動作描述，角色名：對白">電視劇</button>
+    <!-- 中：劇本格式 Tab Bar -->
+    <div class="tb-center">
+      <div class="fmt-tabbar">
+        <button id="fmt-toggle-hw" class="fmt-tab active" onclick="setScriptFormat('hollywood')" title="好萊塢格式：INT./EXT. 地點 - 時間">好萊塢</button>
+        <button id="fmt-toggle-tw" class="fmt-tab" onclick="setScriptFormat('taiwan')" title="優劇格式：內景／外景 地點 時間（優良電影劇本獎）">優劇</button>
+        <button id="fmt-toggle-tv" class="fmt-tab" onclick="setScriptFormat('tvdrama')" title="電視劇格式：△ 動作描述，角色名：對白">電視劇</button>
+      </div>
     </div>
+
+    <!-- 右：工具群 -->
+    <div class="tb-right">
+      <!-- 匯入匯出 -->
+      <button class="tbtn" style="color:var(--green);border-color:#8AC4A0;background:var(--green-l);font-size:11px" onclick="openImportModal()">⬆ 匯入</button>
+      <button class="tbtn" style="font-size:11px;color:var(--red);border-color:#C09090" onclick="exportFountain()">⬇ Fountain</button>
+      <button class="tbtn" style="color:var(--blue);border-color:#9AB8E0;background:var(--blue-l);font-size:11px" onclick="exportDocx()">⬇ Word</button>
+      <button class="tbtn" style="font-size:11px" onclick="exportJson()" title="下載完整專案備份">⬇ 備份</button>
+      <label class="tbtn" style="cursor:pointer;font-size:11px" title="從 JSON 備份檔還原">⬆ 還原<input type="file" accept=".json" style="display:none" onchange="importJson(this)"></label>
+      <button class="tbtn primary" style="font-size:11px" onclick="printScript()">🖨 列印 PDF</button>
+      <div class="sep"></div>
+
+      <!-- 拍攝時長（圖示群） -->
+      <span style="font-size:10px;color:var(--ink3);flex-shrink:0">時長</span>
+      <button id="dur-genre-film" class="tbtn dur-genre-btn active" onclick="setDurGenre('film')" title="電影模式">🎬</button>
+      <button id="dur-genre-tv"   class="tbtn dur-genre-btn"        onclick="setDurGenre('tv')"   title="電視劇模式">📺</button>
+      <button id="dur-genre-ad"   class="tbtn dur-genre-btn"        onclick="setDurGenre('ad')"   title="短影音模式">⚡</button>
+      <div class="sep"></div>
+
+      <!-- 分享工具（圖示） -->
+      <button class="tb-icon" onclick="openSnapshotModal()" title="快照分享">📸</button>
+      <button class="tb-icon" onclick="shareScript()" title="分享連結">🔗</button>
+      <button class="tb-icon" onclick="openWhiteboardModal()" title="故事白板">🗺</button>
+      <div class="sep"></div>
+
+      <!-- 指南工具 -->
+      <button class="tb-icon" onclick="openGuide()" title="使用指南" style="font-size:12px;font-weight:700;color:var(--ink3)">?</button>
+      <button class="tbtn" style="font-size:11px;color:#7A5200;border-color:#C49A00;background:linear-gradient(135deg,#FDF6E3,#F5E4A0);font-weight:700" title="編劇技巧指南" onclick="openWritingGuide()">📚</button>
+      <button class="tbtn" style="font-size:11px;color:#5C2D91;border-color:#9B59B6;background:linear-gradient(135deg,#F5EEF8,#E8D5F5);font-weight:700" onclick="openBeatDiagnosis()" title="Save the Cat 節拍板">🎯 節拍板</button>
+      <div class="sep"></div>
+      <button class="icon-btn" title="收合左側欄" onclick="toggleLeft()">◀</button>
+      <button class="icon-btn" title="收合右側欄" onclick="toggleRight()">▶</button>
+    </div>
+
   </div>
-
-  <!-- 下排：匯入匯出 + 功能按鈕 -->
-  <div class="topbar-row">
-    <button class="tbtn" style="color:var(--green);border-color:#8AC4A0;background:var(--green-l);font-size:11px" onclick="openImportModal()">⬆ 匯入</button>
-    <button class="tbtn danger" style="font-size:11px" onclick="exportFountain()">⬇ Fountain</button>
-    <button class="tbtn" style="color:var(--blue);border-color:#9AB8E0;background:var(--blue-l);font-size:11px" onclick="exportDocx()">⬇ Word</button>
-    <button class="tbtn" style="font-size:11px" onclick="exportJson()" title="下載完整專案備份">⬇ 備份 JSON</button>
-    <label class="tbtn" style="cursor:pointer;font-size:11px" title="從 JSON 備份檔還原">
-      ⬆ 還原備份
-      <input type="file" accept=".json" style="display:none" onchange="importJson(this)">
-    </label>
-    <button class="tbtn primary" style="font-size:11px" onclick="printScript()">🖨 列印 PDF</button>
-    <div class="sep"></div>
-    <span style="font-size:10px;color:var(--ink3);flex-shrink:0">拍攝時長</span>
-    <button id="dur-genre-film" class="tbtn dur-genre-btn active" onclick="setDurGenre('film')" title="電影模式：重視影像留白">🎬 電影</button>
-    <button id="dur-genre-tv"   class="tbtn dur-genre-btn"        onclick="setDurGenre('tv')"   title="電視劇模式：對白驅動節奏快">📺 電視劇</button>
-    <button id="dur-genre-ad"   class="tbtn dur-genre-btn"        onclick="setDurGenre('ad')"   title="短影音/廣告模式：極致精簡">⚡ 短影音</button>
-    <div class="sep"></div>
-    <button class="tbtn" style="color:#7B5EA7;border-color:#B89FD4;background:#F5F0FB;font-size:11px" onclick="openSnapshotModal()" title="生成劇本快照圖片，可分享至 LINE / Messenger">📸 快照分享</button>
-    <button class="tbtn" style="color:var(--teal);border-color:#8ACAC0;background:var(--teal-l);font-size:11px" onclick="shareScript()" title="產生唯讀分享連結">🔗 分享連結</button>
-    <button class="tbtn" style="color:#2D6A4F;border-color:#74C69D;background:#D8F3DC;font-size:11px" onclick="openWhiteboardModal()" title="開啟線上故事白板（Excalidraw）">🗺 故事白板</button>
-    <div class="sep"></div>
-    <button class="tbtn" style="font-size:11px" title="使用指南" onclick="openGuide()">使用指南</button>
-    <button class="tbtn" style="font-size:11px;color:#7A5200;border-color:#C49A00;background:linear-gradient(135deg,#FDF6E3,#F5E4A0);font-weight:700;letter-spacing:0.3px" title="編劇技巧指南" onclick="openWritingGuide()">📚 編劇指南</button>
-    <button class="tbtn" style="font-size:11px;color:#5C2D91;border-color:#9B59B6;background:linear-gradient(135deg,#F5EEF8,#E8D5F5);font-weight:700" onclick="openBeatDiagnosis()" title="Save the Cat 結構診斷">🎯 結構診斷</button>
-    <button class="icon-btn" title="收合左側欄" onclick="toggleLeft()">◀</button>
-    <button class="icon-btn" title="收合右側欄" onclick="toggleRight()">▶</button>
-  </div>
-
 </div>
 
 <!-- ── MAIN ───────────────────────────────────── -->
@@ -1252,9 +1265,6 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
   <!-- ── CENTER EDITOR ───────────────────────── -->
   <div id="center">
     <div class="editor-toolbar">
-      <span style="font-size:10px;color:var(--ink3);letter-spacing:1px">目前格式</span>
-      <span class="mode-pill m-action" id="mode-pill">動作</span>
-      <div class="sep" style="margin:0 4px"></div>
       <span class="tbar-hint">
         <kbd>Tab</kbd> 下一種格式　
         <kbd>Shift+Tab</kbd> 上一種格式　
@@ -1649,6 +1659,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       <button onclick="showGuideSection(12,this)">🔫 伏筆系統</button>
       <button onclick="showGuideSection(13,this)">⏱ 拍攝時長</button>
       <button onclick="showGuideSection(14,this)">常見問題</button>
+      <button onclick="showGuideSection(15,this)">🎯 結構診斷</button>
     </div>
     <div id="guide-body"></div>
   </div>
@@ -5687,7 +5698,8 @@ async function generateSnapshot(action){
 var GUIDE_SECTIONS = [
 
 // 0 — 介面總覽
-'<h2>🗂 介面總覽</h2>'+'<p>小葉劇本工坊採用<strong>三欄式</strong>佈局，讓你在同一個畫面中同時處理劇本內容、專案資料與格式預覽。</p>'+'<h3>頂部工具列（左→右）</h3>'+'<ul>'+'<li><strong>專案選單</strong>：切換劇本專案</li>'+'<li><strong>＋ 新劇本</strong>：建立新劇本，自動跳出專案設定選擇格式</li>'+'<li><strong>✏ / ⚙ / 🗑</strong>：重新命名 / 專案設定（含格式選擇）/ 刪除</li>'+'<li><strong>六種格式按鈕</strong>：游標所在行的格式會高亮顯示</li>'+'<li><strong>劇本格式切換</strong>：好萊塢 / 優劇 / 電視劇，隨時可切換</li>'+'<li><strong>⬆ 匯入劇本</strong>：貼上純文字或上傳 Word 檔自動辨識格式</li>'+'<li><strong>⬇ Fountain / Word / 備份 JSON / ⬆ 還原備份 / 🖨 列印 PDF</strong>：匯出與備份</li>'+'<li><strong>🎬 電影 / 📺 電視劇 / ⚡ 短影音</strong>：拍攝時長估算的劇種模式，每個專案各自記住設定</li>'+'<li><strong>📸 快照分享</strong>：生成劇本圖片快照，可直接貼到 LINE / Messenger</li>'+'<li><strong>使用指南</strong>：開啟本視窗</li>'+'<li><strong>◀ ▶</strong>：收合 / 展開左右側欄（可拖曳分隔線調整寬度）</li>'+'</ul>'+'<h3>左側資料欄（六個頁籤）</h3>'+'<ul>'+'<li><strong>場景</strong>：自動列出所有場景標題，點擊跳轉</li>'+'<li><strong>分場卡</strong>：管理場景詳細資料，可拖曳排序、導入劇本、標記伏筆與收梗</li>'+'<li><strong>角色</strong>：建立角色資料卡</li>'+'<li><strong>筆記</strong>：自由記錄靈感與備忘</li>'+'<li><strong>資料</strong>：上傳圖片、PDF 等參考文件（支援拖曳）</li>'+'<li><strong>伏筆</strong>：「伏筆槍櫃」—— 追蹤從劇本主文標記的所有鋪梗與收梗</li>'+'</ul>'+'<h3>中央編輯區</h3>'+'<p>頂端輸入劇本標題與副標題，下方逐行輸入劇本內容。每個場景標題行右側顯示綠色 <code>⏱</code> 預估拍攝時長徽章，點擊可手動覆蓋。底部狀態列顯示預估<strong>總片長</strong>。</p>'+'<h3>右側面板（四個頁籤）</h3>'+'<ul>'+'<li><strong>預覽</strong>：即時模擬正式劇本排版</li>'+'<li><strong>統計</strong>：場景數、字數、對白行、角色台詞排行</li>'+'<li><strong>歷史</strong>：版本快照列表，可回溯任意版本</li>'+'<li><strong>格式說明</strong>：Fountain 標記對照表</li>'+'</ul>'+'<div class=\"g-callout tip\"><span class=\"g-callout-icon\">💡</span><div class=\"g-callout-body\"><strong>從範例劇本開始</strong>切換到「📖 範例劇本（觀摩用）」，可以看到六種格式、分場卡、角色卡的完整示範。</div></div>',
+'<h2>🗂 介面總覽</h2>'+'<p>小葉劇本工坊採用<strong>三欄式</strong>佈局，讓你在同一個畫面中同時處理劇本內容、專案資料與格式預覽。</p>'+'<h3>頂部工具列（左→右）</h3>'+'<ul>'+'<li><strong>專案選單</strong>：切換劇本專案</li>'+'<li><strong>＋ 新劇本</strong>：建立新劇本，自動跳出專案設定選擇格式</li>'+'<li><strong>✏ / ⚙ / 🗑</strong>：重新命名 / 專案設定（含格式選擇）/ 刪除</li>'+'<li><strong>六種格式按鈕</strong>：游標所在行的格式會高亮顯示</li>'+'<li><strong>劇本格式切換</strong>：好萊塢 / 優劇 / 電視劇，隨時可切換</li>'+'<li><strong>⬆ 匯入劇本</strong>：貼上純文字或上傳 Word 檔自動辨識格式</li>'+'<li><strong>⬇ Fountain / Word / 備份 JSON / ⬆ 還原備份 / 🖨 列印 PDF</strong>：匯出與備份</li>'+'<li><strong>🎬 電影 / 📺 電視劇 / ⚡ 短影音</strong>：拍攝時長估算的劇種模式，每個專案各自記住設定</li>'
++'<li><strong>🎯 結構診斷</strong>：Save the Cat 15 節點結構地圖，依時長比例自動推算各節點落點，支援手動標記轉折點與推算結果做比對</li>'+'<li><strong>📸 快照分享</strong>：生成劇本圖片快照，可直接貼到 LINE / Messenger</li>'+'<li><strong>使用指南</strong>：開啟本視窗</li>'+'<li><strong>◀ ▶</strong>：收合 / 展開左右側欄（可拖曳分隔線調整寬度）</li>'+'</ul>'+'<h3>左側資料欄（六個頁籤）</h3>'+'<ul>'+'<li><strong>場景</strong>：自動列出所有場景標題，點擊跳轉</li>'+'<li><strong>分場卡</strong>：管理場景詳細資料，可拖曳排序、導入劇本、標記伏筆與收梗</li>'+'<li><strong>角色</strong>：建立角色資料卡</li>'+'<li><strong>筆記</strong>：自由記錄靈感與備忘</li>'+'<li><strong>資料</strong>：上傳圖片、PDF 等參考文件（支援拖曳）</li>'+'<li><strong>伏筆</strong>：「伏筆槍櫃」—— 追蹤從劇本主文標記的所有鋪梗與收梗</li>'+'</ul>'+'<h3>中央編輯區</h3>'+'<p>頂端輸入劇本標題與副標題，下方逐行輸入劇本內容。每個場景標題行右側顯示綠色 <code>⏱</code> 預估拍攝時長徽章，點擊可手動覆蓋。底部狀態列顯示預估<strong>總片長</strong>。</p>'+'<h3>右側面板（四個頁籤）</h3>'+'<ul>'+'<li><strong>預覽</strong>：即時模擬正式劇本排版</li>'+'<li><strong>統計</strong>：場景數、字數、對白行、角色台詞排行</li>'+'<li><strong>歷史</strong>：版本快照列表，可回溯任意版本</li>'+'<li><strong>格式說明</strong>：Fountain 標記對照表</li>'+'</ul>'+'<div class=\"g-callout tip\"><span class=\"g-callout-icon\">💡</span><div class=\"g-callout-body\"><strong>從範例劇本開始</strong>切換到「📖 範例劇本（觀摩用）」，可以看到六種格式、分場卡、角色卡的完整示範。</div></div>',
 // 1 — 專案管理
 '<h2>📁 專案管理</h2>'
 +'<p>每個劇本都是一個獨立的<strong>專案</strong>，擁有自己的劇本、分場卡、角色、筆記。</p>'
@@ -5762,6 +5774,13 @@ var GUIDE_SECTIONS = [
 +'<p>點 <strong>⬆ 匯入劇本</strong>，支援兩種方式：</p>'
 +'<h3>📋 貼上純文字</h3>'
 +'<p>貼入文字後點「🔍 自動辨識」，系統依規則判斷每行的格式類型。辨識結果可在預覽表格裡手動修正，確認後再匯入。</p>'
++'<h3>台灣電視劇格式支援</h3>'
++'<p>匯入時自動辨識並合併台灣電視劇的「景／時／人」格式：</p>'
++'<ul>'
++'<li><code>S：1</code> 場次行自動丟棄</li>'
++'<li><code>景：火車站</code>＋<code>時：日　人：葛哥</code> → 合併為 <code>火車站　日</code>，人物自動丟棄</li>'
++'<li><code>△ 動作描述</code> → 去掉 △，辨識為動作描述</li>'
++'</ul>'
 +'<h3>📄 上傳 Word 檔（.docx）</h3>'
 +'<p>拖曳或點擊上傳，用 mammoth.js 讀取文字後自動辨識（需網路連線）。</p>'
 +'<h3>匯入模式</h3>'
@@ -5857,8 +5876,11 @@ var GUIDE_SECTIONS = [
 +'<h3>Q：可以同時管理多個劇本嗎？</h3>'
 +'<p>可以。用 <strong>＋ 新劇本</strong> 建立多個專案，從頂部選單切換。備份 JSON 會一次打包所有專案。</p>'
 +'<h3>Q：iOS 的快照圖片為什麼不能直接複製？</h3>'
-+'<p>iOS Safari 不支援從網頁直接複製圖片到剪貼簿。請改用「⬇ 下載圖片」，下載後再從相簿分享到 LINE 等通訊軟體。</p>'
++'<p>iOS Safari 不支援從網頁直接複製圖片到剪貼簿。請改用「⬇ 下載圖片」，下載後再從相簿分享到 LINE 等通訊軟體。</p>',
 
+
+// 15 — 結構診斷（Save the Cat）
+'<h2>🎯 結構診斷（Save the Cat）</h2>'+'<p>依據 Save the Cat 的 15 節點理論，幫助編劇檢視劇本結構節奏。點擊頂部「🎯 結構診斷」按鈕開啟。</p>'+'<h3>三層邏輯</h3>'+'<ul>'+'<li><strong>系統自動推算</strong>：依場次預估時長百分比，自動找最接近各節點理想位置的場次，永遠存在</li>'+'<li><strong>手動標記</strong>：在場景標題行旁點「🎯 設定故事節點」，從 15 個節點中選轉折點</li>'+'<li><strong>差距比對</strong>：有手動標記後，顯示與推算的差距，5% 內綠色、12% 內橘色、超過紅色</li>'+'</ul>'+'<h3>幽靈提示</h3>'+'<p>游標移到場景時，若時長比例落在某節點區間，右側邊緣淡出節點名稱與劇作建議，5 秒後自動消失。手動標記的顯示「〔已標記〕」，自動推算的顯示「〔自動推算〕」。</p>'+'<h3>劇作提示欄</h3>'+'<p>診斷視窗每個節點旁永遠顯示劇作建議，提醒這幾場戲應專注解決什麼問題，即使未標記任何節點也看得到。</p>'+'<div class=\"g-callout note\"><span class=\"g-callout-icon\">📌</span><div class=\"g-callout-body\">結構診斷依賴時長估算，建議先確認劇種模式（電影／電視劇／短影音）設定正確，推算結果才準確。</div></div>',
 ];
 
 // ══════════════════════════════════════════════
