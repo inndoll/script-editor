@@ -692,7 +692,102 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 .ctx-item.danger{color:var(--red)}
 .ctx-item.danger:hover{background:var(--red-l)}
 
+/* ── BEAT STRUCTURE SYSTEM ───────────────────── */
+#ghost-beat{
+  position:fixed;right:0;top:50%;transform:translateY(-50%);
+  max-width:220px;padding:10px 14px;border-radius:8px 0 0 8px;
+  font-size:11px;line-height:1.5;pointer-events:none;
+  opacity:0;transition:opacity 0.5s ease;z-index:800;
+  border-left:3px solid currentColor;
+}
+#ghost-beat.visible{opacity:0.85}
+#ghost-beat.act1{background:#FFF8E8;color:#8A6000;border-color:#C8A000}
+#ghost-beat.act2{background:#E8F5F3;color:#0A5850;border-color:#0A8870}
+#ghost-beat.act3{background:#FDF0F0;color:#7A1C1C;border-color:#C04040}
+#ghost-beat .gb-name{font-weight:700;font-size:12px;margin-bottom:3px}
+#ghost-beat .gb-en{font-size:10px;opacity:0.7;margin-bottom:4px}
+#ghost-beat .gb-hint{font-size:10px;opacity:0.85;line-height:1.6}
+.beat-diag-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+  z-index:9500;align-items:center;justify-content:center;
+}
+.beat-diag-overlay.open{display:flex}
+.beat-diag-box{
+  background:var(--bg);border:1.5px solid var(--border);border-radius:12px;
+  width:680px;max-width:96vw;max-height:88vh;display:flex;flex-direction:column;
+  overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,0.25);
+}
+.beat-diag-hdr{
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  background:var(--bg2);display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.beat-diag-hdr h2{font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;flex:1;color:var(--ink)}
+.beat-diag-body{padding:16px 18px;overflow-y:auto;flex:1}
+.beat-row{
+  display:grid;grid-template-columns:140px 80px 80px 1fr;
+  gap:8px;align-items:center;padding:7px 0;
+  border-bottom:1px solid var(--border);font-size:11px;
+}
+.beat-row:last-child{border-bottom:none}
+.beat-row.warn .beat-actual{color:var(--red);font-weight:700}
+.beat-row.ok .beat-actual{color:var(--teal);font-weight:700}
+.beat-name{font-weight:600;color:var(--ink2)}
+.beat-ideal{color:var(--ink3)}
+.beat-actual{font-family:monospace}
+.beat-msg{font-size:10px;color:var(--ink3)}
+.beat-msg.warn{color:var(--red)}
+.beat-progress-bar{
+  height:14px;background:var(--bg3);border-radius:6px;margin:14px 0 8px;
+  position:relative;overflow:visible;flex-shrink:0;
+}
+.beat-prog-fill{height:100%;border-radius:6px;transition:width 0.3s}
+.beat-prog-marker{
+  position:absolute;top:-4px;width:2px;height:22px;border-radius:1px;opacity:0.7;
+}
+.beat-prog-label{
+  position:absolute;top:-18px;font-size:9px;white-space:nowrap;
+  transform:translateX(-50%);color:var(--ink3);pointer-events:none;
+}
+
 /* ── DURATION SYSTEM ─────────────────────────── */
+/* ── BEAT LABEL ──────────────────────────────── */
+.beat-label{
+  display:inline-flex;align-items:center;gap:3px;font-size:10px;
+  padding:1px 7px;border-radius:5px;margin-left:4px;cursor:pointer;
+  font-weight:700;letter-spacing:0.3px;flex-shrink:0;transition:opacity 0.15s;
+}
+.beat-label:hover{opacity:0.75}
+.beat-label.act1{background:#FFF3CC;color:#8A6000;border:1px solid #E8C840}
+.beat-label.act2{background:#E0F0EE;color:#0A5850;border:1px solid #80C8C0}
+.beat-label.act3{background:#FAEDED;color:#7A1C1C;border:1px solid #D09090}
+.beat-add-btn{
+  display:inline-flex;align-items:center;font-size:10px;padding:1px 6px;
+  border-radius:5px;margin-left:4px;cursor:pointer;opacity:0.4;
+  background:var(--bg3);color:var(--ink3);border:1px dashed var(--border2);
+  transition:opacity 0.15s;flex-shrink:0;
+}
+.beat-add-btn:hover{opacity:1;background:var(--amber-l);color:var(--amber);border-color:var(--amber)}
+.beat-picker-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);
+  z-index:9300;align-items:center;justify-content:center;
+}
+.beat-picker-overlay.open{display:flex}
+.beat-picker-box{
+  background:var(--bg);border:1.5px solid var(--border);border-radius:12px;
+  padding:16px;width:340px;max-height:80vh;display:flex;flex-direction:column;
+  gap:8px;box-shadow:0 8px 32px rgba(0,0,0,0.2);
+}
+.beat-picker-item{
+  padding:8px 12px;border-radius:6px;cursor:pointer;border:1px solid transparent;
+  transition:all 0.1s;
+}
+.beat-picker-item:hover{border-color:var(--amber);background:var(--amber-l)}
+.beat-picker-item .bpi-name{font-size:12px;font-weight:700;color:var(--ink)}
+.beat-picker-item .bpi-en{font-size:10px;color:var(--ink3);margin-top:1px}
+.beat-picker-item.act1{border-left:3px solid #C8A000}
+.beat-picker-item.act2{border-left:3px solid #0A8870}
+.beat-picker-item.act3{border-left:3px solid #C04040}
+
 .dur-badge{
   display:inline-flex;align-items:center;gap:3px;font-size:10px;
   background:rgba(10,88,80,0.08);color:var(--teal);border:1px solid rgba(10,88,80,0.2);
@@ -1015,6 +1110,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
     <div class="sep"></div>
     <button class="tbtn" style="font-size:11px" title="使用指南" onclick="openGuide()">使用指南</button>
     <button class="tbtn" style="font-size:11px;color:#7A5200;border-color:#C49A00;background:linear-gradient(135deg,#FDF6E3,#F5E4A0);font-weight:700;letter-spacing:0.3px" title="編劇技巧指南" onclick="openWritingGuide()">📚 編劇指南</button>
+    <button class="tbtn" style="font-size:11px;color:#5C2D91;border-color:#9B59B6;background:linear-gradient(135deg,#F5EEF8,#E8D5F5);font-weight:700" onclick="openBeatDiagnosis()" title="Save the Cat 結構診斷">🎯 結構診斷</button>
     <button class="icon-btn" title="收合左側欄" onclick="toggleLeft()">◀</button>
     <button class="icon-btn" title="收合右側欄" onclick="toggleRight()">▶</button>
   </div>
@@ -2016,6 +2112,7 @@ function renderLines(){
       + '</div>'
       + intChips
       + (isScene ? '<span class="dur-badge' + (b.durOverride ? ' has-override' : '') + '" id="dur-'+i+'" onclick="event.stopPropagation();openDurOverride('+i+')" title="預估場次時長（點擊手動調整）">⏱ ' + getSceneDurLabel(i) + '</span>' : '')
+      + (isScene ? buildBeatLabel(i, b) : '')
       + '<div class="sl-content" contenteditable="true" data-type="'+b.type+'" data-idx="'+i+'" id="line-'+i+'" spellcheck="false"'
       + ' oninput="onLineInput('+i+',this)" onkeydown="onLineKey(event,'+i+')" onfocus="onLineFocus('+i+')">'
       + esc(b.text)
@@ -2160,6 +2257,7 @@ function onLineFocus(i){
   activeLineIdx = i;
   document.querySelectorAll('.sl').forEach((r,idx)=>r.classList.toggle('focused',idx===i));
   updateModeIndicator();
+  scheduleBeatUpdate(); // 幽靈提示
 }
 
 function onLineInput(i,el){
@@ -5007,6 +5105,7 @@ function switchImportTab(name, btn){
 // ── Rule-based classifier ────────────────────────
 var SCENE_RE   = /^(INT|EXT|INT\/EXT|I\/E|內景|外景|室內|室外)[.\s\/]/i;
 var SCENE_BODY = /\b(INT|EXT|內景|外景)\b.{0,30}(日|夜|黃昏|清晨|DAY|NIGHT|DUSK|DAWN)/i;
+var SCENE_TV   = /^.{1,25}　(日|夜|黃昏|清晨|早晨|傍晚)$/;  // 電視劇合併格式：地點　時間
 var TRANS_RE   = /^(FADE\s*(IN|OUT|TO)|CUT\s*TO|DISSOLVE\s*TO|SMASH\s*CUT|MATCH\s*CUT|切至|轉場|淡出|淡入)[:\s]*/i;
 var PAREN_RE   = /^[(（].{0,50}[)）]\s*$/;
 
@@ -5014,7 +5113,7 @@ function classifyLine(text, prevType){
   var t = text.trim();
   if(!t) return null;
   if(TRANS_RE.test(t)) return 'transition';
-  if(SCENE_RE.test(t) || SCENE_BODY.test(t)) return 'scene';
+  if(SCENE_RE.test(t) || SCENE_BODY.test(t) || SCENE_TV.test(t)) return 'scene';
   if(PAREN_RE.test(t)) return 'parenthetical';
   // All-caps short line → character cue
   var up = t.toUpperCase();
@@ -5033,6 +5132,69 @@ var INLINE_DIAL_RE = /^([^：:\n]{1,10})[：:](.+)$/;
 
 function textToBlocks(rawText){
   var lines = rawText.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+
+  // ── 前處理：偵測並合併「景／時／人」格式 ──
+  // 支援格式：
+  //   S：1（場次行，丟棄）
+  //   景：火車站（雜景）
+  //   時：日　人：葛哥、小美（同一行，tab或空格分隔）
+  //   △ 動作描述
+  var mergedLines = [];
+  var i = 0;
+  while(i < lines.length){
+    var t = lines[i].trim();
+
+    // 丟棄場次行：S：N、S：、S:N、S: 等各種變體
+    if(/^[Ss][：:]\s*\d*\s*$/.test(t) || /^[Ss][：:]\s*\d+/.test(t)){ i++; continue; }
+
+    // 偵測「景：」行
+    var sceneLocMatch = t.match(/^景[：:\s　](.+)$/);
+    if(sceneLocMatch){
+      var loc = sceneLocMatch[1].trim();
+      var timeVal = '';
+      var j = i + 1;
+      // 往後最多找 3 行，找「時：」行
+      while(j < lines.length && j <= i + 3){
+        var nt = lines[j].trim();
+        if(!nt){ j++; continue; }
+        // 「時：日　人：葛哥」或「時：日\t人：葛哥」
+        var timePersonMatch = nt.match(/^時[：:\s　]([^\t　\s]+)[\t　\s]+人[：:\s　].+$/);
+        var timeOnlyMatch   = nt.match(/^時[：:\s　](.+)$/);
+        var personOnlyMatch = nt.match(/^人[：:\s　].+$/);
+        if(timePersonMatch){
+          timeVal = timePersonMatch[1].trim(); // 只取時間，整行丟棄（人名不要）
+          j++;
+        } else if(timeOnlyMatch){
+          timeVal = timeOnlyMatch[1].trim();
+          j++;
+        } else if(personOnlyMatch){
+          j++; // 純人行直接丟棄
+        } else {
+          break;
+        }
+      }
+      var sceneLine = loc + (timeVal ? '　' + timeVal : '');
+      if(sceneLine.trim()) mergedLines.push(sceneLine.trim());
+      i = j;
+      continue;
+    }
+
+    // 丟棄孤立的「時：」「人：」行
+    if(/^[時人][：:\s　]/.test(t)){ i++; continue; }
+    // 丟棄純時間詞孤立行
+    if(/^(日|夜|黃昏|清晨|早晨|傍晚)$/.test(t)){ i++; continue; }
+
+    // △ 開頭 → 電視劇動作描述，去掉符號保留內容
+    if(/^△[\s　]/.test(t)){
+      mergedLines.push(lines[i].replace(/^△[\s　]+/, ''));
+      i++; continue;
+    }
+
+    mergedLines.push(lines[i]);
+    i++;
+  }
+  lines = mergedLines;
+
   var result = [];
   var prevType = null;
   lines.forEach(function(line){
@@ -6328,6 +6490,319 @@ document.addEventListener('DOMContentLoaded', function(){
     updateDurationDisplay();
   }, 350);
 });
+
+// ═══════════════════════════════════════════════
+//  BEAT STRUCTURE SYSTEM（Save the Cat 結構診斷）
+// ═══════════════════════════════════════════════
+
+// ── Beat label helpers ────────────────────────
+function buildBeatLabel(blockIdx, block){
+  var beat = block.beatId ? BEAT_SHEET_MASTER.find(function(b){ return b.id === block.beatId; }) : null;
+  if(beat){
+    var actCls = 'act' + beat.act;
+    return '<span class="beat-label ' + actCls + '" id="beat-lbl-'+blockIdx+'" '
+      + 'onclick="event.stopPropagation();openBeatPicker('+blockIdx+')" '
+      + 'title="' + beat.en + '：' + beat.hint + '">🎯 ' + beat.zh + '</span>';
+  }
+  return '<span class="beat-add-btn" id="beat-lbl-'+blockIdx+'" '
+    + 'onclick="event.stopPropagation();openBeatPicker('+blockIdx+')" '
+    + 'title="標記此場的結構節點">＋ 節點</span>';
+}
+
+var _beatPickerIdx = null;
+
+function openBeatPicker(blockIdx){
+  _beatPickerIdx = blockIdx;
+  var block = getBlocks()[blockIdx];
+  var sub = document.getElementById('beat-picker-subtitle');
+  sub.textContent = (block && block.text) ? block.text : '（場景）';
+
+  var hasBeat = block && block.beatId;
+  document.getElementById('beat-picker-clear').style.display = hasBeat ? 'block' : 'none';
+
+  var list = document.getElementById('beat-picker-list');
+  list.innerHTML = BEAT_SHEET_MASTER.map(function(beat){
+    var isSelected = block && block.beatId === beat.id;
+    return '<div class="beat-picker-item act' + beat.act + (isSelected?' selected':'') + '" '
+      + 'style="' + (isSelected ? 'background:var(--amber-l);border-color:var(--amber)' : '') + '" '
+      + 'onclick="selectBeat(\'' + beat.id + '\')">'
+      + '<div class="bpi-name">' + (isSelected?'✓ ':'') + beat.zh + ' <span style="font-weight:400;font-size:10px;color:var(--ink3)">· ' + beat.pct + '%</span></div>'
+      + '<div class="bpi-en">' + beat.en + '</div>'
+      + '</div>';
+  }).join('');
+
+  document.getElementById('beat-picker-overlay').classList.add('open');
+}
+
+function selectBeat(beatId){
+  if(_beatPickerIdx === null) return;
+  var blocks = getBlocks();
+  var b = blocks[_beatPickerIdx];
+  if(!b) return;
+  b.beatId = beatId;
+  closeBeatPicker();
+  saveToStorage();
+  renderLines();
+  updateDurationDisplay();
+}
+
+function clearBeatLabel(){
+  if(_beatPickerIdx === null) return;
+  var blocks = getBlocks();
+  var b = blocks[_beatPickerIdx];
+  if(b) delete b.beatId;
+  closeBeatPicker();
+  saveToStorage();
+  renderLines();
+}
+
+function closeBeatPicker(){
+  document.getElementById('beat-picker-overlay').classList.remove('open');
+  _beatPickerIdx = null;
+}
+
+var BEAT_SHEET_MASTER = [
+  { id:'opening',   zh:'開場畫面',       en:'Opening Image',          pct:1,  range:[0,1],   act:1, hint:'🎬 第一印象：用一個視覺瞬間，建立故事的基調與世界的「原貌」。' },
+  { id:'setup',     zh:'鋪陳',           en:'Set-Up',                 pct:5,  range:[1,10],  act:1, hint:'🌍 建立現狀：展現主角生活中的缺失。如果世界不改變，主角將會枯萎。' },
+  { id:'theme',     zh:'主題呈現',       en:'Theme Stated',           pct:5,  range:null,    act:1, hint:'💡 點題時間：讓某個角色無意間說出這部片的核心辯題或生命意義。' },
+  { id:'catalyst',  zh:'激勵事件',       en:'Catalyst',               pct:12, range:null,    act:1, hint:'⚡ 突發意外：砰！一封信、一個電話或一個不速之客，打破了現狀。' },
+  { id:'debate',    zh:'辯論',           en:'Debate',                 pct:18, range:[12,25], act:1, hint:'🤔 猶豫時刻：主角感到恐懼或抗拒。我有能力去嗎？我真的要去嗎？' },
+  { id:'break2',    zh:'打破進入第二幕', en:'Break into Two',         pct:25, range:null,    act:2, hint:'🚪 跨越門檻：主角主動做出決定，離開舊世界，進入全新的冒險環境。' },
+  { id:'bstory',    zh:'B 故事',         en:'B Story',                pct:30, range:null,    act:2, hint:'❤️ 支線登場：引入一段新關係（導師、戀人或對手），這將討論故事的核心主題。' },
+  { id:'fng',       zh:'玩樂時刻',       en:'Fun and Games',          pct:40, range:[30,50], act:2, hint:'🍿 預告片精華：展現核心創意！讓主角在新的世界裡摸索、犯錯或大顯身手。' },
+  { id:'midpoint',  zh:'中間點',         en:'Midpoint',               pct:50, range:null,    act:2, hint:'🏔️ 翻轉點：賭注突然翻倍！可能是虛假的勝利，也可能是慘痛的虛假失敗。' },
+  { id:'bgci',      zh:'反派逼近',       en:'Bad Guys Close In',      pct:62, range:[50,75], act:2, hint:'🌪️ 壓力升級：外部敵人與內部矛盾同時夾擊，主角的舒適圈被徹底摧毀。' },
+  { id:'ail',       zh:'一敗塗地',       en:'All Is Lost',            pct:75, range:null,    act:3, hint:'💀 低谷瞬間：失去重要事物或人。感受到死亡的氣息，一切看起來都沒希望了。' },
+  { id:'dnots',     zh:'靈魂暗夜',       en:'Dark Night of the Soul', pct:80, range:[75,85], act:3, hint:'🕯️ 黎明前的黑暗：主角在絕望中反省，找回最初缺失的那塊拼圖。' },
+  { id:'break3',    zh:'突破進入第三幕', en:'Break into Three',       pct:85, range:null,    act:3, hint:'🔥 最後覺醒：發現解決問題的關鍵。這一次，主角帶著全新的自我回來了。' },
+  { id:'finale',    zh:'結局',           en:'Finale',                 pct:92, range:[85,99], act:3, hint:'⚔️ 大決戰：運用學到的教訓，徹底解決問題。舊世界秩序被徹底重組。' },
+  { id:'final_img', zh:'終場畫面',       en:'Final Image',            pct:100,range:null,    act:3, hint:'🏁 最終蛻變：與開場畫面呼應，展現主角與世界發生的巨大變化。' },
+];
+
+var ACT_COLORS = { 1:'act1', 2:'act2', 3:'act3' };
+
+function getTotalScriptSecs(){
+  var blocks = getBlocks();
+  var total = 0;
+  blocks.forEach(function(b, i){ if(b.type === 'scene') total += getSceneSecs(i); });
+  return total;
+}
+
+function getAccumulatedSecsUpTo(sceneBlockIdx){
+  var blocks = getBlocks();
+  var total = 0;
+  for(var i = 0; i <= sceneBlockIdx; i++){
+    if(blocks[i].type === 'scene') total += getSceneSecs(i);
+  }
+  return total;
+}
+
+function getCurrentScenePct(){
+  var blocks = getBlocks();
+  var total = getTotalScriptSecs();
+  if(total === 0) return 0;
+  var idx = typeof activeLineIdx !== 'undefined' ? activeLineIdx : 0;
+  var sceneIdx = 0;
+  for(var i = idx; i >= 0; i--){
+    if(blocks[i] && blocks[i].type === 'scene'){ sceneIdx = i; break; }
+  }
+  return (getAccumulatedSecsUpTo(sceneIdx) / total) * 100;
+}
+
+var _ghostTimer = null;
+var _lastGhostBeat = null;
+
+function updateGhostBeat(){
+  var blocks = getBlocks();
+  var total = getTotalScriptSecs();
+  if(total < 30){ hideGhostBeat(); return; }
+
+  // 找目前游標所在場景
+  var idx = typeof activeLineIdx !== 'undefined' ? (activeLineIdx || 0) : 0;
+  var sceneIdx = 0;
+  for(var i = idx; i >= 0; i--){
+    if(blocks[i] && blocks[i].type === 'scene'){ sceneIdx = i; break; }
+  }
+
+  var currentBlock = blocks[sceneIdx];
+
+  // 優先：手動標記的節點
+  var matched = null;
+  if(currentBlock && currentBlock.beatId){
+    matched = BEAT_SHEET_MASTER.find(function(b){ return b.id === currentBlock.beatId; });
+  }
+
+  // 備用：依時間比例自動推算
+  if(!matched){
+    var pct = (getAccumulatedSecsUpTo(sceneIdx) / total) * 100;
+    BEAT_SHEET_MASTER.forEach(function(beat){
+      var lo = beat.range ? beat.range[0] : beat.pct - 2;
+      var hi = beat.range ? beat.range[1] : beat.pct + 2;
+      if(pct >= lo - 2 && pct <= hi + 2) matched = beat;
+    });
+  }
+
+  if(!matched){ hideGhostBeat(); return; }
+  // 手動標記的每次都顯示；自動推算的同節點不重複
+  var isManual = currentBlock && currentBlock.beatId;
+  if(!isManual && matched.id === _lastGhostBeat) return;
+  _lastGhostBeat = matched.id;
+
+  var el = document.getElementById('ghost-beat');
+  document.getElementById('gb-name').textContent = matched.zh;
+  document.getElementById('gb-en').textContent = matched.en + ' · ' + (matched.range ? matched.range[0]+'-'+matched.range[1] : matched.pct) + '%'
+    + (isManual ? ' 〔已標記〕' : ' 〔自動推算〕');
+  document.getElementById('gb-hint').textContent = matched.hint;
+  el.className = 'visible ' + ACT_COLORS[matched.act];
+  clearTimeout(_ghostTimer);
+  _ghostTimer = setTimeout(hideGhostBeat, isManual ? 4000 : 5000);
+}
+
+function hideGhostBeat(){
+  var el = document.getElementById('ghost-beat');
+  if(el) el.classList.remove('visible');
+  _lastGhostBeat = null;
+}
+
+function openBeatDiagnosis(){
+  var total = getTotalScriptSecs();
+  var blocks = getBlocks();
+  var body = document.getElementById('beat-diag-body');
+
+  if(total < 10){
+    body.innerHTML = '<div style="padding:24px;text-align:center;color:var(--ink3);font-size:12px">劇本時長不足，請先寫入更多場次內容。</div>';
+    document.getElementById('beat-diag-overlay').classList.add('open');
+    return;
+  }
+
+  // 收集場次
+  var sceneList = [];
+  blocks.forEach(function(b, i){
+    if(b.type === 'scene'){
+      var pct = (getAccumulatedSecsUpTo(i) / total) * 100;
+      sceneList.push({ idx: i, text: b.text || '（未命名）', pct: pct, beatId: b.beatId || null });
+    }
+  });
+  var manualCount = sceneList.filter(function(s){ return s.beatId; }).length;
+
+  // 進度條
+  var barHtml = '<div style="margin-bottom:18px">'
+    + '<div style="font-size:11px;color:var(--ink3);margin-bottom:8px">'
+    + '總片長：<b style="color:var(--ink)">' + fmtSecs(total) + '</b>'
+    + '　場次：<b style="color:var(--ink)">' + sceneList.length + '</b>'
+    + '　手動節點：<b style="color:var(--ink)">' + manualCount + ' / ' + BEAT_SHEET_MASTER.length + '</b>'
+    + '</div>'
+    + '<div class="beat-progress-bar" style="height:20px;position:relative;overflow:visible">'
+    + '<div style="position:absolute;inset:0;border-radius:6px;background:linear-gradient(90deg,#FFF3CC 0%,#FFF3CC 25%,#E0F0EE 25%,#E0F0EE 75%,#FAEDED 75%,#FAEDED 100%)"></div>';
+
+  BEAT_SHEET_MASTER.forEach(function(beat){
+    barHtml += '<div style="position:absolute;top:0;width:1px;height:100%;background:rgba(0,0,0,0.18);left:'+beat.pct+'%" title="'+beat.zh+' 理想 '+beat.pct+'%"></div>';
+  });
+  sceneList.forEach(function(s){
+    if(!s.beatId) return;
+    var beat = BEAT_SHEET_MASTER.find(function(b){ return b.id === s.beatId; });
+    if(!beat) return;
+    var actColor = beat.act===1?'#C8A000':beat.act===2?'#0A8870':'#C04040';
+    barHtml += '<div style="position:absolute;top:-3px;width:4px;height:calc(100% + 6px);background:'+actColor+';border-radius:2px;left:calc('+s.pct.toFixed(1)+'% - 2px)" title="'+beat.zh+'：'+s.text.slice(0,20)+'（'+s.pct.toFixed(1)+'%）"></div>';
+  });
+
+  barHtml += '</div>'
+    + '<div style="display:flex;gap:14px;font-size:10px;margin-top:8px;flex-wrap:wrap">'
+    + '<span style="color:#C8A000">■ 第一幕（0–25%）</span>'
+    + '<span style="color:#0A8870">■ 第二幕（25–75%）</span>'
+    + '<span style="color:#C04040">■ 第三幕（75–100%）</span>'
+    + '<span style="color:rgba(0,0,0,0.3)">｜理想位置</span>'
+    + '<span style="color:var(--amber)">┃ 手動標記</span>'
+    + '</div></div>';
+
+  // 未標記提示
+  var hintBanner = manualCount === 0
+    ? '<div style="background:var(--amber-l);border:1px solid #E8C840;border-radius:7px;padding:9px 14px;margin-bottom:12px;font-size:11px;color:#7A5500;line-height:1.7">'
+      + '💡 在場景標題行旁點擊 <strong>＋ 節點</strong>，標記你認為的轉折點，系統就能比對與推算結果的差距。'
+      + '</div>'
+    : '';
+
+  // 表頭 — 5欄：節點 / 系統推算 / 手動標記 / 差距 / 劇作提示
+  var GRID = 'grid-template-columns:110px 140px 140px 55px 1fr';
+  var headerHtml = '<div style="display:grid;'+GRID+';gap:6px;padding:4px 8px 6px 10px;border-bottom:2px solid var(--border);font-size:10px;font-weight:700;color:var(--ink3)">'
+    + '<span>節點</span><span>系統推算場次</span><span>手動標記場次</span><span style="text-align:center">差距</span><span>劇作提示</span>'
+    + '</div>';
+
+  // 表格列
+  var tableHtml = '<div style="display:flex;flex-direction:column;gap:2px">';
+
+  BEAT_SHEET_MASTER.forEach(function(beat){
+    var actColor = beat.act===1?'#C8A000':beat.act===2?'#0A8870':'#C04040';
+
+    // 自動推算
+    var autoScene = null, minDiff = 999;
+    sceneList.forEach(function(s){
+      var d = Math.abs(s.pct - beat.pct);
+      if(d < minDiff){ minDiff = d; autoScene = s; }
+    });
+
+    // 手動標記
+    var manualScene = sceneList.find(function(s){ return s.beatId === beat.id; });
+
+    // 差距
+    var gapPct = (manualScene && autoScene) ? Math.abs(manualScene.pct - autoScene.pct) : null;
+    var gapColor = gapPct === null ? 'var(--ink4)' : gapPct <= 5 ? 'var(--teal)' : gapPct <= 12 ? '#C8A000' : 'var(--red)';
+    var gapLabel = gapPct === null ? '—' : gapPct <= 5 ? '✓ 吻合' : gapPct <= 12 ? '⚠ +'+gapPct.toFixed(0)+'%' : '✕ +'+gapPct.toFixed(0)+'%';
+
+    var autoTitle  = autoScene  ? esc(autoScene.text.length>18?autoScene.text.slice(0,18)+'…':autoScene.text)  : '—';
+    var autoPct    = autoScene  ? autoScene.pct.toFixed(1)+'%'  : '—';
+    var manTitle   = manualScene ? esc(manualScene.text.length>18?manualScene.text.slice(0,18)+'…':manualScene.text) : '（未標記）';
+    var manPct     = manualScene ? manualScene.pct.toFixed(1)+'%' : '';
+
+    tableHtml += '<div style="display:grid;'+GRID+';gap:6px;align-items:start;padding:8px 8px 8px 10px;border-left:3px solid '+actColor+';border-bottom:1px solid var(--border)">'
+
+      // 節點名稱
+      + '<div><div style="font-weight:700;font-size:11px;color:var(--ink2)">'+beat.zh+'</div>'
+      + '<div style="font-size:9px;color:var(--ink4)">'+beat.en+' · '+beat.pct+'%</div></div>'
+
+      // 系統推算
+      + '<div><div style="font-size:11px;color:var(--ink2)">'+autoTitle+'</div>'
+      + '<div style="font-size:10px;font-family:monospace;color:var(--ink3)">'+autoPct+'</div></div>'
+
+      // 手動標記
+      + '<div><div style="font-size:11px;color:'+(manualScene?'var(--ink2)':'var(--ink4)')+'">'+manTitle+'</div>'
+      + '<div style="font-size:10px;font-family:monospace;color:'+(manualScene?actColor:'var(--ink4)')+'">'+(manPct)+'</div></div>'
+
+      // 差距
+      + '<div style="text-align:center;padding-top:2px"><span style="font-size:10px;font-weight:700;color:'+gapColor+'">'+gapLabel+'</span></div>'
+
+      // 劇作提示（永遠顯示）
+      + '<div style="font-size:10px;color:var(--ink3);line-height:1.6;padding-top:1px">'+beat.hint+'</div>'
+
+      + '</div>';
+  });
+
+  tableHtml += '</div>';
+
+  body.innerHTML = barHtml + hintBanner + headerHtml + tableHtml;
+  document.getElementById('beat-diag-overlay').classList.add('open');
+}
+function closeBeatDiagnosis(){
+  document.getElementById('beat-diag-overlay').classList.remove('open');
+}
+
+var _beatTimer = null;
+function scheduleBeatUpdate(){
+  clearTimeout(_beatTimer);
+  _beatTimer = setTimeout(updateGhostBeat, 600);
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(function(){
+    document.addEventListener('focusin', function(e){
+      if(e.target && e.target.classList && e.target.classList.contains('sl-content')){
+        scheduleBeatUpdate();
+      }
+    });
+  }, 400);
+});
+
+
 // visualizer: 未來可在此實作「伏筆跨度圖」
 // function drawForeshadowVisualizer(containerId){ ... }
 
@@ -6459,6 +6934,37 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 </script>
+
+<!-- BEAT PICKER MODAL -->
+<div class="beat-picker-overlay" id="beat-picker-overlay" onclick="if(event.target===this)closeBeatPicker()">
+  <div class="beat-picker-box">
+    <div style="font-weight:700;font-size:13px;color:var(--ink);display:flex;align-items:center;justify-content:space-between">
+      <span>🎯 標記結構節點</span>
+      <button class="icon-btn" onclick="closeBeatPicker()">✕</button>
+    </div>
+    <div style="font-size:10px;color:var(--ink3)" id="beat-picker-subtitle"></div>
+    <div id="beat-picker-list" style="overflow-y:auto;display:flex;flex-direction:column;gap:4px"></div>
+    <button class="tbtn danger" id="beat-picker-clear" style="font-size:11px;align-self:flex-start;display:none" onclick="clearBeatLabel()">✕ 移除節點標記</button>
+  </div>
+</div>
+
+<!-- GHOST BEAT GUIDE -->
+<div id="ghost-beat" aria-hidden="true">
+  <div class="gb-name" id="gb-name"></div>
+  <div class="gb-en" id="gb-en"></div>
+  <div class="gb-hint" id="gb-hint"></div>
+</div>
+
+<!-- BEAT DIAGNOSIS MODAL -->
+<div class="beat-diag-overlay" id="beat-diag-overlay" onclick="if(event.target===this)closeBeatDiagnosis()">
+  <div class="beat-diag-box">
+    <div class="beat-diag-hdr">
+      <h2>🎯 Save the Cat 結構診斷</h2>
+      <button class="icon-btn" onclick="closeBeatDiagnosis()">✕</button>
+    </div>
+    <div class="beat-diag-body" id="beat-diag-body"></div>
+  </div>
+</div>
 
 <!-- DURATION OVERRIDE MODAL -->
 <div id="dur-override-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9200;align-items:center;justify-content:center">
