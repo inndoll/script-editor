@@ -1548,7 +1548,9 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       <button onclick="showGuideSection(9,this)">快照分享</button>
       <button onclick="showGuideSection(10,this)">自動儲存與版本</button>
       <button onclick="showGuideSection(11,this)">快捷鍵總覽</button>
-      <button onclick="showGuideSection(12,this)">常見問題</button>
+      <button onclick="showGuideSection(12,this)">🔫 伏筆系統</button>
+      <button onclick="showGuideSection(13,this)">⏱ 拍攝時長</button>
+      <button onclick="showGuideSection(14,this)">常見問題</button>
     </div>
     <div id="guide-body"></div>
   </div>
@@ -5521,40 +5523,7 @@ async function generateSnapshot(action){
 var GUIDE_SECTIONS = [
 
 // 0 — 介面總覽
-'<h2>🗂 介面總覽</h2>'
-+'<p>小葉劇本工坊採用<strong>三欄式</strong>佈局，讓你在同一個畫面中同時處理劇本內容、專案資料與格式預覽。</p>'
-+'<h3>頂部工具列（左→右）</h3>'
-+'<ul>'
-+'<li><strong>專案選單</strong>：切換劇本專案</li>'
-+'<li><strong>＋ 新劇本</strong>：建立新劇本，自動跳出專案設定選擇格式</li>'
-+'<li><strong>✏ / ⚙ / 🗑</strong>：重新命名 / 專案設定（含格式選擇）/ 刪除</li>'
-+'<li><strong>六種格式按鈕</strong>：游標所在行的格式會高亮顯示</li>'
-+'<li><strong>劇本格式切換</strong>：好萊塢 / 優劇 / 電視劇，隨時可切換</li>'
-+'<li><strong>⬆ 匯入劇本</strong>：貼上純文字或上傳 Word 檔自動辨識格式</li>'
-+'<li><strong>⬇ Fountain / Word / 備份 JSON / ⬆ 還原備份 / 🖨 列印 PDF</strong>：匯出與備份</li>'
-+'<li><strong>📸 快照分享</strong>：生成劇本圖片快照，可直接貼到 LINE / Messenger</li>'
-+'<li><strong>使用指南</strong>：開啟本視窗</li>'
-+'<li><strong>◀ ▶</strong>：收合 / 展開左右側欄（可拖曳分隔線調整寬度）</li>'
-+'</ul>'
-+'<h3>左側資料欄（五個頁籤）</h3>'
-+'<ul>'
-+'<li><strong>場景</strong>：自動列出所有場景標題，點擊跳轉</li>'
-+'<li><strong>分場卡</strong>：管理場景詳細資料，可拖曳排序、導入劇本</li>'
-+'<li><strong>角色</strong>：建立角色資料卡</li>'
-+'<li><strong>筆記</strong>：自由記錄靈感與備忘</li>'
-+'<li><strong>資料</strong>：上傳圖片、PDF 等參考文件（支援拖曳）</li>'
-+'</ul>'
-+'<h3>中央編輯區</h3>'
-+'<p>頂端輸入劇本標題與副標題，下方逐行輸入劇本內容。編輯區採<strong>所見即所得</strong>排版——好萊塢格式的角色名稱和對白會直接顯示縮排，電視劇格式的動作描述前會顯示 △，切換格式時即時反映。</p>'
-+'<h3>右側面板（四個頁籤）</h3>'
-+'<ul>'
-+'<li><strong>預覽</strong>：即時模擬正式劇本排版</li>'
-+'<li><strong>統計</strong>：場景數、字數、對白行、角色台詞排行</li>'
-+'<li><strong>歷史</strong>：版本快照列表，可回溯任意版本</li>'
-+'<li><strong>格式說明</strong>：Fountain 標記對照表</li>'
-+'</ul>'
-+'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body"><strong>從範例劇本開始</strong>切換到「📖 範例劇本（觀摩用）」，可以看到六種格式、分場卡、角色卡的完整示範。</div></div>',
-
+'<h2>🗂 介面總覽</h2>'+'<p>小葉劇本工坊採用<strong>三欄式</strong>佈局，讓你在同一個畫面中同時處理劇本內容、專案資料與格式預覽。</p>'+'<h3>頂部工具列（左→右）</h3>'+'<ul>'+'<li><strong>專案選單</strong>：切換劇本專案</li>'+'<li><strong>＋ 新劇本</strong>：建立新劇本，自動跳出專案設定選擇格式</li>'+'<li><strong>✏ / ⚙ / 🗑</strong>：重新命名 / 專案設定（含格式選擇）/ 刪除</li>'+'<li><strong>六種格式按鈕</strong>：游標所在行的格式會高亮顯示</li>'+'<li><strong>劇本格式切換</strong>：好萊塢 / 優劇 / 電視劇，隨時可切換</li>'+'<li><strong>⬆ 匯入劇本</strong>：貼上純文字或上傳 Word 檔自動辨識格式</li>'+'<li><strong>⬇ Fountain / Word / 備份 JSON / ⬆ 還原備份 / 🖨 列印 PDF</strong>：匯出與備份</li>'+'<li><strong>🎬 電影 / 📺 電視劇 / ⚡ 短影音</strong>：拍攝時長估算的劇種模式，每個專案各自記住設定</li>'+'<li><strong>📸 快照分享</strong>：生成劇本圖片快照，可直接貼到 LINE / Messenger</li>'+'<li><strong>使用指南</strong>：開啟本視窗</li>'+'<li><strong>◀ ▶</strong>：收合 / 展開左右側欄（可拖曳分隔線調整寬度）</li>'+'</ul>'+'<h3>左側資料欄（六個頁籤）</h3>'+'<ul>'+'<li><strong>場景</strong>：自動列出所有場景標題，點擊跳轉</li>'+'<li><strong>分場卡</strong>：管理場景詳細資料，可拖曳排序、導入劇本、標記伏筆與收梗</li>'+'<li><strong>角色</strong>：建立角色資料卡</li>'+'<li><strong>筆記</strong>：自由記錄靈感與備忘</li>'+'<li><strong>資料</strong>：上傳圖片、PDF 等參考文件（支援拖曳）</li>'+'<li><strong>伏筆</strong>：「伏筆槍櫃」—— 追蹤從劇本主文標記的所有鋪梗與收梗</li>'+'</ul>'+'<h3>中央編輯區</h3>'+'<p>頂端輸入劇本標題與副標題，下方逐行輸入劇本內容。每個場景標題行右側顯示綠色 <code>⏱</code> 預估拍攝時長徽章，點擊可手動覆蓋。底部狀態列顯示預估<strong>總片長</strong>。</p>'+'<h3>右側面板（四個頁籤）</h3>'+'<ul>'+'<li><strong>預覽</strong>：即時模擬正式劇本排版</li>'+'<li><strong>統計</strong>：場景數、字數、對白行、角色台詞排行</li>'+'<li><strong>歷史</strong>：版本快照列表，可回溯任意版本</li>'+'<li><strong>格式說明</strong>：Fountain 標記對照表</li>'+'</ul>'+'<div class=\"g-callout tip\"><span class=\"g-callout-icon\">💡</span><div class=\"g-callout-body\"><strong>從範例劇本開始</strong>切換到「📖 範例劇本（觀摩用）」，可以看到六種格式、分場卡、角色卡的完整示範。</div></div>',
 // 1 — 專案管理
 '<h2>📁 專案管理</h2>'
 +'<p>每個劇本都是一個獨立的<strong>專案</strong>，擁有自己的劇本、分場卡、角色、筆記。</p>'
@@ -5614,17 +5583,7 @@ var GUIDE_SECTIONS = [
 +'<div class="g-callout tip"><span class="g-callout-icon">⌨️</span><div class="g-callout-body"><strong>Alt + T 快捷鍵</strong>在場景標題行按 <kbd>Alt</kbd>+<kbd>T</kbd>，循環切換四個時間選項。</div></div>',
 
 // 5 — 分場卡系統
-'<h2>🗂 分場卡系統</h2>'
-+'<h3>新增分場卡</h3>'
-+'<p>切換到左側「分場卡」頁籤，點 <strong>＋</strong>。欄位包含場次、標題、地點、時間、室內外、出場角色、場景功能、衝突、備註。</p>'
-+'<h3>從劇本主文導入分場</h3>'
-+'<p>點分場卡欄底部的「<strong>＋ 從劇本主文導入分場</strong>」，自動掃描所有場景標題行，為每個未建卡的場景建立對應分場卡。</p>'
-+'<h3>導入劇本</h3>'
-+'<p>在分場卡上點 <strong>⬇ 導入劇本</strong>，自動插入場景標題、動作描述、角色與對白行。導入後兩者建立連結，各自修改互不影響。</p>'
-+'<h3>拖曳排序與重排劇本</h3>'
-+'<p>按住分場卡拖曳調整順序，再點「<strong>↕ 依分場卡順序重排劇本</strong>」，讓劇本場景順序和分場卡一致。</p>'
-+'<div class="g-callout warn"><span class="g-callout-icon">⚠️</span><div class="g-callout-body"><strong>重排前請備份</strong>建議先下載「⬇ 備份 JSON」。</div></div>',
-
+'<h2>🗂 分場卡系統</h2>'+'<h3>新增分場卡</h3>'+'<p>切換到左側「分場卡」頁籤，點 <strong>＋</strong>。欄位包含場次、標題、地點、時間、室內外、出場角色、場景功能、衝突、備註。</p>'+'<h3>從劇本主文導入分場</h3>'+'<p>點分場卡欄底部的「<strong>＋ 從劇本主文導入分場</strong>」，自動掃描所有場景標題行，為每個未建卡的場景建立對應分場卡。</p>'+'<h3>導入劇本</h3>'+'<p>在分場卡上點 <strong>⬇ 導入劇本</strong>，自動插入場景標題、動作描述、角色與對白行。導入後兩者建立連結，各自修改互不影響。</p>'+'<h3>拖曳排序與重排劇本</h3>'+'<p>按住分場卡拖曳調整順序，再點「<strong>↕ 依分場卡順序重排劇本</strong>」，讓劇本場景順序和分場卡一致。</p>'+'<div class=\"g-callout warn\"><span class=\"g-callout-icon\">⚠️</span><div class=\"g-callout-body\"><strong>重排前請備份</strong>建議先下載「⬇ 備份 JSON」。</div></div>'+'<h3>📌 加伏筆 ／ 🪝 收梗</h3>'+'<p>每張分場卡底部有兩個伏筆按鈕，用於<strong>故事設計層</strong>的伏筆規劃，與劇本主文的伏筆系統完全獨立：</p>'+'<ul>'+'<li><strong>📌 加伏筆</strong>：為這場戲記下要埋的梗（關鍵字、道具、台詞伏筆），顯示為黃色標籤</li>'+'<li><strong>🪝 收梗</strong>：指定這場要交代哪個之前埋下的梗，從彈窗選單選擇，顯示為藍色標籤</li>'+'</ul>'+'<p>標籤上的 × 可直接刪除記錄。這兩個功能讓你在寫劇本之前，就能在分場規劃階段追蹤所有伏筆的佈局。</p>',
 // 6 — 角色與筆記
 '<h2>👤 角色與筆記</h2>'
 +'<h3>角色資料卡</h3>'
@@ -5710,7 +5669,14 @@ var GUIDE_SECTIONS = [
 +'<tr><td>關閉使用指南</td><td><kbd>Esc</kbd> 或點視窗外</td></tr>'
 +'</table>',
 
-// 12 — FAQ
+// 12 — 伏筆系統（契訶夫之槍）
+'<h2>🔫 伏筆系統（契訶夫之槍）</h2>'+'<p>將「契訶夫之槍」理論產品化：確保劇本前期埋下的所有伏筆，後期都有對應的交代。系統分為<strong>兩個層次</strong>獨立運作：</p>'+'<h3>層次一：分場卡設計層</h3>'+'<p>在寫劇本之前，先在分場卡規劃哪場要埋梗、哪場要收梗。這是故事架構設計的一環，不依賴劇本文字是否已寫出。詳見「分場卡系統」章節。</p>'+'<h3>層次二：劇本主文標記層</h3>'+'<p>在劇本編輯區<strong>選取任意文字</strong>，右鍵呼出選單：</p>'+'<ul>'+'<li><strong>📌 標記鋪梗</strong>：記錄這段文字是一個伏筆，自動記錄所在場次、所屬幕次（第一/二/三幕）、建立時間</li>'+'<li><strong>🪝 標記收梗</strong>：將這段文字與之前的鋪梗建立連結，從彈窗清單選擇</li>'+'</ul>'+'<h3>伏筆槍櫃</h3>'+'<p>左側「伏筆」頁籤列出所有鋪梗記錄，分「⏳ 待收梗」與「✅ 已完成」兩區。每張伏筆卡片顯示：</p>'+'<ul>'+'<li>鋪梗的原文片段</li>'+'<li>所在場次標題與三幕劇位置</li>'+'<li>鋪梗到收梗的場次距離（跨幾場）</li>'+'<li>建立時間</li>'+'</ul>'+'<p>點擊卡片會平滑捲動到劇本對應位置。</p>'+'<h3>契訶夫警報</h3>'+'<p>只要還有未收的梗，「伏筆」頁籤旁會出現<strong>橘色計數徽章</strong>。</p>',
+
+// 13 — 拍攝時長估算
+'<h2>⏱ 拍攝時長估算</h2>'+'<p>針對繁體中文劇本設計的時長估算系統。好萊塢的「一頁一分鐘」不適用中文，本系統依劇種分別設定對白與動作的換算權重。</p>'+'<h3>劇種模式</h3>'+'<p>在頂部工具列選擇劇種，<strong>每個劇本專案各自記住設定</strong>：</p>'+'<table class=\"g-table\">'+'<tr><th>模式</th><th>對白節奏</th><th>動作描述</th><th>適用場合</th></tr>'+'<tr><td>🎬 電影</td><td>4 字／秒</td><td>每 10 字 ≈ 2 秒</td><td>劇情片、藝術片</td></tr>'+'<tr><td>📺 電視劇</td><td>5 字／秒</td><td>每 10 字 ≈ 1 秒</td><td>台灣電視劇</td></tr>'+'<tr><td>⚡ 短影音</td><td>4.5 字／秒</td><td>每 10 字 ≈ 0.6 秒</td><td>廣告、網路影片</td></tr>'+'</table>'+'<h3>即時顯示</h3>'+'<ul>'+'<li><strong>場景標題行旁</strong>：綠色 <code>⏱ 0&#39;30&quot;</code> 徽章，打字時自動更新</li>'+'<li><strong>底部狀態列</strong>：顯示全劇本預估<strong>總片長</strong></li>'+'</ul>'+'<h3>手動覆蓋</h3>'+'<p>點擊場景標題行旁的時長徽章，可手動輸入秒數。有手動值的徽章顏色加深。點「清除手動值」可還原為自動計算。</p>'+'<h3>括號自動排除</h3>'+'<p>計算對白字數時，<code>（ ）</code> 內的語氣說明會自動排除，不計入說話時間。</p>'+'<div class=\"g-callout note\"><span class=\"g-callout-icon\">📌</span><div class=\"g-callout-body\">估算結果僅供參考。實際拍攝時長受導演風格、演員詮釋、現場狀況影響，建議配合自身過往作品校正參數。</div></div>',
+
+// 14 — FAQ
+// 14 — FAQ
 '<h2>❓ 常見問題</h2>'
 +'<h3>Q：三種格式要用哪一個？</h3>'
 +'<p>投稿<strong>優良電影劇本獎</strong>用「優劇」；寫<strong>台灣電視劇</strong>（如戲說台灣等電視台）用「電視劇」；其他場合或習慣好萊塢規格用「好萊塢」。</p>'
