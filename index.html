@@ -481,7 +481,7 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
   #topbar,#left,#right,#statusbar,.editor-toolbar,.add-line-row,
   .sl-num,.sl-type-wrap,.scene-int-wrap,.scene-time-wrap,
   .sl-check,#multiselect-bar,#ms-toggle-btn,
-  .dur-badge,.beat-label,.beat-add-btn,#ghost-beat{display:none!important}
+  .dur-badge,.beat-label,.beat-add-btn{display:none!important}
 
   /* Reset all height/overflow/flex constraints so content flows across pages */
   html,body{
@@ -715,20 +715,6 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
 .ctx-item.danger:hover{background:var(--red-l)}
 
 /* ── BEAT STRUCTURE SYSTEM ───────────────────── */
-#ghost-beat{
-  position:fixed;right:0;top:50%;transform:translateY(-50%);
-  max-width:220px;padding:10px 14px;border-radius:8px 0 0 8px;
-  font-size:11px;line-height:1.5;pointer-events:none;
-  opacity:0;transition:opacity 0.5s ease;z-index:800;
-  border-left:3px solid currentColor;
-}
-#ghost-beat.visible{opacity:0.85}
-#ghost-beat.act1{background:#FFF8E8;color:#8A6000;border-color:#C8A000}
-#ghost-beat.act2{background:#E8F5F3;color:#0A5850;border-color:#0A8870}
-#ghost-beat.act3{background:#FDF0F0;color:#7A1C1C;border-color:#C04040}
-#ghost-beat .gb-name{font-weight:700;font-size:12px;margin-bottom:3px}
-#ghost-beat .gb-en{font-size:10px;opacity:0.7;margin-bottom:4px}
-#ghost-beat .gb-hint{font-size:10px;opacity:0.85;line-height:1.6}
 .beat-diag-overlay{
   display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
   z-index:9500;align-items:center;justify-content:center;
@@ -1315,6 +1301,10 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
 
       <!-- STATS -->
       <div class="right-panel active" id="rpanel-stats">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:10px;color:var(--ink3);letter-spacing:1px;font-weight:700;text-transform:uppercase">劇本統計</span>
+          <button onclick="updateStats()" style="font-size:10px;padding:3px 10px;border:1px solid var(--border2);border-radius:5px;background:var(--bg);color:var(--ink2);cursor:pointer;font-family:inherit" title="重新計算統計數字">↻ 重新統計</button>
+        </div>
         <div class="stat-grid">
           <div class="stat-box"><span class="stat-num" id="stat-scenes">0</span><span class="stat-lbl">場景數</span></div>
           <div class="stat-box"><span class="stat-num" id="stat-lines">0</span><span class="stat-lbl">總行數</span></div>
@@ -2254,7 +2244,6 @@ function onLineFocus(i){
   activeLineIdx = i;
   document.querySelectorAll('.sl').forEach((r,idx)=>r.classList.toggle('focused',idx===i));
   updateModeIndicator();
-  scheduleBeatUpdate(); // 幽靈提示
 }
 
 function onLineInput(i,el){
@@ -2949,19 +2938,32 @@ function updateStats(){
   const total = blocks.length || 1;
   const breakdown = document.getElementById('stat-type-breakdown');
   if(breakdown){
-    breakdown.innerHTML = typeInfo.map(function(t){
+    // 彩色合併進度條
+    const barSegments = typeInfo.map(function(t){
       const count = typeCounts[t.type] || 0;
-      const pct = Math.round(count / total * 100);
-      return '<div style="margin-bottom:6px">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">'
-        + '<span style="font-size:11px;color:var(--ink2)">' + t.label + '</span>'
-        + '<span style="font-family:monospace;font-size:11px;color:var(--ink3)">' + count + ' 行</span>'
-        + '</div>'
-        + '<div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">'
-        + '<div style="height:100%;width:' + pct + '%;background:' + t.color + ';border-radius:2px;transition:width 0.3s"></div>'
-        + '</div>'
-        + '</div>';
+      const pct = (count / total * 100).toFixed(1);
+      return pct > 0 ? '<div style="height:100%;width:'+pct+'%;background:'+t.color+';transition:width 0.3s" title="'+t.label+' '+count+'行"></div>' : '';
     }).join('');
+
+    breakdown.innerHTML =
+      // 彩色合併進度條
+      '<div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;display:flex;margin-bottom:12px">' + barSegments + '</div>'
+      // 各格式細項
+      + typeInfo.map(function(t){
+        const count = typeCounts[t.type] || 0;
+        const pct = Math.round(count / total * 100);
+        return '<div style="margin-bottom:6px">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">'
+          + '<span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink2)">'
+          + '<span style="width:8px;height:8px;border-radius:50%;background:'+t.color+';flex-shrink:0;display:inline-block"></span>'
+          + t.label + '</span>'
+          + '<span style="font-family:monospace;font-size:11px;color:var(--ink3)">' + count + ' 行</span>'
+          + '</div>'
+          + '<div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">'
+          + '<div style="height:100%;width:'+pct+'%;background:'+t.color+';border-radius:2px;transition:width 0.3s"></div>'
+          + '</div>'
+          + '</div>';
+      }).join('');
   }
 
   // Active scene
@@ -4606,7 +4608,7 @@ function assetDrop(e){
 // ═══════════════════════════════════════════════
 var LS_KEY       = 'xiaoyeEditor_v1';
 var LS_BUILTIN_VER = 'xiaoyeBuiltinVer_v1'; // 更新內建範例時遞增這個版本號
-var CURRENT_BUILTIN_VER = 4; // 目前版本：4=移除鬼片
+var CURRENT_BUILTIN_VER = 5; // 目前版本：5=修正統計/移除預覽/重構工具列
 var LS_HIST_KEY  = 'xiaoyeHistory_v1';
 var LS_TITLE_KEY = 'xiaoyeTitle_v1';
 var MAX_HISTORY  = 50;
@@ -5004,9 +5006,14 @@ window.addEventListener('DOMContentLoaded', function(){
 
   // Patch scheduleUpdate and renderAll (now safe — all functions defined)
   var _origSU = scheduleUpdate;
-  scheduleUpdate = function(){ _origSU(); debouncedSave(); };
+  scheduleUpdate = function(){ try{ _origSU(); }catch(e){} try{ debouncedSave(); }catch(e){} };
   var _origRA = renderAll;
-  renderAll = function(){ _origRA(); debouncedSave(); autoSnapshot('自動快照'); syncEditorFormatClass(); };
+  renderAll = function(){
+    try{ _origRA(); }catch(e){ console.warn('renderAll error:', e); }
+    try{ debouncedSave(); }catch(e){}
+    try{ autoSnapshot('自動快照'); }catch(e){}
+    try{ syncEditorFormatClass(); }catch(e){}
+  };
 
   // Boot sequence
   loadFromStorage();
@@ -5018,6 +5025,14 @@ window.addEventListener('DOMContentLoaded', function(){
   // Init panel resize dividers
   initPanelResize('divider-left',  'left',  'left');
   initPanelResize('divider-right', 'right', 'right');
+
+  // Init guide first section
+  var gb = document.getElementById('guide-body');
+  if(gb) gb.innerHTML = GUIDE_SECTIONS[0];
+  // Show welcome modal on first visit
+  showWelcomeIfNeeded();
+  // Check if opened via share link
+  checkShareHash();
 });
 
 // ── Panel resize ─────────────────────────────────
@@ -5418,19 +5433,7 @@ function confirmImport(){
 // ═══════════════════════════════════════════════
 //  INIT — runs after ALL script blocks are parsed
 // ═══════════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', function(){
-  loadFromStorage();
-  renderAll();
-  restoreDomFromStorage();
-  renderHistoryPanel();
-  // Init guide first section
-  var gb = document.getElementById('guide-body');
-  if(gb) gb.innerHTML = GUIDE_SECTIONS[0];
-  // Show welcome modal on first visit
-  showWelcomeIfNeeded();
-  // Check if opened via share link
-  checkShareHash();
-});
+
 
 
 // ══════════════════════════════════════════════
@@ -6591,6 +6594,101 @@ var BEAT_SHEET_MASTER = [
 
 var ACT_COLORS = { 1:'act1', 2:'act2', 3:'act3' };
 
+function openBeatDiagnosis(){
+  var total = getTotalScriptSecs();
+  var blocks = getBlocks();
+  var body = document.getElementById('beat-diag-body');
+
+  if(total < 10){
+    body.innerHTML = '<div style="padding:24px;text-align:center;color:var(--ink3);font-size:12px">劇本時長不足，請先寫入更多場次內容。</div>';
+    document.getElementById('beat-diag-overlay').classList.add('open');
+    return;
+  }
+
+  var sceneList = [];
+  blocks.forEach(function(b, i){
+    if(b.type === 'scene'){
+      var pct = (getAccumulatedSecsUpTo(i) / total) * 100;
+      sceneList.push({ idx: i, text: b.text || '（未命名）', pct: pct, beatId: b.beatId || null });
+    }
+  });
+  var manualCount = sceneList.filter(function(s){ return s.beatId; }).length;
+
+  var barHtml = '<div style="margin-bottom:18px">'
+    + '<div style="font-size:11px;color:var(--ink3);margin-bottom:8px">'
+    + '總片長：<b style="color:var(--ink)">' + fmtSecs(total) + '</b>'
+    + '　場次：<b style="color:var(--ink)">' + sceneList.length + '</b>'
+    + '　手動節點：<b style="color:var(--ink)">' + manualCount + ' / ' + BEAT_SHEET_MASTER.length + '</b>'
+    + '</div>'
+    + '<div class="beat-progress-bar" style="height:20px;position:relative;overflow:visible">'
+    + '<div style="position:absolute;inset:0;border-radius:6px;background:linear-gradient(90deg,#FFF3CC 0%,#FFF3CC 25%,#E0F0EE 25%,#E0F0EE 75%,#FAEDED 75%,#FAEDED 100%)"></div>';
+  BEAT_SHEET_MASTER.forEach(function(beat){
+    barHtml += '<div style="position:absolute;top:0;width:1px;height:100%;background:rgba(0,0,0,0.18);left:'+beat.pct+'%" title="'+beat.zh+' 理想 '+beat.pct+'%"></div>';
+  });
+  sceneList.forEach(function(s){
+    if(!s.beatId) return;
+    var beat = BEAT_SHEET_MASTER.find(function(b){ return b.id === s.beatId; });
+    if(!beat) return;
+    var actColor = beat.act===1?'#C8A000':beat.act===2?'#0A8870':'#C04040';
+    barHtml += '<div style="position:absolute;top:-3px;width:4px;height:calc(100% + 6px);background:'+actColor+';border-radius:2px;left:calc('+s.pct.toFixed(1)+'% - 2px)" title="'+beat.zh+'：'+s.text.slice(0,20)+'（'+s.pct.toFixed(1)+'%）"></div>';
+  });
+  barHtml += '</div>'
+    + '<div style="display:flex;gap:14px;font-size:10px;margin-top:8px;flex-wrap:wrap">'
+    + '<span style="color:#C8A000">■ 第一幕（0–25%）</span>'
+    + '<span style="color:#0A8870">■ 第二幕（25–75%）</span>'
+    + '<span style="color:#C04040">■ 第三幕（75–100%）</span>'
+    + '<span style="color:rgba(0,0,0,0.3)">｜理想位置</span>'
+    + '<span style="color:var(--amber)">┃ 手動標記</span>'
+    + '</div></div>';
+
+  var hintBanner = manualCount === 0
+    ? '<div style="background:var(--amber-l);border:1px solid #E8C840;border-radius:7px;padding:9px 14px;margin-bottom:12px;font-size:11px;color:#7A5500;line-height:1.7">'
+      + '💡 在場景標題行旁點擊 <strong>🎯 設定故事節點</strong>，標記你認為的轉折點，系統就能比對與推算結果的差距。'
+      + '</div>'
+    : '';
+
+  var GRID = 'grid-template-columns:110px 140px 140px 55px 1fr';
+  var headerHtml = '<div style="display:grid;'+GRID+';gap:6px;padding:4px 8px 6px 10px;border-bottom:2px solid var(--border);font-size:10px;font-weight:700;color:var(--ink3)">'
+    + '<span>節點</span><span>系統推算場次</span><span>手動標記場次</span><span style="text-align:center">差距</span><span>劇作提示</span>'
+    + '</div>';
+
+  var tableHtml = '<div style="display:flex;flex-direction:column;gap:2px">';
+  BEAT_SHEET_MASTER.forEach(function(beat){
+    var actColor = beat.act===1?'#C8A000':beat.act===2?'#0A8870':'#C04040';
+    var autoScene = null, minDiff = 999;
+    sceneList.forEach(function(s){
+      var d = Math.abs(s.pct - beat.pct);
+      if(d < minDiff){ minDiff = d; autoScene = s; }
+    });
+    var manualScene = sceneList.find(function(s){ return s.beatId === beat.id; });
+    var gapPct = (manualScene && autoScene) ? Math.abs(manualScene.pct - autoScene.pct) : null;
+    var gapColor = gapPct === null ? 'var(--ink4)' : gapPct <= 5 ? 'var(--teal)' : gapPct <= 12 ? '#C8A000' : 'var(--red)';
+    var gapLabel = gapPct === null ? '—' : gapPct <= 5 ? '✓ 吻合' : gapPct <= 12 ? '⚠ +'+gapPct.toFixed(0)+'%' : '✕ +'+gapPct.toFixed(0)+'%';
+    var autoTitle  = autoScene  ? esc(autoScene.text.length>18?autoScene.text.slice(0,18)+'…':autoScene.text)  : '—';
+    var autoPct    = autoScene  ? autoScene.pct.toFixed(1)+'%'  : '—';
+    var manTitle   = manualScene ? esc(manualScene.text.length>18?manualScene.text.slice(0,18)+'…':manualScene.text) : '（未標記）';
+    var manPct     = manualScene ? manualScene.pct.toFixed(1)+'%' : '';
+    tableHtml += '<div style="display:grid;'+GRID+';gap:6px;align-items:start;padding:8px 8px 8px 10px;border-left:3px solid '+actColor+';border-bottom:1px solid var(--border)">'
+      + '<div><div style="font-weight:700;font-size:11px;color:var(--ink2)">'+beat.zh+'</div>'
+      + '<div style="font-size:9px;color:var(--ink4)">'+beat.en+' · '+beat.pct+'%</div></div>'
+      + '<div><div style="font-size:11px;color:var(--ink2)">'+autoTitle+'</div>'
+      + '<div style="font-size:10px;font-family:monospace;color:var(--ink3)">'+autoPct+'</div></div>'
+      + '<div><div style="font-size:11px;color:'+(manualScene?'var(--ink2)':'var(--ink4)')+'">'+manTitle+'</div>'
+      + '<div style="font-size:10px;font-family:monospace;color:'+(manualScene?actColor:'var(--ink4)')+'">'+(manPct)+'</div></div>'
+      + '<div style="text-align:center;padding-top:2px"><span style="font-size:10px;font-weight:700;color:'+gapColor+'">'+gapLabel+'</span></div>'
+      + '<div style="font-size:10px;color:var(--ink3);line-height:1.6;padding-top:1px">'+beat.hint+'</div>'
+      + '</div>';
+  });
+  tableHtml += '</div>';
+
+  body.innerHTML = barHtml + hintBanner + headerHtml + tableHtml;
+  document.getElementById('beat-diag-overlay').classList.add('open');
+}
+
+function closeBeatDiagnosis(){
+  document.getElementById('beat-diag-overlay').classList.remove('open');
+}
+
 function getTotalScriptSecs(){
   var blocks = getBlocks();
   var total = 0;
@@ -6622,195 +6720,7 @@ function getCurrentScenePct(){
 var _ghostTimer = null;
 var _lastGhostBeat = null;
 
-function updateGhostBeat(){
-  var blocks = getBlocks();
-  var total = getTotalScriptSecs();
-  if(total < 30){ hideGhostBeat(); return; }
 
-  // 找目前游標所在場景
-  var idx = typeof activeLineIdx !== 'undefined' ? (activeLineIdx || 0) : 0;
-  var sceneIdx = 0;
-  for(var i = idx; i >= 0; i--){
-    if(blocks[i] && blocks[i].type === 'scene'){ sceneIdx = i; break; }
-  }
-
-  var currentBlock = blocks[sceneIdx];
-
-  // 優先：手動標記的節點
-  var matched = null;
-  if(currentBlock && currentBlock.beatId){
-    matched = BEAT_SHEET_MASTER.find(function(b){ return b.id === currentBlock.beatId; });
-  }
-
-  // 備用：依時間比例自動推算
-  if(!matched){
-    var pct = (getAccumulatedSecsUpTo(sceneIdx) / total) * 100;
-    BEAT_SHEET_MASTER.forEach(function(beat){
-      var lo = beat.range ? beat.range[0] : beat.pct - 2;
-      var hi = beat.range ? beat.range[1] : beat.pct + 2;
-      if(pct >= lo - 2 && pct <= hi + 2) matched = beat;
-    });
-  }
-
-  if(!matched){ hideGhostBeat(); return; }
-  // 手動標記的每次都顯示；自動推算的同節點不重複
-  var isManual = currentBlock && currentBlock.beatId;
-  if(!isManual && matched.id === _lastGhostBeat) return;
-  _lastGhostBeat = matched.id;
-
-  var el = document.getElementById('ghost-beat');
-  document.getElementById('gb-name').textContent = matched.zh;
-  document.getElementById('gb-en').textContent = matched.en + ' · ' + (matched.range ? matched.range[0]+'-'+matched.range[1] : matched.pct) + '%'
-    + (isManual ? ' 〔已標記〕' : ' 〔自動推算〕');
-  document.getElementById('gb-hint').textContent = matched.hint;
-  el.className = 'visible ' + ACT_COLORS[matched.act];
-  clearTimeout(_ghostTimer);
-  _ghostTimer = setTimeout(hideGhostBeat, isManual ? 4000 : 5000);
-}
-
-function hideGhostBeat(){
-  var el = document.getElementById('ghost-beat');
-  if(el) el.classList.remove('visible');
-  _lastGhostBeat = null;
-}
-
-function openBeatDiagnosis(){
-  var total = getTotalScriptSecs();
-  var blocks = getBlocks();
-  var body = document.getElementById('beat-diag-body');
-
-  if(total < 10){
-    body.innerHTML = '<div style="padding:24px;text-align:center;color:var(--ink3);font-size:12px">劇本時長不足，請先寫入更多場次內容。</div>';
-    document.getElementById('beat-diag-overlay').classList.add('open');
-    return;
-  }
-
-  // 收集場次
-  var sceneList = [];
-  blocks.forEach(function(b, i){
-    if(b.type === 'scene'){
-      var pct = (getAccumulatedSecsUpTo(i) / total) * 100;
-      sceneList.push({ idx: i, text: b.text || '（未命名）', pct: pct, beatId: b.beatId || null });
-    }
-  });
-  var manualCount = sceneList.filter(function(s){ return s.beatId; }).length;
-
-  // 進度條
-  var barHtml = '<div style="margin-bottom:18px">'
-    + '<div style="font-size:11px;color:var(--ink3);margin-bottom:8px">'
-    + '總片長：<b style="color:var(--ink)">' + fmtSecs(total) + '</b>'
-    + '　場次：<b style="color:var(--ink)">' + sceneList.length + '</b>'
-    + '　手動節點：<b style="color:var(--ink)">' + manualCount + ' / ' + BEAT_SHEET_MASTER.length + '</b>'
-    + '</div>'
-    + '<div class="beat-progress-bar" style="height:20px;position:relative;overflow:visible">'
-    + '<div style="position:absolute;inset:0;border-radius:6px;background:linear-gradient(90deg,#FFF3CC 0%,#FFF3CC 25%,#E0F0EE 25%,#E0F0EE 75%,#FAEDED 75%,#FAEDED 100%)"></div>';
-
-  BEAT_SHEET_MASTER.forEach(function(beat){
-    barHtml += '<div style="position:absolute;top:0;width:1px;height:100%;background:rgba(0,0,0,0.18);left:'+beat.pct+'%" title="'+beat.zh+' 理想 '+beat.pct+'%"></div>';
-  });
-  sceneList.forEach(function(s){
-    if(!s.beatId) return;
-    var beat = BEAT_SHEET_MASTER.find(function(b){ return b.id === s.beatId; });
-    if(!beat) return;
-    var actColor = beat.act===1?'#C8A000':beat.act===2?'#0A8870':'#C04040';
-    barHtml += '<div style="position:absolute;top:-3px;width:4px;height:calc(100% + 6px);background:'+actColor+';border-radius:2px;left:calc('+s.pct.toFixed(1)+'% - 2px)" title="'+beat.zh+'：'+s.text.slice(0,20)+'（'+s.pct.toFixed(1)+'%）"></div>';
-  });
-
-  barHtml += '</div>'
-    + '<div style="display:flex;gap:14px;font-size:10px;margin-top:8px;flex-wrap:wrap">'
-    + '<span style="color:#C8A000">■ 第一幕（0–25%）</span>'
-    + '<span style="color:#0A8870">■ 第二幕（25–75%）</span>'
-    + '<span style="color:#C04040">■ 第三幕（75–100%）</span>'
-    + '<span style="color:rgba(0,0,0,0.3)">｜理想位置</span>'
-    + '<span style="color:var(--amber)">┃ 手動標記</span>'
-    + '</div></div>';
-
-  // 未標記提示
-  var hintBanner = manualCount === 0
-    ? '<div style="background:var(--amber-l);border:1px solid #E8C840;border-radius:7px;padding:9px 14px;margin-bottom:12px;font-size:11px;color:#7A5500;line-height:1.7">'
-      + '💡 在場景標題行旁點擊 <strong>🎯 設定故事節點</strong>，標記你認為的轉折點，系統就能比對與推算結果的差距。'
-      + '</div>'
-    : '';
-
-  // 表頭 — 5欄：節點 / 系統推算 / 手動標記 / 差距 / 劇作提示
-  var GRID = 'grid-template-columns:110px 140px 140px 55px 1fr';
-  var headerHtml = '<div style="display:grid;'+GRID+';gap:6px;padding:4px 8px 6px 10px;border-bottom:2px solid var(--border);font-size:10px;font-weight:700;color:var(--ink3)">'
-    + '<span>節點</span><span>系統推算場次</span><span>手動標記場次</span><span style="text-align:center">差距</span><span>劇作提示</span>'
-    + '</div>';
-
-  // 表格列
-  var tableHtml = '<div style="display:flex;flex-direction:column;gap:2px">';
-
-  BEAT_SHEET_MASTER.forEach(function(beat){
-    var actColor = beat.act===1?'#C8A000':beat.act===2?'#0A8870':'#C04040';
-
-    // 自動推算
-    var autoScene = null, minDiff = 999;
-    sceneList.forEach(function(s){
-      var d = Math.abs(s.pct - beat.pct);
-      if(d < minDiff){ minDiff = d; autoScene = s; }
-    });
-
-    // 手動標記
-    var manualScene = sceneList.find(function(s){ return s.beatId === beat.id; });
-
-    // 差距
-    var gapPct = (manualScene && autoScene) ? Math.abs(manualScene.pct - autoScene.pct) : null;
-    var gapColor = gapPct === null ? 'var(--ink4)' : gapPct <= 5 ? 'var(--teal)' : gapPct <= 12 ? '#C8A000' : 'var(--red)';
-    var gapLabel = gapPct === null ? '—' : gapPct <= 5 ? '✓ 吻合' : gapPct <= 12 ? '⚠ +'+gapPct.toFixed(0)+'%' : '✕ +'+gapPct.toFixed(0)+'%';
-
-    var autoTitle  = autoScene  ? esc(autoScene.text.length>18?autoScene.text.slice(0,18)+'…':autoScene.text)  : '—';
-    var autoPct    = autoScene  ? autoScene.pct.toFixed(1)+'%'  : '—';
-    var manTitle   = manualScene ? esc(manualScene.text.length>18?manualScene.text.slice(0,18)+'…':manualScene.text) : '（未標記）';
-    var manPct     = manualScene ? manualScene.pct.toFixed(1)+'%' : '';
-
-    tableHtml += '<div style="display:grid;'+GRID+';gap:6px;align-items:start;padding:8px 8px 8px 10px;border-left:3px solid '+actColor+';border-bottom:1px solid var(--border)">'
-
-      // 節點名稱
-      + '<div><div style="font-weight:700;font-size:11px;color:var(--ink2)">'+beat.zh+'</div>'
-      + '<div style="font-size:9px;color:var(--ink4)">'+beat.en+' · '+beat.pct+'%</div></div>'
-
-      // 系統推算
-      + '<div><div style="font-size:11px;color:var(--ink2)">'+autoTitle+'</div>'
-      + '<div style="font-size:10px;font-family:monospace;color:var(--ink3)">'+autoPct+'</div></div>'
-
-      // 手動標記
-      + '<div><div style="font-size:11px;color:'+(manualScene?'var(--ink2)':'var(--ink4)')+'">'+manTitle+'</div>'
-      + '<div style="font-size:10px;font-family:monospace;color:'+(manualScene?actColor:'var(--ink4)')+'">'+(manPct)+'</div></div>'
-
-      // 差距
-      + '<div style="text-align:center;padding-top:2px"><span style="font-size:10px;font-weight:700;color:'+gapColor+'">'+gapLabel+'</span></div>'
-
-      // 劇作提示（永遠顯示）
-      + '<div style="font-size:10px;color:var(--ink3);line-height:1.6;padding-top:1px">'+beat.hint+'</div>'
-
-      + '</div>';
-  });
-
-  tableHtml += '</div>';
-
-  body.innerHTML = barHtml + hintBanner + headerHtml + tableHtml;
-  document.getElementById('beat-diag-overlay').classList.add('open');
-}
-function closeBeatDiagnosis(){
-  document.getElementById('beat-diag-overlay').classList.remove('open');
-}
-
-var _beatTimer = null;
-function scheduleBeatUpdate(){
-  clearTimeout(_beatTimer);
-  _beatTimer = setTimeout(updateGhostBeat, 600);
-}
-
-document.addEventListener('DOMContentLoaded', function(){
-  setTimeout(function(){
-    document.addEventListener('focusin', function(e){
-      if(e.target && e.target.classList && e.target.classList.contains('sl-content')){
-        scheduleBeatUpdate();
-      }
-    });
-  }, 400);
-});
 
 
 // visualizer: 未來可在此實作「伏筆跨度圖」
@@ -6959,8 +6869,6 @@ document.addEventListener('DOMContentLoaded', function(){
 </div>
 
 <!-- GHOST BEAT GUIDE -->
-<div id="ghost-beat" aria-hidden="true">
-  <div class="gb-name" id="gb-name"></div>
   <div class="gb-en" id="gb-en"></div>
   <div class="gb-hint" id="gb-hint"></div>
 </div>
