@@ -3641,15 +3641,15 @@ function deleteProject(){
   var proj = DB.projects.find(function(p){ return p.id===getProject(); });
   if(!proj) return;
 
-  // Step 1: Require typing project name to confirm
+  // Step 1: Require typing 確認 to confirm
   var input = prompt(
     '確定要刪除「' + proj.name + '」嗎？\n\n' +
     '刪除後所有內容（劇本、分場卡、角色、筆記）無法復原。\n\n' +
-    '請輸入專案名稱「' + proj.name + '」確認刪除：'
+    '請輸入「確認」以刪除：'
   );
   if(input === null) return; // cancelled
-  if(input.trim() !== proj.name.trim()){
-    alert('名稱不符，已取消刪除。');
+  if(input.trim() !== '確認'){
+    alert('輸入不符，已取消刪除。');
     return;
   }
 
@@ -5025,6 +5025,7 @@ window.addEventListener('DOMContentLoaded', function(){
 
   // Boot sequence
   loadFromStorage();
+  syncProjectSelector();
   renderAll();
   restoreDomFromStorage();
   renderHistoryPanel();
