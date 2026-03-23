@@ -60,7 +60,7 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans TC',sans-serif;back
 }
 .tb-icon:hover{background:var(--bg3);border-color:var(--border)}
 #main{display:flex;flex:1;overflow:hidden}
-#left{width:220px;min-width:160px;max-width:400px;background:var(--bg2);border-right:none;display:flex;flex-direction:column;overflow:hidden;transition:width 0.15s;flex-shrink:0}
+#left{width:220px;min-width:160px;max-width:400px;background:var(--bg2);border-right:none;display:flex;flex-direction:column;overflow:hidden;transition:width 0.15s;flex-shrink:0;min-height:0}
 .panel-divider{
   width:5px;background:var(--border);cursor:col-resize;flex-shrink:0;
   transition:background 0.15s;position:relative;z-index:10;
@@ -116,7 +116,7 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans TC',sans-serif;back
   padding:10px 12px 8px;border-bottom:1px solid var(--border);
   font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:2px;
   display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
-  text-transform:uppercase;
+  text-transform:uppercase;position:relative;z-index:1;
 }
 .panel-hdr .add-btn{
   width:20px;height:20px;border-radius:50%;border:1px solid var(--border2);
@@ -134,8 +134,9 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans TC',sans-serif;back
 }
 .lnav-btn:hover{color:var(--ink2)}
 .lnav-btn.active{color:var(--amber);border-bottom-color:var(--amber);background:var(--bg2)}
-.left-content{flex:1;overflow-y:auto;padding:6px}
-.left-panel{display:none}.left-panel.active{display:block}
+.left-content{overflow-y:auto;padding:6px}
+.left-panel{display:none}
+.left-panel.active{display:grid;grid-template-rows:auto 1fr;flex:1;min-height:0;overflow:hidden}
 
 /* Scene items */
 .scene-item{
@@ -419,7 +420,7 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
   border-bottom:2px solid transparent;transition:all 0.12s;
 }
 .rnav-btn.active{color:var(--amber);border-bottom-color:var(--amber);background:var(--bg2)}
-.right-content{flex:1;overflow-y:auto;padding:12px}
+.right-content{flex:1;overflow-y:auto;padding:12px;min-height:0}
 .right-panel{display:none}.right-panel.active{display:block}
 
 /* Preview */
@@ -1138,25 +1139,15 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
   <!-- ── LEFT PANEL ─────────────────────────── -->
   <div id="left">
     <div class="left-nav">
-      <button class="lnav-btn active" onclick="switchLeft('scenes',this)" title="劇本場景">場景</button>
-      <button class="lnav-btn" onclick="switchLeft('cards',this)" title="分場卡">分場卡</button>
+      <button class="lnav-btn active" onclick="switchLeft('cards',this)" title="分場卡">分場卡</button>
       <button class="lnav-btn" onclick="switchLeft('chars',this)" title="角色">角色</button>
       <button class="lnav-btn" onclick="switchLeft('notes',this)" title="筆記">筆記</button>
       <button class="lnav-btn" onclick="switchLeft('assets',this)" title="參考資料">資料</button>
       <button class="lnav-btn" id="lnav-foreshadow" onclick="switchLeft('foreshadow',this)" title="伏筆追蹤">伏筆</button>
     </div>
 
-    <!-- SCENES -->
-    <div class="left-panel active" id="lpanel-scenes">
-      <div class="panel-hdr">
-        劇本場景
-        <button class="add-btn" onclick="addScriptLine('scene')" title="新增場景標題">＋</button>
-      </div>
-      <div class="left-content" id="scene-nav-list"></div>
-    </div>
-
     <!-- SCENE CARDS -->
-    <div class="left-panel" id="lpanel-cards">
+    <div class="left-panel active" id="lpanel-cards">
       <div class="panel-hdr">
         分場卡
         <button class="add-btn" onclick="openNewCardModal()" title="新增分場卡">＋</button>
@@ -1305,6 +1296,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
         <div id="lines-container"></div>
         <div class="add-line-row">
           <button class="add-line-btn" onclick="addScriptLine('action')">＋ 新增一行</button>
+          <button class="add-line-btn" onclick="addScriptLine('scene')" style="color:var(--red);border-color:#D08080">＋ 新增場景</button>
         </div>
       </div>
     </div>
@@ -2849,6 +2841,8 @@ function addScriptLine(type){
     activeLineIdx = blocks.length-1;
   }
   renderLines();
+  renderSceneNav();
+  scheduleUpdate();
   setTimeout(()=>{
     const el = document.getElementById('line-'+activeLineIdx);
     if(el) el.focus();
@@ -6273,7 +6267,7 @@ var _waitingHookId = null;
 function fsManualHook(foreshadowId){
   _waitingHookId = foreshadowId;
   // Switch to editor and show a tip
-  switchLeft('scenes', document.querySelector('.lnav-btn'));
+  switchLeft('cards', document.querySelector('.lnav-btn'));
   var tip = document.createElement('div');
   tip.id = 'fs-hook-tip';
   tip.style.cssText = 'position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:var(--amber);color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;z-index:2000;pointer-events:none';
