@@ -29,7 +29,7 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans TC',sans-serif;back
 #topbar{
   background:var(--bg2);border-bottom:1.5px solid var(--border);
   display:flex;flex-direction:column;padding:0;flex-shrink:0;
-  box-shadow:var(--shadow);
+  box-shadow:var(--shadow);overflow-x:auto;
 }
 .topbar-row{
   display:flex;align-items:center;padding:0 14px;gap:6px;height:46px;
@@ -420,8 +420,8 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
   border-bottom:2px solid transparent;transition:all 0.12s;
 }
 .rnav-btn.active{color:var(--amber);border-bottom-color:var(--amber);background:var(--bg2)}
-.right-content{flex:1;overflow-y:auto;padding:12px;min-height:0;display:flex;flex-direction:column}
-.right-panel{display:none}.right-panel.active{display:block;min-width:0}
+.right-content{flex:1;overflow-y:auto;padding:12px}
+.right-panel{display:none}.right-panel.active{display:block}
 
 /* Preview */
 #preview-page{
