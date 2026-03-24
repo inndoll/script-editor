@@ -350,6 +350,35 @@ body.tv-editor .sl-content[data-type="dialogue"]{
 body.tv-editor .sl-content[data-type="parenthetical"]{
   padding-left:0;padding-right:0;
 }
+/* Stage Drama format overrides in editor — character inline with dialogue */
+body.stage-editor .sl-content[data-type="character"]{
+  padding-left:0;text-transform:none;letter-spacing:0;margin-top:6px;margin-bottom:0;
+}
+body.stage-editor .sl-content[data-type="dialogue"]{
+  padding-left:0;padding-right:0;
+}
+body.stage-editor .sl-content[data-type="parenthetical"]{
+  padding-left:0;padding-right:0;
+}
+/* Stage: character row becomes inline-flex so dialogue appears beside it */
+body.stage-editor .sl[data-chargroup-start="1"]{
+  display:flex;flex-direction:row;align-items:baseline;flex-wrap:nowrap;
+}
+/* In stage mode, the separate dialogue/parenthetical rows are hidden;
+   the merged text is shown via ::after on the character content */
+body.stage-editor .sl[data-chargroup-member="1"]{
+  display:none;
+}
+/* But if the dialogue row is actively focused or selected, show it for editing */
+body.stage-editor .sl[data-chargroup-member="1"].focused{
+  display:flex;
+}
+/* Suffix on character content showing "　：…" merged dialogue preview */
+body.stage-editor .sl[data-chargroup-start="1"] .sl-content[data-type="character"]::after{
+  content:attr(data-stage-suffix);
+  font-weight:400;color:var(--ink2);white-space:pre-wrap;word-break:break-all;
+  margin-left:4px;
+}
 
 /* Scene interior toggle chips */
 .scene-int-wrap{
@@ -667,6 +696,35 @@ body.tv-editor .sl-content[data-type="parenthetical"]{
     font-family:'Noto Sans TC',sans-serif;font-size:7pt;
     color:rgba(0,0,0,0.12);letter-spacing:1.5px;
     pointer-events:none;
+  }
+  /* ── 舞台劇 format (stage-print) ───────────────
+     角色名稱與台詞在同一行，不換行
+  ─────────────────────────────────────────────── */
+  body.stage-print .sl-content[data-type="scene"]{
+    text-transform:none!important;
+  }
+  body.stage-print .sl-content[data-type="action"]{
+    margin-bottom:6pt!important;
+  }
+  body.stage-print .sl-content[data-type="character"],
+  body.stage-print .sl-content[data-type="parenthetical"],
+  body.stage-print .sl-content[data-type="dialogue"]{
+    display:none!important;
+  }
+  body.stage-print .sl{
+    display:block!important;
+    margin-bottom:2pt!important;
+  }
+  .stage-merged-line{
+    font-family:'Courier Prime',Courier,monospace!important;
+    font-size:12pt!important;
+    line-height:1.6!important;
+    color:#000!important;
+    display:block!important;
+    margin-bottom:6pt!important;
+    word-break:break-word!important;
+    /* hanging indent: char name stays left, dialogue wraps with indent */
+    padding-left:0;
   }
 }
 
@@ -1079,6 +1137,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
         <button id="fmt-toggle-hw" class="fmt-tab active" onclick="setScriptFormat('hollywood')" title="好萊塢格式：INT./EXT. 地點 - 時間">好萊塢</button>
         <button id="fmt-toggle-tw" class="fmt-tab" onclick="setScriptFormat('taiwan')" title="優劇格式：內景／外景 地點 時間（優良電影劇本獎）">優劇</button>
         <button id="fmt-toggle-tv" class="fmt-tab" onclick="setScriptFormat('tvdrama')" title="電視劇格式：△ 動作描述，角色名：對白">電視劇</button>
+        <button id="fmt-toggle-stage" class="fmt-tab" onclick="setScriptFormat('stage')" title="舞台劇格式：角色名稱與台詞在同一行">舞台劇</button>
       </div>
     </div>
 
@@ -1913,6 +1972,7 @@ function getFormat(){
 }
 function isTaiwan(){ return getFormat()==='taiwan'; }
 function isTvDrama(){ return getFormat()==='tvdrama'; }
+function isStage(){ return getFormat()==='stage'; }
 function getBlocks(){ return getScript().blocks; }
 function getCards(){ return DB.sceneCards[getProject()]||[]; }
 function getChars(){ return DB.characters[getProject()]||[]; }
@@ -1937,6 +1997,7 @@ function setScriptFormat(fmt){
   document.getElementById('fmt-toggle-hw').classList.toggle('active', fmt==='hollywood');
   document.getElementById('fmt-toggle-tw').classList.toggle('active', fmt==='taiwan');
   document.getElementById('fmt-toggle-tv').classList.toggle('active', fmt==='tvdrama');
+  document.getElementById('fmt-toggle-stage').classList.toggle('active', fmt==='stage');
   syncEditorFormatClass();
   renderLines();
   scheduleUpdate();
@@ -1947,9 +2008,11 @@ function syncFormatToggle(){
   var hw = document.getElementById('fmt-toggle-hw');
   var tw = document.getElementById('fmt-toggle-tw');
   var tv = document.getElementById('fmt-toggle-tv');
+  var st = document.getElementById('fmt-toggle-stage');
   if(hw) hw.classList.toggle('active', fmt==='hollywood');
   if(tw) tw.classList.toggle('active', fmt==='taiwan');
   if(tv) tv.classList.toggle('active', fmt==='tvdrama');
+  if(st) st.classList.toggle('active', fmt==='stage');
 }
 
 // Parse INT/EXT prefix from scene heading text (supports both Hollywood and Taiwan format)
@@ -2049,11 +2112,36 @@ function cycleTime(i){
 function renderLines(){
   const blocks = getBlocks();
   const container = document.getElementById('lines-container');
+  const stageMode = isStage();
 
   const TYPE_COLORS = {
     scene:'var(--red)',action:'var(--ink3)',character:'var(--teal)',
     dialogue:'var(--amber)',parenthetical:'var(--blue)',transition:'#6A3A8A'
   };
+
+  // Pre-compute stage grouping: for each character block, find its following paren/dialogue
+  // Mark blocks so CSS can render them inline
+  var stageCharGroupStart = {}; // i → suffix string (「名：（語氣）台詞」後半部)
+  var stageCharGroupMember = {}; // i → true (paren/dialogue that follow a char)
+  if(stageMode){
+    for(var si = 0; si < blocks.length; si++){
+      if(blocks[si].type === 'character'){
+        var suffix = '　';
+        var next = si + 1;
+        if(next < blocks.length && blocks[next].type === 'parenthetical'){
+          var parenText = (blocks[next].text||'').replace(/^[(（]/,'').replace(/[)）]$/,'');
+          suffix += '（' + parenText + '）';
+          stageCharGroupMember[next] = true;
+          next++;
+        }
+        if(next < blocks.length && blocks[next].type === 'dialogue'){
+          suffix += (blocks[next].text||'');
+          stageCharGroupMember[next] = true;
+        }
+        stageCharGroupStart[si] = suffix;
+      }
+    }
+  }
 
   container.innerHTML = blocks.map((b,i) => {
     const isScene = b.type === 'scene';
@@ -2090,7 +2178,23 @@ function renderLines(){
       typeDropdownItems += '</div>';
     });
 
-    return '<div class="sl' + (activeLineIdx===i?' focused':'') + '" id="row-'+i+'" data-idx="'+i+'"' + (isScene?' data-scene="1"':'') + ' onclick="if(_pasteMode)msRowClickForPaste('+i+')">'
+    // Stage drama attributes
+    var stageAttrs = '';
+    if(stageMode){
+      if(stageCharGroupStart.hasOwnProperty(i)){
+        stageAttrs = ' data-chargroup-start="1"';
+      } else if(stageCharGroupMember[i]){
+        stageAttrs = ' data-chargroup-member="1"';
+      }
+    }
+
+    // Stage suffix on character content element
+    var stageSuffixAttr = '';
+    if(stageMode && stageCharGroupStart.hasOwnProperty(i)){
+      stageSuffixAttr = ' data-stage-suffix="' + esc(stageCharGroupStart[i]) + '"';
+    }
+
+    return '<div class="sl' + (activeLineIdx===i?' focused':'') + '" id="row-'+i+'" data-idx="'+i+'"' + (isScene?' data-scene="1"':'') + stageAttrs + ' onclick="if(_pasteMode)msRowClickForPaste('+i+')">'
       + '<span class="sl-check"><input type="checkbox" onchange="msToggleLine('+i+',this)" onclick="event.stopPropagation()" id="chk-'+i+'"></span>'
       + '<span class="sl-num">' + (i+1) + '</span>'
       + '<div class="sl-type-wrap" id="typewrap-'+i+'">'
@@ -2101,6 +2205,7 @@ function renderLines(){
       + (isScene ? '<span class="dur-badge' + (b.durOverride ? ' has-override' : '') + '" id="dur-'+i+'" onclick="event.stopPropagation();openDurOverride('+i+')" title="預估場次時長（點擊手動調整）">⏱ ' + getSceneDurLabel(i) + '</span>' : '')
       + (isScene ? buildBeatLabel(i, b) : '')
       + '<div class="sl-content" contenteditable="true" data-type="'+b.type+'" data-idx="'+i+'" id="line-'+i+'" spellcheck="false"'
+      + stageSuffixAttr
       + ' oninput="onLineInput('+i+',this)" onkeydown="onLineKey(event,'+i+')" onfocus="onLineFocus('+i+')">'
       + esc(b.text)
       + '</div>'
@@ -2262,6 +2367,34 @@ function onLineInput(i,el){
       row.querySelectorAll('.time-chip').forEach(chip=>{
         chip.classList.toggle('active', chip.dataset.time===time);
       });
+    }
+  }
+  // Stage mode: update the suffix preview on the character line when dialogue/paren changes
+  if(isStage()){
+    var blocks = getBlocks();
+    var charIdx = -1;
+    if(blocks[i].type === 'dialogue' || blocks[i].type === 'parenthetical'){
+      // Walk back to find the character line
+      for(var ci = i-1; ci >= 0; ci--){
+        if(blocks[ci].type === 'character'){ charIdx = ci; break; }
+        if(blocks[ci].type !== 'parenthetical') break;
+      }
+    } else if(blocks[i].type === 'character'){
+      charIdx = i;
+    }
+    if(charIdx >= 0){
+      var suffix = '　';
+      var next = charIdx + 1;
+      if(next < blocks.length && blocks[next].type === 'parenthetical'){
+        var pt = (blocks[next].text||'').replace(/^[(（]/,'').replace(/[)）]$/,'');
+        suffix += '（' + pt + '）';
+        next++;
+      }
+      if(next < blocks.length && blocks[next].type === 'dialogue'){
+        suffix += (blocks[next].text||'');
+      }
+      var charEl = document.getElementById('line-'+charIdx);
+      if(charEl) charEl.setAttribute('data-stage-suffix', suffix);
     }
   }
   scheduleUpdate();
@@ -3138,6 +3271,7 @@ function openCharModal(title,charData,isNew){
 }
 function saveChar(id,isNew){
   const chars=getChars();
+  const existing=chars.find(x=>x.id===id);
   const c={id,projectId:getProject(),
     name:document.getElementById('chf-name').value,
     age:document.getElementById('chf-age').value,
@@ -3145,11 +3279,11 @@ function saveChar(id,isNew){
     personality:document.getElementById('chf-personality').value,
     arc:document.getElementById('chf-arc').value,
     notes:document.getElementById('chf-notes').value,
-    color:CHAR_COLORS[chars.length%CHAR_COLORS.length],
+    color:isNew ? CHAR_COLORS[chars.length%CHAR_COLORS.length] : (existing ? existing.color : CHAR_COLORS[0]),
   };
   if(isNew){if(!DB.characters[getProject()])DB.characters[getProject()]=[];DB.characters[getProject()].push(c);}
   else{const idx=chars.findIndex(x=>x.id===id);if(idx>=0)DB.characters[getProject()][idx]=c;}
-  closeModal();renderChars();
+  closeModal();renderChars();debouncedSave();
 }
 
 // ═══════════════════════════════════════════════
@@ -3183,11 +3317,11 @@ function saveNote(id,isNew){
   };
   if(isNew){if(!DB.notes[getProject()])DB.notes[getProject()]=[];DB.notes[getProject()].push(n);}
   else{const idx=notes.findIndex(x=>x.id===id);if(idx>=0)DB.notes[getProject()][idx]=n;}
-  closeModal();renderNotes();
+  closeModal();renderNotes();debouncedSave();
 }
 function deleteNote(id){
   DB.notes[getProject()]=getNotes().filter(n=>n.id!==id);
-  closeModal();renderNotes();
+  closeModal();renderNotes();debouncedSave();
 }
 
 function closeModal(e){
@@ -3571,6 +3705,11 @@ function openProjectSettings(){
     + '<div><div style="font-weight:700;font-size:13px;color:var(--ink)">電視劇格式（戲說台灣等）</div>'
     + '<div style="font-size:11px;color:var(--ink3);margin-top:2px">內景 地點 夜　△ 動作描述<br>角色名：（語氣）對白在同一行</div></div>'
     + '</label>'
+    + '<label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;padding:10px 12px;border-radius:8px;border:2px solid '+(fmt==='stage'?'var(--amber)':'var(--border)')+';background:var(--bg);transition:all 0.15s" id="ps-stage-label">'
+    + '<input type="radio" name="ps-format" value="stage" '+(fmt==='stage'?'checked':'')+' onchange="psFormatChange(this)" style="margin-top:2px;flex-shrink:0">'
+    + '<div><div style="font-weight:700;font-size:13px;color:var(--ink)">舞台劇格式</div>'
+    + '<div style="font-size:11px;color:var(--ink3);margin-top:2px">角色名與台詞在同一行，不上下分行<br>角色名　（語氣）台詞內容</div></div>'
+    + '</label>'
     + '</div>'
     + '</div>'
 
@@ -3596,6 +3735,7 @@ function psFormatChange(radio){
   document.getElementById('ps-hw-label').style.borderColor = radio.value==='hollywood' ? 'var(--amber)' : 'var(--border)';
   document.getElementById('ps-tw-label').style.borderColor = radio.value==='taiwan'    ? 'var(--amber)' : 'var(--border)';
   document.getElementById('ps-tv-label').style.borderColor = radio.value==='tvdrama'   ? 'var(--amber)' : 'var(--border)';
+  document.getElementById('ps-stage-label').style.borderColor = radio.value==='stage'  ? 'var(--amber)' : 'var(--border)';
 }
 
 function applyProjectSettings(){
@@ -3727,11 +3867,45 @@ function toFountain(){
   const subtitle = subtitleEl?.value || '';
   const tw = isTaiwan();
   const tv = isTvDrama();
+  const stage = isStage();
   let o=`Title: ${title}\n`;
   if(subtitle) o+=`Credit: ${subtitle}\n`;
   o+=`Author: 小葉\nDraft date: ${new Date().toISOString().slice(0,10)}\n\n`;
 
-  if(tv){
+  if(stage){
+    // Stage Drama format: 角色名　（語氣）對白 same line, no indentation
+    var stBlocks = getBlocks();
+    var stI = 0, stScene = 0;
+    while(stI < stBlocks.length){
+      var stB = stBlocks[stI];
+      var stT = (stB.text||'').trim();
+      if(!stT){ o+='\n'; stI++; continue; }
+      if(stB.type==='scene'){
+        stScene++;
+        o += '\n第' + stScene + '場　' + stT + '\n\n';
+      } else if(stB.type==='action'){
+        o += stT + '\n';
+      } else if(stB.type==='character'){
+        var stChar = stT;
+        var stParen = '';
+        var stDial = '';
+        if(stI+1 < stBlocks.length && stBlocks[stI+1].type==='parenthetical'){
+          stI++;
+          stParen = '（' + (stBlocks[stI].text||'').replace(/^[(（]/,'').replace(/[)）]$/,'') + '）';
+        }
+        if(stI+1 < stBlocks.length && stBlocks[stI+1].type==='dialogue'){
+          stI++;
+          stDial = (stBlocks[stI].text||'').trim();
+        }
+        o += stChar + '　' + stParen + stDial + '\n';
+      } else if(stB.type==='dialogue'){
+        o += stT + '\n';
+      } else if(stB.type==='transition'){
+        o += '\n' + stT + '\n\n';
+      }
+      stI++;
+    }
+  } else if(tv){
     // TV Drama format: △ before action, 角色名：（語氣）對白 same line
     var tvBlocks = getBlocks();
     var tvI = 0, tvScene = 0;
@@ -3841,12 +4015,14 @@ function exportFountain(){
 function printScript(){
   var isTw = isTaiwan();
   var isTv = isTvDrama();
+  var isSt = isStage();
   document.body.classList.toggle('tw-print', isTw);
   document.body.classList.toggle('tv-print', isTv);
+  document.body.classList.toggle('stage-print', isSt);
 
-  // For 優劇 / 電視劇: inject merged "角色：（語氣）對白" divs into DOM before printing
+  // For 優劇 / 電視劇 / 舞台劇: inject merged "角色：（語氣）對白" divs into DOM before printing
   var injected = [];
-  if(isTw || isTv){
+  if(isTw || isTv || isSt){
     var blocks = getBlocks();
     var bi = 0;
     while(bi < blocks.length){
@@ -3868,8 +4044,13 @@ function printScript(){
         var rowEl = document.getElementById('row-' + charIdx);
         if(rowEl){
           var div = document.createElement('div');
-          div.className = isTw ? 'tw-merged-line' : 'tv-merged-line';
-          div.textContent = charName + '：' + paren + dial;
+          if(isTw) div.className = 'tw-merged-line';
+          else if(isTv) div.className = 'tv-merged-line';
+          else div.className = 'stage-merged-line';
+          // 舞台劇用全形空格分隔角色名與台詞；其他用冒號
+          div.textContent = isSt
+            ? charName + '　' + paren + dial
+            : charName + '：' + paren + dial;
           rowEl.appendChild(div);
           injected.push(div);
         }
@@ -3884,6 +4065,7 @@ function printScript(){
   setTimeout(function(){
     document.body.classList.remove('tw-print');
     document.body.classList.remove('tv-print');
+    document.body.classList.remove('stage-print');
     injected.forEach(function(el){ if(el.parentNode) el.parentNode.removeChild(el); });
   }, 1000);
 }
@@ -4608,7 +4790,7 @@ function assetDrop(e){
 // ═══════════════════════════════════════════════
 var LS_KEY       = 'xiaoyeEditor_v1';
 var LS_BUILTIN_VER = 'xiaoyeBuiltinVer_v1'; // 更新內建範例時遞增這個版本號
-var CURRENT_BUILTIN_VER = 5; // 目前版本：5=修正統計/移除預覽/重構工具列
+var CURRENT_BUILTIN_VER = 6; // 版本6：修復內建範例角色卡遺失問題
 var LS_HIST_KEY  = 'xiaoyeHistory_v1';
 var LS_TITLE_KEY = 'xiaoyeTitle_v1';
 var MAX_HISTORY  = 50;
@@ -4828,8 +5010,9 @@ function migrateBuiltinProjects(){
       if(defaults.sceneCards[pid]) DB.sceneCards[pid] = defaults.sceneCards[pid];
     }
 
-    // 補缺少的 characters
-    if(forceUpdate || !DB.characters[pid] || DB.characters[pid].length === 0){
+    // 補缺少的 characters（永遠補，不論版本——只要是空的就補回）
+    if(!DB.characters || !DB.characters[pid] || DB.characters[pid].length === 0){
+      if(!DB.characters) DB.characters = {};
       if(defaults.characters[pid]) DB.characters[pid] = defaults.characters[pid];
     }
 
@@ -4848,7 +5031,12 @@ function migrateBuiltinProjects(){
 function loadFromStorage(){
   try {
     var raw = localStorage.getItem(LS_KEY);
-    if(raw){ Object.assign(DB, JSON.parse(raw)); }
+    if(raw){
+      var parsed = JSON.parse(raw);
+      Object.assign(DB, parsed);
+      // 確保 characters 欄位存在（舊版備份可能沒有此 key）
+      if(!DB.characters) DB.characters = {};
+    }
   } catch(e){ console.warn('loadFromStorage error:', e); }
   migrateBuiltinProjects();
 }
@@ -5080,6 +5268,7 @@ function initPanelResize(dividerId, panelId, side){
 function syncEditorFormatClass(){
   document.body.classList.toggle('tw-editor', isTaiwan());
   document.body.classList.toggle('tv-editor', isTvDrama());
+  document.body.classList.toggle('stage-editor', isStage());
 }
 
 
