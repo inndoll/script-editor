@@ -1194,7 +1194,10 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
     <div class="left-panel active" id="lpanel-cards">
       <div class="panel-hdr">
         分場卡
-        <button class="add-btn" onclick="openNewCardModal()" title="新增分場卡">＋</button>
+        <div style="display:flex;gap:4px;align-items:center">
+          <button class="add-btn" onclick="renderCards()" title="重新整理分場卡" style="font-size:11px;width:22px;height:22px">↺</button>
+          <button class="add-btn" onclick="openNewCardModal()" title="新增分場卡">＋</button>
+        </div>
       </div>
       <div class="left-content" id="scene-cards-list"></div>
       <!-- Tail drop zone: allows dropping after the last card -->
@@ -1237,7 +1240,10 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
     <div class="left-panel" id="lpanel-chars">
       <div class="panel-hdr">
         角色
-        <button class="add-btn" onclick="openNewCharModal()" title="新增角色">＋</button>
+        <div style="display:flex;gap:4px;align-items:center">
+          <button class="add-btn" onclick="renderChars()" title="重新整理角色" style="font-size:11px;width:22px;height:22px">↺</button>
+          <button class="add-btn" onclick="openNewCharModal()" title="新增角色">＋</button>
+        </div>
       </div>
       <div class="left-content" id="chars-list"></div>
     </div>
@@ -1982,13 +1988,13 @@ function getNotes(){ return DB.notes[getProject()]||[]; }
 //  RENDER
 // ═══════════════════════════════════════════════
 function renderAll(){
-  renderLines();
-  renderSceneNav();
-  renderCards();
-  renderChars();
-  renderNotes();
-  updateStats();
-  syncFormatToggle();
+  try{ renderLines(); }catch(e){ console.warn('renderLines error:',e); }
+  try{ renderSceneNav(); }catch(e){ console.warn('renderSceneNav error:',e); }
+  try{ renderCards(); }catch(e){ console.warn('renderCards error:',e); }
+  try{ renderChars(); }catch(e){ console.warn('renderChars error:',e); }
+  try{ renderNotes(); }catch(e){ console.warn('renderNotes error:',e); }
+  try{ updateStats(); }catch(e){ console.warn('updateStats error:',e); }
+  try{ syncFormatToggle(); }catch(e){ console.warn('syncFormatToggle error:',e); }
 }
 
 // ── Script format toggle ─────────────────────────
@@ -2236,6 +2242,7 @@ function renderSceneNav(){
 function renderCards(){
   var cards = getCards();
   var el = document.getElementById('scene-cards-list');
+  if(!el) return;
   if(cards.length===0){
     el.innerHTML='<div class="empty-state"><span class="es-icon">🗂</span>尚無分場卡<br>點擊右上角 ＋ 新增</div>';
     showReorderBtn();
@@ -2308,6 +2315,7 @@ function renderCards(){
 function renderChars(){
   const chars = getChars();
   const el = document.getElementById('chars-list');
+  if(!el) return;
   if(chars.length===0){
     el.innerHTML='<div class="empty-state"><span class="es-icon">👤</span>尚無角色<br>點擊右上角 ＋ 新增</div>';return;
   }
@@ -2316,17 +2324,125 @@ function renderChars(){
       ? '<div class="ci-meta" style="margin-top:5px;border-top:1px solid var(--border);padding-top:5px">弧線：' + esc(c.arc) + '</div>'
       : '';
     const ageStr = c.age ? ' · ' + c.age + '歲' : '';
-    return '<div class="card-item" onclick="openEditCharModal(\'' + c.id + '\')">'
+    return '<div class="card-item" draggable="true" data-char-id="' + c.id + '"'
+      + ' onclick="charCardClick(event,\'' + c.id + '\')"'
+      + ' oncontextmenu="showCharCtx(event,\'' + c.id + '\')"'
+      + ' ondragstart="charDragStart(event,\'' + c.id + '\')"'
+      + ' ondragover="charDragOver(event)"'
+      + ' ondragleave="charDragLeave(event)"'
+      + ' ondrop="charDrop(event,\'' + c.id + '\')"'
+      + ' ondragend="charDragEnd(event)">'
       + '<div style="display:flex;align-items:center;gap:10px">'
       + '<div class="char-avatar" style="background:' + c.color + '22;color:' + c.color + '">' + (c.name||'?').charAt(0) + '</div>'
       + '<div style="flex:1;min-width:0">'
       + '<div class="ci-title">' + esc(c.name) + '</div>'
       + '<div class="ci-meta">' + (esc(c.role)||'—') + ageStr + '</div>'
-      + '</div></div>'
+      + '</div>'
+      + '<button onclick="event.stopPropagation();deleteChar(\'' + c.id + '\')" title="刪除角色"'
+      + ' style="flex-shrink:0;width:20px;height:20px;border-radius:50%;border:1px solid transparent;background:none;cursor:pointer;font-size:12px;color:var(--ink4);display:flex;align-items:center;justify-content:center;transition:all 0.12s;opacity:0.5"'
+      + ' onmouseover="this.style.background=\'var(--red-l)\';this.style.borderColor=\'#D08080\';this.style.color=\'var(--red)\';this.style.opacity=\'1\'"'
+      + ' onmouseout="this.style.background=\'none\';this.style.borderColor=\'transparent\';this.style.color=\'var(--ink4)\';this.style.opacity=\'0.5\'">✕</button>'
+      + '</div>'
       + arcRow
       + '</div>';
   }).join('');
 }
+
+// ── 角色卡拖曳排序 ──────────────────────────────
+var _dragCharId   = null;
+var _dragCharMoved = false;
+
+function charCardClick(e, id){
+  if(_dragCharMoved) return;
+  openEditCharModal(id);
+}
+
+function charDragStart(e, id){
+  _dragCharId   = id;
+  _dragCharMoved = false;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', id);
+  var el = e.currentTarget;
+  setTimeout(function(){ el.classList.add('dragging'); }, 0);
+}
+
+function charDragOver(e){
+  e.preventDefault();
+  _dragCharMoved = true;
+  e.dataTransfer.dropEffect = 'move';
+  var target = e.currentTarget;
+  if(!target.dataset.charId || target.dataset.charId === _dragCharId) return;
+  var rect = target.getBoundingClientRect();
+  target.classList.remove('drag-over-top','drag-over-bottom');
+  if(e.clientY < rect.top + rect.height / 2){
+    target.classList.add('drag-over-top');
+  } else {
+    target.classList.add('drag-over-bottom');
+  }
+}
+
+function charDragLeave(e){
+  e.currentTarget.classList.remove('drag-over-top','drag-over-bottom');
+}
+
+function charDrop(e, targetId){
+  e.preventDefault();
+  _dragCharMoved = true;
+  var el = e.currentTarget;
+  el.classList.remove('drag-over-top','drag-over-bottom');
+
+  var fromId = _dragCharId;
+  if(!fromId || fromId === targetId) return;
+
+  var chars = getChars();
+  var fromIdx = chars.findIndex(function(c){ return c.id === fromId; });
+  var toIdx   = chars.findIndex(function(c){ return c.id === targetId; });
+  if(fromIdx < 0 || toIdx < 0) return;
+
+  var rect = el.getBoundingClientRect();
+  var insertBefore = e.clientY < rect.top + rect.height / 2;
+  var moved = chars.splice(fromIdx, 1)[0];
+  var newToIdx = chars.findIndex(function(c){ return c.id === targetId; });
+  if(insertBefore){
+    chars.splice(newToIdx, 0, moved);
+  } else {
+    chars.splice(newToIdx + 1, 0, moved);
+  }
+  DB.characters[getProject()] = chars;
+  renderChars();
+  debouncedSave();
+}
+
+function charDragEnd(e){
+  document.querySelectorAll('#chars-list .card-item').forEach(function(el){
+    el.classList.remove('dragging','drag-over-top','drag-over-bottom');
+  });
+  setTimeout(function(){ _dragCharMoved = false; }, 50);
+}
+
+// ── 刪除角色 ───────────────────────────────────
+function deleteChar(id){
+  var chars = getChars();
+  var c = chars.find(function(x){ return x.id===id; });
+  if(!c) return;
+  if(!confirm('確定要刪除角色「' + c.name + '」嗎？')) return;
+  DB.characters[getProject()] = chars.filter(function(x){ return x.id!==id; });
+  renderChars();
+  debouncedSave();
+}
+
+// ── 角色右鍵選單 ──────────────────────────────
+function showCharCtx(e, id){
+  e.preventDefault();
+  modalCtx = {type:'char', id:id};
+  const m = document.getElementById('ctx-menu');
+  m.innerHTML = '<div class="ctx-item" onclick="ctxAction(\'edit\')">✏ 編輯角色</div>'
+    + '<div class="ctx-item danger" onclick="ctxAction(\'delete\')">🗑 刪除角色</div>';
+  m.style.display='block';
+  m.style.left=e.clientX+'px';
+  m.style.top=e.clientY+'px';
+}
+
 
 function renderNotes(){
   const notes = getNotes();
@@ -3265,6 +3381,7 @@ function openCharModal(title,charData,isNew){
   `;
   document.getElementById('modal-footer').innerHTML=`
     <button class="tbtn" onclick="closeModal()">取消</button>
+    ${!isNew ? '<button class="tbtn danger" onclick="closeModal();deleteChar(\''+charData.id+'\')">🗑 刪除</button>' : ''}
     <button class="tbtn primary" onclick="saveChar('${charData.id}',${isNew})">儲存</button>
   `;
   document.getElementById('modal-overlay').classList.add('open');
@@ -3602,6 +3719,15 @@ function showCtx(e,type,id){
   e.preventDefault();
   modalCtx={type,id};
   const m=document.getElementById('ctx-menu');
+  // Build menu items based on type
+  if(type==='card'){
+    m.innerHTML='<div class="ctx-item" onclick="ctxAction(\'import\')">⬇ 導入劇本</div>'
+      +'<div class="ctx-item" onclick="ctxAction(\'edit\')">✏ 編輯</div>'
+      +'<div class="ctx-item danger" onclick="ctxAction(\'delete\')">🗑 刪除</div>';
+  } else if(type==='char'){
+    m.innerHTML='<div class="ctx-item" onclick="ctxAction(\'edit\')">✏ 編輯角色</div>'
+      +'<div class="ctx-item danger" onclick="ctxAction(\'delete\')">🗑 刪除角色</div>';
+  }
   m.style.display='block';
   m.style.left=e.clientX+'px';
   m.style.top=e.clientY+'px';
@@ -3618,7 +3744,11 @@ function ctxAction(action){
       remaining.forEach(function(c,i){ c.num = i+1; });
       DB.sceneCards[getProject()] = remaining;
       renderCards();
+      debouncedSave();
     }
+  } else if(modalCtx.type==='char'){
+    if(action==='edit') openEditCharModal(modalCtx.id);
+    else if(action==='delete') deleteChar(modalCtx.id);
   }
 }
 document.addEventListener('click',hideCtx);
@@ -3631,6 +3761,13 @@ function switchLeft(name,btn){
   document.querySelectorAll('.lnav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('lpanel-'+name).classList.add('active');
   btn.classList.add('active');
+  // 切換頁籤時重新渲染對應內容，確保資料是最新的
+  try{
+    if(name==='cards') renderCards();
+    else if(name==='chars') renderChars();
+    else if(name==='notes') renderNotes();
+    else if(name==='foreshadow') refreshPlotUI();
+  }catch(e){}
 }
 function switchRight(name,btn){
   document.querySelectorAll('.right-panel').forEach(p=>p.classList.remove('active'));
@@ -5209,6 +5346,15 @@ window.addEventListener('DOMContentLoaded', function(){
   renderAll();
   restoreDomFromStorage();
   renderHistoryPanel();
+
+  // 延遲補救渲染：確保 DOM 完全就緒後再 render 一次左側面板
+  // 解決某些瀏覽器環境下初始 renderAll 因 DOM 尚未完整而靜默失敗的問題
+  setTimeout(function(){
+    try{ renderCards(); }catch(e){}
+    try{ renderChars(); }catch(e){}
+    try{ renderNotes(); }catch(e){}
+    try{ updateStats(); }catch(e){}
+  }, 100);
 
   // Init panel resize dividers
   initPanelResize('divider-left',  'left',  'left');
