@@ -2638,7 +2638,9 @@ function onLineKey(e,i){
   }
 
   // ── Tab / Shift+Tab — cycle format ───────────
+  // 輸入法組字期間的 Tab 由輸入法自行處理
   if(e.key==='Tab'){
+    if(e.isComposing) return;
     e.preventDefault();
     snapshotUndo();
     const cur = blocks[i].type;
@@ -2652,7 +2654,9 @@ function onLineKey(e,i){
   }
 
   // ── Enter — split line at caret (like Word) ──
+  // 注意：輸入法選字期間（isComposing=true）按 Enter 是確認選字，不應觸發斷行
   if(e.key==='Enter'){
+    if(e.isComposing) return; // 讓輸入法自行處理，不攔截
     e.preventDefault();
     snapshotUndo();
     const el = document.getElementById('line-'+i);
@@ -2685,7 +2689,9 @@ function onLineKey(e,i){
   }
 
   // ── Backspace ─────────────────────────────────
+  // 輸入法組字期間的 Backspace 由輸入法自行處理
   if(e.key==='Backspace'){
+    if(e.isComposing) return;
     const el = document.getElementById('line-'+i);
     const caretPos = el ? getCaretOffset(el) : -1;
 
@@ -2728,6 +2734,9 @@ function onLineKey(e,i){
   }
 
   // ── Arrow keys — cross-line navigation ───────
+  // 輸入法組字期間上下鍵是選字用的，不應跨行移動游標
+  if(e.isComposing) return;
+
   if(e.key==='ArrowUp' && i>0){
     const prevEl = document.getElementById('line-'+(i-1));
     if(prevEl) setTimeout(()=>prevEl.focus(), 0);
