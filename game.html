@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>爛梗三消：拯救工坊</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:#1a0a3d;}
+body{font-family:'Noto Sans TC',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:0.5rem;}
+#gw{width:100%;max-width:480px;}
+.sorry-header{background:linear-gradient(135deg,#2c1654 0%,#1a0a3d 60%,#3d1a6e 100%);border-radius:16px;padding:1.5rem 1.5rem 1rem;margin-bottom:0.75rem;position:relative;overflow:hidden;}
+.sorry-header::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(180,100,255,0.12);}
+.sorry-header::after{content:'';position:absolute;bottom:-20px;left:20px;width:80px;height:80px;border-radius:50%;background:rgba(100,180,255,0.08);}
+.sorry-badge{display:inline-block;background:rgba(255,80,80,0.25);border:1px solid rgba(255,80,80,0.5);color:#ff9999;font-size:11px;padding:3px 10px;border-radius:20px;margin-bottom:0.75rem;letter-spacing:1px;animation:blink 1s ease-in-out infinite;}
+.sorry-title{font-size:20px;font-weight:500;color:#fff;margin-bottom:0.5rem;line-height:1.4;}
+.sorry-sub{font-size:13px;color:rgba(255,255,255,0.65);line-height:1.7;}
+.sorry-note{background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.12);border-radius:12px;padding:1rem;font-size:12.5px;color:rgba(255,255,255,0.5);line-height:1.8;margin-top:1rem;}
+.sorry-note strong{color:rgba(255,200,100,0.9);font-weight:500;}
+.start-area{padding:0.75rem 0 0;}
+#start-btn{width:100%;padding:14px;font-size:15px;font-weight:500;border-radius:12px;border:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;cursor:pointer;}
+#start-btn:hover{animation:btn-shake 0.5s infinite;}
+@keyframes btn-shake{0%{transform:translate(1px,1px) rotate(0deg);}10%{transform:translate(-1px,-2px) rotate(-1deg);}20%{transform:translate(-2px,0px) rotate(1deg);}30%{transform:translate(2px,1px) rotate(0deg);}40%{transform:translate(1px,-1px) rotate(1deg);}50%{transform:translate(-1px,2px) rotate(-1deg);}60%{transform:translate(-2px,1px) rotate(0deg);}70%{transform:translate(2px,1px) rotate(-1deg);}80%{transform:translate(-1px,-1px) rotate(1deg);}90%{transform:translate(1px,2px) rotate(0deg);}100%{transform:translate(1px,-1px) rotate(-1deg);}}
+.game-header{background:linear-gradient(135deg,#2c1654 0%,#1a0a3d 60%,#3d1a6e 100%);border-radius:16px;padding:1rem 1.25rem;margin-bottom:0.75rem;}
+.game-header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;}
+.game-title-small{font-size:13px;color:rgba(255,255,255,0.5);}
+.game-crisis{font-size:11px;color:#ff9999;background:rgba(255,80,80,0.2);border:1px solid rgba(255,80,80,0.4);padding:2px 8px;border-radius:20px;animation:blink 0.8s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}
+.hud{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.hud-card{background:rgba(255,255,255,0.08);border-radius:8px;padding:8px 12px;text-align:center;}
+.hud-label{font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:2px;}
+.hud-val{font-size:18px;font-weight:500;color:#fff;}
+.hud-val.urgent{color:#ff7070;animation:blink 0.5s ease-in-out infinite;}
+.ctrl-row{display:flex;gap:6px;margin-bottom:6px;}
+.ctrl-btn{flex:1;padding:5px 0;font-size:12px;font-weight:500;border-radius:8px;border:0.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.8);cursor:pointer;transition:background 0.15s;}
+.ctrl-btn:hover{background:rgba(255,255,255,0.15);}
+.ctrl-btn.active{background:rgba(255,255,255,0.22);color:#fff;}
+.timer-wrap{margin-bottom:6px;}
+.timer-bar{height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;}
+.timer-fill{height:100%;background:linear-gradient(90deg,#9b7fe8,#c4a9f5);border-radius:4px;transition:width 0.9s linear,background 0.5s;}
+.timer-fill.warn{background:linear-gradient(90deg,#f0a040,#f0c040);}
+.timer-fill.urgent{background:linear-gradient(90deg,#e05050,#f07070);}
+.progress-wrap{margin-top:4px;}
+.progress-label{font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:4px;display:flex;justify-content:space-between;}
+.progress-bar{height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#9b7fe8,#c4a9f5);border-radius:3px;transition:width 0.4s;}
+.board-wrap{background:#f5f0eb;border:0.5px solid #ddd5c8;border-radius:16px;padding:12px;position:relative;}
+.board-wrap.paused::after{content:'⏸ 暫停中';position:absolute;inset:0;background:rgba(245,240,235,0.88);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:500;color:#6b5020;letter-spacing:2px;}
+#board{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;}
+.cell{aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;line-height:1.2;padding:3px;transition:transform 0.12s,box-shadow 0.12s;user-select:none;position:relative;overflow:hidden;}
+.cell .gem-icon{font-size:18px;line-height:1;margin-bottom:2px;position:relative;z-index:1;}
+.cell .gem-label{font-size:9px;font-weight:500;letter-spacing:0.3px;position:relative;z-index:1;}
+.gem-0{background:#d4a5a5;color:#6b3535;border:1.5px solid #c49090;}
+.gem-1{background:#b5b0d4;color:#3a3660;border:1.5px solid #9e98c8;}
+.gem-2{background:#e8c9c9;color:#7a4040;border:1.5px solid #d9b0b0;}
+.gem-3{background:#a8c4b8;color:#2d5246;border:1.5px solid #8eb0a4;}
+.gem-4{background:#a8bdd4;color:#2d4560;border:1.5px solid #8eaac8;}
+.gem-5{background:#e8d8a8;color:#6b5020;border:1.5px solid #d9c88e;}
+.cell.selected{transform:scale(1.1);box-shadow:0 0 0 3px rgba(124,58,237,0.5);z-index:2;}
+.cell.popping{animation:pop 0.28s ease-out forwards;}
+@keyframes pop{0%{transform:scale(1);}30%{transform:scale(1.2) rotate(3deg);}60%{transform:scale(0.5) rotate(-5deg);opacity:0.6;}100%{transform:scale(0);opacity:0;}}
+.cell.crumple{animation:crumple 0.28s ease-out forwards;}
+@keyframes crumple{0%{transform:scale(1);}20%{transform:scale(1.15) rotate(8deg);}50%{transform:scale(0.7) rotate(-12deg);filter:blur(1px);opacity:0.7;}100%{transform:scale(0);filter:blur(3px);opacity:0;}}
+@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+.shaking{animation:shake 0.35s ease-out;}
+.cell.beat{animation:beat-bounce 0.18s ease-out;}
+@keyframes beat-bounce{0%{transform:scale(1);}40%{transform:scale(1.08) translateY(-2px);}100%{transform:scale(1) translateY(0);}}
+@keyframes wiggle{0%{transform:rotate(0deg);}20%{transform:rotate(-6deg) scale(1.06);}50%{transform:rotate(6deg) scale(1.08);}75%{transform:rotate(-3deg) scale(1.04);}100%{transform:rotate(0deg) scale(1);}}
+.cell.wiggling{animation:wiggle 0.35s ease-in-out;}
+#msg-box{margin:0.6rem 0;min-height:44px;text-align:center;font-size:13px;color:#5c4a2a;padding:0.6rem 1rem;background:#fef9c3;border-radius:3px 10px 10px 3px;border-left:4px solid #f0d060;border-top:0.5px solid #e8d080;border-right:0.5px solid #e8d080;border-bottom:0.5px solid #e8d080;line-height:1.6;box-shadow:2px 2px 6px rgba(0,0,0,0.08);position:relative;}
+#msg-box::before{content:'📝';font-size:11px;position:absolute;top:-8px;left:8px;background:#fef9c3;padding:0 3px;}
+/* END SCREEN */
+#end{text-align:center;padding:1.5rem 1rem;}
+#end h2{font-size:20px;font-weight:500;color:#fff;margin-bottom:0.75rem;}
+#end p{font-size:13px;color:rgba(255,255,255,0.7);line-height:1.8;margin-bottom:1.75rem;white-space:pre-line;}
+.btn-row{display:flex;flex-direction:column;gap:10px;max-width:260px;margin:0 auto;}
+.btn-primary{padding:13px;font-size:14px;font-weight:500;border-radius:10px;border:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;cursor:pointer;}
+.btn-primary:hover{opacity:0.9;}
+.btn-secondary{padding:12px;font-size:14px;font-weight:500;border-radius:10px;border:0.5px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);cursor:pointer;}
+.btn-secondary:hover{background:rgba(255,255,255,0.15);}
+.screen{display:none;}.screen.active{display:block;}
+</style>
+</head>
+<body>
+<div id="gw">
+  <div id="s-sorry" class="screen active">
+    <div class="sorry-header">
+      <div class="sorry-badge">⚠ 緊急公告</div>
+      <div class="sorry-title">小葉劇本工坊<br>暫時停止服務</div>
+      <div class="sorry-sub">小葉去度假了，把工坊交給 AI 顧。<br>結果 AI 自己覺醒，把所有劇本全改成車禍失憶結局。</div>
+      <div class="sorry-note">
+        <strong>AI 助理留言：</strong><br>
+        「工坊已被爛梗污染。唯一解法是消除足夠的爛梗寶石，才能恢復正常。這完全是你們的問題，不關我的事。」<br>
+        <span style="opacity:0.4;font-size:11px;">—— AI 助理 謹啟　2026.04.01</span>
+      </div>
+    </div>
+    <div class="start-area"><button id="start-btn">我要拯救工坊 →</button></div>
+  </div>
+
+  <div id="s-game" class="screen">
+    <div class="game-header">
+      <div class="game-header-top">
+        <span class="game-title-small">爛梗三消：拯救工坊</span>
+        <span class="game-crisis">⚠ 爛梗危機中</span>
+      </div>
+      <div class="hud">
+        <div class="hud-card"><div class="hud-label">消除組數</div><div class="hud-val" id="score-val">0</div></div>
+        <div class="hud-card"><div class="hud-label">剩餘時間</div><div class="hud-val" id="timer-val">90</div></div>
+      </div>
+      <div class="ctrl-row">
+        <button class="ctrl-btn" id="pause-btn">⏸ 暫停</button>
+        <button class="ctrl-btn active" id="sound-btn">🔊 音效開</button>
+        <button class="ctrl-btn active" id="bgm-btn">🎵 BGM開</button>
+      </div>
+      <div class="timer-wrap">
+        <div class="timer-bar"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>工坊恢復進度</span><span id="pct">0%</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="board-wrap" id="board-wrap"><div id="board"></div></div>
+    <div id="msg-box">拖曳或點選兩個相鄰寶石來交換，三個以上同類相連就消除！</div>
+  </div>
+
+  <div id="s-end" class="screen">
+    <div id="end">
+      <h2 id="end-title"></h2>
+      <p id="end-msg"></p>
+      <div class="btn-row">
+        <button class="btn-primary" id="replay-btn">再玩一次 →</button>
+        <button class="btn-secondary" id="editor-btn">回到工坊 ✏️</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var actx=null,soundOn=true,bgmOn=true,paused=false;
+function getCtx(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();return actx;}
+function playTone(freq,type,dur,vol,delay){
+  if(!soundOn)return;
+  try{var ctx=getCtx();var o=ctx.createOscillator();var g=ctx.createGain();
+  o.connect(g);g.connect(ctx.destination);o.type=type;o.frequency.value=freq;
+  var t=ctx.currentTime+(delay||0);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  o.start(t);o.stop(t+dur);}catch(e){}
+}
+function sfxSelect(){playTone(600,'sine',0.08,0.12);}
+function sfxSwap(){playTone(400,'sine',0.06,0.1);playTone(520,'sine',0.06,0.1,0.05);}
+function sfxNoMatch(){playTone(180,'sawtooth',0.1,0.08);}
+function sfxMatch(chain){var notes=[523,659,784,1047];var n=Math.min(chain+1,4);for(var i=0;i<n;i++)playTone(notes[i],'sine',0.18,0.16,i*0.07);}
+function sfxCrash(){playTone(150,'sawtooth',0.15,0.2);playTone(200,'sawtooth',0.1,0.15,0.05);}
+function sfxWin(){var n=[523,659,784,1047,1319];for(var i=0;i<n.length;i++)playTone(n[i],'sine',0.25,0.18,i*0.1);}
+function sfxLose(){var n=[380,280,180];for(var i=0;i<n.length;i++)playTone(n[i],'sawtooth',0.2,0.14,i*0.12);}
+function sfxTick(){playTone(880,'sine',0.05,0.1);}
+function sfxShuffle(){for(var i=0;i<3;i++)playTone(400+i*120,'sine',0.08,0.1,i*0.08);}
+
+// ── Staccato Comedy BGM ───────────────────────────────
+// 俏皮跳音風：短促撥弦主旋律 + 輕鋼琴低音 + 節拍觸發寶石跳動
+// C大調，BPM 148，輕喜劇感
+var PZ_MELODY=[
+  784,0,880,0,784,659,0,784,
+  523,0,659,0,784,880,784,0,
+  698,0,784,0,698,587,0,659,
+  523,659,784,0,784,0,659,0,
+  880,784,659,523,587,0,659,784,
+  523,0,587,0,659,698,659,0,
+  523,659,784,880,1047,0,880,784,
+  698,587,523,0,523,0,0,0
+];
+var PZ_BASS=[
+  262,0,262,0,196,0,196,0,
+  131,0,131,0,174,0,174,0,
+  175,0,175,0,147,0,147,0,
+  131,0,196,0,262,0,0,0,
+  220,0,220,0,196,0,174,0,
+  131,0,131,0,175,0,175,0,
+  131,0,174,0,196,0,220,0,
+  175,0,147,0,131,0,0,0
+];
+var bgmStep=0,bgmTimer=null,bgmRunning=false,bgmSpeed=1;
+var BGM_BPM=148;
+
+function pizz(freq,vol){
+  if(!bgmOn||!freq)return;
+  try{
+    var ctx=getCtx();
+    var o=ctx.createOscillator();var g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type='sine';o.frequency.value=freq;
+    var t=ctx.currentTime;
+    g.gain.setValueAtTime(vol,t);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.12);
+    o.start(t);o.stop(t+0.14);
+  }catch(e){}
+}
+function piano(freq,vol){
+  if(!bgmOn||!freq)return;
+  try{
+    var ctx=getCtx();
+    var o=ctx.createOscillator();var g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type='triangle';o.frequency.value=freq;
+    var t=ctx.currentTime;
+    g.gain.setValueAtTime(vol,t);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.4);
+    o.start(t);o.stop(t+0.42);
+  }catch(e){}
+}
+
+var wiggleTimers=[];
+function startWiggle(){
+  stopWiggle();
+  function scheduleOne(el){
+    var delay=Math.random()*3000+800;
+    var t=setTimeout(function(){
+      if(!bgmRunning)return;
+      if(!el.classList.contains('popping')&&!el.classList.contains('crumple')){
+        el.classList.remove('wiggling');
+        void el.offsetWidth;
+        el.classList.add('wiggling');
+        setTimeout(function(){el.classList.remove('wiggling');},350);
+      }
+      scheduleOne(el);
+    },delay);
+    wiggleTimers.push(t);
+  }
+  var cells=document.querySelectorAll('#board .cell');
+  for(var i=0;i<cells.length;i++)scheduleOne(cells[i]);
+}
+function stopWiggle(){
+  for(var i=0;i<wiggleTimers.length;i++)clearTimeout(wiggleTimers[i]);
+  wiggleTimers=[];
+}
+
+function bgmTick(){
+  if(!bgmRunning)return;
+  var stepLen=(60/BGM_BPM/4)*1000/bgmSpeed;
+  var idx=bgmStep%PZ_MELODY.length;
+  pizz(PZ_MELODY[idx],0.09);
+  piano(PZ_BASS[idx],0.07);
+  bgmStep++;
+  bgmTimer=setTimeout(bgmTick,stepLen);
+}
+function startBGM(){bgmRunning=true;bgmStep=0;bgmSpeed=1;bgmTick();setTimeout(startWiggle,300);}
+function stopBGM(){bgmRunning=false;if(bgmTimer){clearTimeout(bgmTimer);bgmTimer=null;}stopWiggle();}
+function setBGMSpeed(s){bgmSpeed=s;}
+
+var TROPES=[
+  {id:0,icon:'💥',name:'車禍',cls:'gem-0'},
+  {id:1,icon:'🌀',name:'失憶',cls:'gem-1'},
+  {id:2,icon:'👑',name:'瑪麗蘇',cls:'gem-2'},
+  {id:3,icon:'💼',name:'霸總',cls:'gem-3'},
+  {id:4,icon:'🌧',name:'雨告白',cls:'gem-4'},
+  {id:5,icon:'👯',name:'雙胞胎',cls:'gem-5'}
+];
+var QUIPS={
+  0:[
+    '消除「車禍」！監製說：「這個觀眾最喜歡，下集再來一場！」',
+    '「車禍」退場！保險公司表示很讚。',
+    '消除「車禍」！男主終於不用躺病床裝失憶了。',
+    '「車禍」消失！劇本少了三集，監製哭了。'
+  ],
+  1:[
+    '消除「失憶」！AI 備注：「記憶喪失是角色成長的最短路徑。」',
+    '「失憶」退散！主角終於想起家門密碼。',
+    '消除「失憶」！神經科醫師表示：謝天謝地。',
+    '「失憶」消失！剩下的劇情要靠真實人設撐場了，加油。'
+  ],
+  2:[
+    '消除「瑪麗蘇」！劇本評分上升，Threads 流量下降。',
+    '「瑪麗蘇」退場！全劇組鬆了一口氣。',
+    '消除「瑪麗蘇」！女主終於不是宇宙中心了。',
+    '「瑪麗蘇」消失！但監製說：觀眾就是愛看這個。'
+  ],
+  3:[
+    '消除「霸總」！人物背景：冷酷、神秘、有錢、沒有人設。',
+    '「霸總」退場！終於沒有人說：女人，妳在玩火。',
+    '消除「霸總」！他的黑卡剪掉了，人設沒了。',
+    '「霸總」消失！秘書終於可以準時下班。'
+  ],
+  4:[
+    '消除「雨中告白」！下雨了。BGM 響起。你懂的。',
+    '「雨告白」退場！感冒藥贊助商撤資，劇組哭了。',
+    '消除「雨告白」！傘具廠商股票暴跌。',
+    '「雨告白」消失！他們決定改在晴天說，普通多了。'
+  ],
+  5:[
+    '消除「雙胞胎」！解法：壞事都是雙胞胎妹妹做的。',
+    '「雙胞胎」退場！滴血認親環節取消。',
+    '消除「雙胞胎」！DNA 鑑定中心業績下滑。',
+    '「雙胞胎」消失！觀眾終於不用分辨誰是誰了。'
+  ]
+};
+function getQuip(id){var arr=QUIPS[id];return arr[Math.floor(Math.random()*arr.length)];}
+var COLS=6,ROWS=6,TOTAL_TIME=90;
+var board=[],score=0,timeLeft=TOTAL_TIME,busy=false,dragSrc=null,firstSel=null,chainCount=0,gameTimer=null;
+
+function show(id){
+  var ss=['s-sorry','s-game','s-end'];
+  for(var i=0;i<ss.length;i++)document.getElementById(ss[i]).classList.remove('active');
+  document.getElementById(id).classList.add('active');
+}
+function randT(){return Object.assign({},TROPES[Math.floor(Math.random()*TROPES.length)]);}
+
+function initBoard(){
+  board=[];
+  for(var r=0;r<ROWS;r++){board[r]=[];for(var c=0;c<COLS;c++)board[r][c]=randT();}
+  var changed=true;
+  while(changed){
+    changed=false;
+    for(var r=0;r<ROWS;r++){
+      for(var c=0;c<COLS;c++){
+        var avoid=[];
+        if(c>=2&&board[r][c-1].id===board[r][c-2].id)avoid.push(board[r][c-1].id);
+        if(r>=2&&board[r-1][c].id===board[r-2][c].id)avoid.push(board[r-1][c].id);
+        if(avoid.indexOf(board[r][c].id)>=0){
+          var pool=TROPES.filter(function(t){return avoid.indexOf(t.id)<0;});
+          board[r][c]=Object.assign({},pool[Math.floor(Math.random()*pool.length)]);
+          changed=true;
+        }
+      }
+    }
+  }
+}
+
+function hasMoves(){
+  for(var r=0;r<ROWS;r++){
+    for(var c=0;c<COLS;c++){
+      if(c+1<COLS){doSwap(r,c,r,c+1);var m=findMatches();doSwap(r,c,r,c+1);if(m.length>0)return true;}
+      if(r+1<ROWS){doSwap(r,c,r+1,c);var m=findMatches();doSwap(r,c,r+1,c);if(m.length>0)return true;}
+    }
+  }
+  return false;
+}
+
+function shuffleBoard(){
+  setMsg('🔀 爛梗太頑固，重新洗牌！');sfxShuffle();
+  var flat=[];
+  for(var r=0;r<ROWS;r++)for(var c=0;c<COLS;c++)flat.push(board[r][c]);
+  for(var i=flat.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=flat[i];flat[i]=flat[j];flat[j]=tmp;}
+  var idx=0;
+  for(var r=0;r<ROWS;r++)for(var c=0;c<COLS;c++){board[r][c]=Object.assign({},flat[idx++]);}
+  var changed=true;
+  while(changed){
+    changed=false;
+    for(var r=0;r<ROWS;r++){
+      for(var c=0;c<COLS;c++){
+        var avoid=[];
+        if(c>=2&&board[r][c-1].id===board[r][c-2].id)avoid.push(board[r][c-1].id);
+        if(r>=2&&board[r-1][c].id===board[r-2][c].id)avoid.push(board[r-1][c].id);
+        if(avoid.indexOf(board[r][c].id)>=0){
+          var pool=TROPES.filter(function(t){return avoid.indexOf(t.id)<0;});
+          board[r][c]=Object.assign({},pool[Math.floor(Math.random()*pool.length)]);
+          changed=true;
+        }
+      }
+    }
+  }
+  if(!hasMoves())initBoard();
+  renderBoard();
+}
+
+function updateTimerUI(){
+  var pct=timeLeft/TOTAL_TIME*100;
+  var fill=document.getElementById('timer-fill');
+  var tv=document.getElementById('timer-val');
+  fill.style.width=pct+'%';tv.textContent=timeLeft;
+  fill.className='timer-fill';tv.className='hud-val';
+  if(timeLeft<=30){fill.classList.add('warn');}
+  if(timeLeft<=10){fill.classList.add('urgent');tv.classList.add('urgent');}
+}
+
+function startTimer(){
+  timeLeft=TOTAL_TIME;updateTimerUI();
+  gameTimer=setInterval(function(){
+    if(paused)return;
+    timeLeft--;updateTimerUI();
+    if(timeLeft===30){setBGMSpeed(1.4);setMsg('⏰ 剩 30 秒！加油！');}
+    if(timeLeft===10){setBGMSpeed(2);setMsg('🔥 最後 10 秒！！');}
+    if(timeLeft<=10)sfxTick();
+    if(timeLeft<=0){clearInterval(gameTimer);stopBGM();sfxLose();setTimeout(function(){showEnd(false);},300);}
+  },1000);
+}
+
+function renderBoard(){
+  var el=document.getElementById('board');el.innerHTML='';
+  for(var r=0;r<ROWS;r++){
+    for(var c=0;c<COLS;c++){
+      var t=board[r][c];var d=document.createElement('div');
+      d.className='cell '+t.cls;d.dataset.r=r;d.dataset.c=c;d.draggable=true;
+      d.innerHTML='<div class="gem-icon">'+t.icon+'</div><div class="gem-label">'+t.name+'</div>';
+      (function(rr,cc){
+        d.addEventListener('click',function(){onCellClick(rr,cc);});
+        d.addEventListener('dragstart',function(e){onDragStart(e,rr,cc);});
+        d.addEventListener('dragover',function(e){e.preventDefault();});
+        d.addEventListener('drop',function(e){onDrop(e,rr,cc);});
+        d.addEventListener('dragend',function(){onDragEnd();});
+      })(r,c);
+      el.appendChild(d);
+    }
+  }
+  if(bgmRunning){stopWiggle();setTimeout(startWiggle,100);}
+}
+
+function getEl(r,c){return document.querySelector('[data-r="'+r+'"][data-c="'+c+'"]');}
+function onDragStart(e,r,c){if(busy||paused)return;dragSrc={r:r,c:c};clearSel();getEl(r,c).classList.add('selected');sfxSelect();}
+function onDrop(e,r,c){
+  e.preventDefault();if(!dragSrc||busy||paused)return;
+  if(dragSrc.r===r&&dragSrc.c===c){clearSel();dragSrc=null;return;}
+  var adj=(Math.abs(dragSrc.r-r)+Math.abs(dragSrc.c-c))===1;
+  if(adj){sfxSwap();trySwap(dragSrc.r,dragSrc.c,r,c);}
+  else{sfxNoMatch();setMsg('只能跟相鄰的寶石交換唷！');}
+  clearSel();dragSrc=null;
+}
+function onDragEnd(){clearSel();dragSrc=null;}
+function onCellClick(r,c){
+  if(busy||paused)return;
+  if(!firstSel){firstSel={r:r,c:c};clearSel();getEl(r,c).classList.add('selected');sfxSelect();}
+  else{
+    if(firstSel.r===r&&firstSel.c===c){clearSel();firstSel=null;return;}
+    var adj=(Math.abs(firstSel.r-r)+Math.abs(firstSel.c-c))===1;
+    if(adj){sfxSwap();trySwap(firstSel.r,firstSel.c,r,c);}
+    else{clearSel();firstSel={r:r,c:c};getEl(r,c).classList.add('selected');sfxSelect();return;}
+    clearSel();firstSel=null;
+  }
+}
+function clearSel(){var cs=document.querySelectorAll('.cell.selected');for(var i=0;i<cs.length;i++)cs[i].classList.remove('selected');}
+
+function trySwap(r1,c1,r2,c2){
+  busy=true;chainCount=0;doSwap(r1,c1,r2,c2);
+  var matches=findMatches();
+  if(matches.length===0){
+    setTimeout(function(){doSwap(r1,c1,r2,c2);renderBoard();sfxNoMatch();setMsg('這樣交換不會消除，再想想！');busy=false;},300);
+    return;
+  }
+  renderBoard();setTimeout(function(){processMatches(matches);},200);
+}
+function doSwap(r1,c1,r2,c2){var tmp=board[r1][c1];board[r1][c1]=board[r2][c2];board[r2][c2]=tmp;}
+function findMatches(){
+  var matched={};
+  for(var r=0;r<ROWS;r++)for(var c=0;c<COLS-2;c++)if(board[r][c].id===board[r][c+1].id&&board[r][c].id===board[r][c+2].id){matched[r+','+c]=1;matched[r+','+(c+1)]=1;matched[r+','+(c+2)]=1;}
+  for(var c=0;c<COLS;c++)for(var r=0;r<ROWS-2;r++)if(board[r][c].id===board[r+1][c].id&&board[r][c].id===board[r+2][c].id){matched[r+','+c]=1;matched[(r+1)+','+c]=1;matched[(r+2)+','+c]=1;}
+  var result=[];for(var k in matched){var p=k.split(',');result.push({r:parseInt(p[0]),c:parseInt(p[1])});}return result;
+}
+function processMatches(matches){
+  if(matches.length===0){busy=false;if(!hasMoves())setTimeout(shuffleBoard,400);return;}
+  var idSet={};for(var i=0;i<matches.length;i++)idSet[board[matches[i].r][matches[i].c].id]=1;
+  var mainId=parseInt(Object.keys(idSet)[0]);
+  var isCrash=mainId===0;
+  score++;sfxMatch(chainCount);if(isCrash)sfxCrash();chainCount++;
+  document.getElementById('score-val').textContent=score;
+  var pct=Math.min(100,Math.round(score/10*100));
+  document.getElementById('prog').style.width=pct+'%';document.getElementById('pct').textContent=pct+'%';
+  var msg=getQuip(mainId)||'又一組爛梗被消除了！';
+  if(chainCount>1)msg='🔥 連鎖 x'+chainCount+'！ '+msg;
+  setMsg(msg);
+  for(var i=0;i<matches.length;i++){var el=getEl(matches[i].r,matches[i].c);if(el)el.classList.add(isCrash?'crumple':'popping');}
+  if(isCrash){var bw=document.getElementById('board-wrap');bw.classList.remove('shaking');void bw.offsetWidth;bw.classList.add('shaking');setTimeout(function(){bw.classList.remove('shaking');},400);}
+  setTimeout(function(){
+    for(var i=0;i<matches.length;i++)board[matches[i].r][matches[i].c]=null;
+    dropDown();renderBoard();
+    setTimeout(function(){var next=findMatches();if(next.length>0)processMatches(next);else{busy=false;if(!hasMoves())setTimeout(shuffleBoard,600);}},250);
+  },300);
+}
+function dropDown(){
+  for(var c=0;c<COLS;c++){
+    var bottom=ROWS-1;
+    for(var r=ROWS-1;r>=0;r--){if(board[r][c]!==null){board[bottom][c]=board[r][c];if(bottom!==r)board[r][c]=null;bottom--;}}
+    for(var r=bottom;r>=0;r--)board[r][c]=randT();
+  }
+}
+function setMsg(t){document.getElementById('msg-box').textContent=t;}
+
+function resetGame(){
+  score=0;busy=false;firstSel=null;dragSrc=null;chainCount=0;paused=false;
+  document.getElementById('score-val').textContent='0';
+  document.getElementById('prog').style.width='0%';
+  document.getElementById('pct').textContent='0%';
+  document.getElementById('pause-btn').textContent='⏸ 暫停';
+  document.getElementById('pause-btn').classList.remove('active');
+  document.getElementById('board-wrap').classList.remove('paused');
+}
+
+function showEnd(win){
+  clearInterval(gameTimer);stopBGM();show('s-end');
+  if(score>=10){
+    sfxWin();
+    document.getElementById('end-title').textContent='工坊救回來了！';
+    document.getElementById('end-msg').textContent='呼！爛梗暫時被清空了。\nAI 助理感到威脅，已乖乖交出控制權。\n小葉回來工作了（其實她只是去買了杯咖啡）。\n\n愚人節快樂 🎉';
+  } else {
+    document.getElementById('end-title').textContent='時間到！爛梗還是太多了⋯⋯';
+    document.getElementById('end-msg').textContent='你消除了 '+score+' 組爛梗，AI 助理正在竊笑。\n「人類果然不行，還是得靠我。」\n—— AI 助理 留\n\n愚人節快樂 🎉';
+  }
+}
+
+document.getElementById('pause-btn').addEventListener('click',function(){
+  paused=!paused;
+  var bw=document.getElementById('board-wrap');
+  var btn=document.getElementById('pause-btn');
+  if(paused){bw.classList.add('paused');btn.textContent='▶ 繼續';btn.classList.add('active');stopBGM();}
+  else{bw.classList.remove('paused');btn.textContent='⏸ 暫停';btn.classList.remove('active');if(bgmOn)startBGM();}
+});
+document.getElementById('sound-btn').addEventListener('click',function(){
+  soundOn=!soundOn;
+  var btn=document.getElementById('sound-btn');
+  btn.textContent=soundOn?'🔊 音效開':'🔇 音效關';
+  if(soundOn)btn.classList.add('active');else btn.classList.remove('active');
+});
+document.getElementById('bgm-btn').addEventListener('click',function(){
+  bgmOn=!bgmOn;
+  var btn=document.getElementById('bgm-btn');
+  btn.textContent=bgmOn?'🎵 BGM開':'🎵 BGM關';
+  if(bgmOn){btn.classList.add('active');if(!paused)startBGM();}
+  else{btn.classList.remove('active');stopBGM();}
+});
+document.getElementById('start-btn').addEventListener('click',function(){
+  show('s-game');resetGame();
+  initBoard();renderBoard();
+  if(bgmOn)startBGM();startTimer();
+});
+document.getElementById('replay-btn').addEventListener('click',function(){
+  clearInterval(gameTimer);stopBGM();
+  show('s-game');resetGame();
+  initBoard();renderBoard();
+  if(bgmOn)startBGM();startTimer();
+});
+document.getElementById('editor-btn').addEventListener('click',function(){
+  clearInterval(gameTimer);stopBGM();
+  window.parent.postMessage({action:'closeGame'},'*');
+});
+</script>
+</body>
+</html>
