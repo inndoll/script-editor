@@ -7369,27 +7369,5 @@ document.addEventListener('DOMContentLoaded', function(){
     <button class="tbtn" onclick="closeCardHookModal()" style="align-self:flex-end">取消</button>
   </div>
 </div>
-
-<!-- 愚人節遊戲覆蓋層 - 台灣時間 4/1 全天顯示，4/2 自動消失 -->
-<div id="game-overlay" style="position:fixed;inset:0;z-index:9999;background:#1a0a3d;display:flex;align-items:center;justify-content:center;">
-  <iframe id="game-iframe" src="game.html" style="width:100%;max-width:500px;height:100vh;border:none;"></iframe>
-</div>
-
-<script>
-(function() {
-  var now = new Date();
-  var twTime = new Date(now.toLocaleString('en-US', {timeZone: 'Asia/Taipei'}));
-  var isAprilFools = (twTime.getMonth() === 3 && twTime.getDate() === 1);
-  if (!isAprilFools) {
-    document.getElementById('game-overlay').style.display = 'none';
-  }
-})();
-
-window.addEventListener('message', function(e) {
-  if (e.data && e.data.action === 'closeGame') {
-    document.getElementById('game-overlay').style.display = 'none';
-  }
-});
-</script>
 </body>
 </html>
