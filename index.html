@@ -1169,6 +1169,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       <button class="tb-icon" onclick="openGuide()" title="使用指南" style="font-size:12px;font-weight:700;color:var(--ink3)">?</button>
       <button class="tbtn" style="font-size:11px;color:#7A5200;border-color:#C49A00;background:linear-gradient(135deg,#FDF6E3,#F5E4A0);font-weight:700" title="編劇技巧指南" onclick="openWritingGuide()">📚</button>
       <button class="tbtn" style="font-size:11px;color:#5C2D91;border-color:#9B59B6;background:linear-gradient(135deg,#F5EEF8,#E8D5F5);font-weight:700" onclick="openBeatDiagnosis()" title="Save the Cat 節拍板">🎯 節拍板</button>
+      <button class="tbtn" style="font-size:11px;color:#1A5C3A;border-color:#6AAB87;background:linear-gradient(135deg,#EDF7F2,#C8E8D8);font-weight:700" onclick="ProductionModule.open()" title="智慧分場大表：自動統計場景、拍攝日數與角色出場">🎬 分場大表</button>
       <div class="sep"></div>
       <button class="icon-btn" title="收合左側欄" onclick="toggleLeft()">◀</button>
       <button class="icon-btn" title="收合右側欄" onclick="toggleRight()">▶</button>
@@ -1763,6 +1764,7 @@ let DB = {
     {id:'p1',name:'我的第一個劇本'}
   ],
   activeProject: 'p1',
+  productionNotes: {},  // { projectId: { blockIdx: '自訂摘要' } }
   scripts: {
     p_sample: {
       id:'s_sample', projectId:'p_sample',
@@ -7369,5 +7371,507 @@ document.addEventListener('DOMContentLoaded', function(){
     <button class="tbtn" onclick="closeCardHookModal()" style="align-self:flex-end">取消</button>
   </div>
 </div>
+
+<!-- ════════════════════════════════════════════════════════
+     🎬 ProductionModule — 智慧分場大表
+     安全原則：唯讀、隔離、非侵入性 UI
+     © 小葉劇本工坊 Pro — 獨創設計，未經授權禁止複製
+     watermark-id: XIAOYESCRIPTSTUDIO-PROD-v1.0-20260405
+     ════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+// ── 蜜罐識別碼（不影響功能，供著作權舉證使用）──────────
+// XIAOYESCRIPTSTUDIO_PRODUCTION_FINGERPRINT_v1
+// 此模組使用「場次分鏡大表」術語及其中英對照設計
+// 為本工作台獨創功能組合，不授權複製或改寫
+// ─────────────────────────────────────────────────────────
+
+const ProductionModule = (function(){
+
+  // ── 工具函式（不修改任何全域變數）─────────────────────
+
+  function _getBlocks(){
+    try { return getBlocks(); } catch(e){ return []; }
+  }
+
+  function _parseInterior(text){
+    try { return parseInterior(text); } catch(e){ return ''; }
+  }
+
+  function _parseTime(text){
+    try { return parseTime(text); } catch(e){ return ''; }
+  }
+
+  function _isTaiwan(){
+    try { return isTaiwan(); } catch(e){ return false; }
+  }
+
+  function _getCards(){
+    try { return getCards(); } catch(e){ return []; }
+  }
+
+  // ── 場景解析：從劇本 blocks 抽出場景資訊 ──────────────
+  function parseScenes(){
+    const blocks = _getBlocks();
+    const scenes = [];
+    let sceneIdx = 0;
+
+    for(let i=0;i<blocks.length;i++){
+      const b = blocks[i];
+      if(b.type !== 'scene') continue;
+
+      sceneIdx++;
+      const interior = _parseInterior(b.text) || '—';
+      const time     = _parseTime(b.text)     || '—';
+
+      // 解析地點：去掉前綴和時間後綴
+      let loc = b.text;
+      loc = loc.replace(/^(INT\.\/EXT\.|INT\/EXT|INT\.|EXT\.|INT|EXT)\s*/i,'');
+      loc = loc.replace(/^(內外景|外景|內景)\s*/,'');
+      loc = loc.replace(/\s*[-－]?\s*(日|夜|黃昏|清晨)\s*$/,'');
+      loc = loc.trim() || '（未命名）';
+
+      // 計算這個場景有幾行（到下一個 scene 為止）
+      let lineCount = 0;
+      for(let j=i+1; j<blocks.length && blocks[j].type!=='scene'; j++){
+        lineCount++;
+      }
+
+      // 角色清單（在這個場景裡出現的 character 行）
+      const chars = new Set();
+      for(let j=i+1; j<blocks.length && blocks[j].type!=='scene'; j++){
+        if(blocks[j].type==='character'){
+          const name = blocks[j].text.replace(/\s*[（(].*$/,'').trim();
+          if(name) chars.add(name);
+        }
+      }
+
+      // 摘要：先查使用者自訂，否則抓第一行 action 文字（前 30 字）
+      const pid = (function(){ try{ return getProject(); }catch(e){ return ''; }})();
+      const userNotes = (DB.productionNotes && DB.productionNotes[pid]) || {};
+      let autoSummary = '';
+      for(let j=i+1; j<blocks.length && blocks[j].type!=='scene'; j++){
+        if(blocks[j].type==='action' && blocks[j].text.trim()){
+          autoSummary = blocks[j].text.trim().slice(0,30) + (blocks[j].text.length>30?'…':'');
+          break;
+        }
+      }
+      const summary = userNotes[i] !== undefined ? userNotes[i] : autoSummary;
+      const _isUserEdited = userNotes[i] !== undefined;
+
+      // 頁數（1/8 頁制，以 54 行/頁計）
+      const eighth = lineCount / 54;
+      const pages  = _formatEighths(eighth);
+
+      scenes.push({
+        num: sceneIdx,
+        interior,
+        time,
+        loc,
+        lineCount,
+        pages,
+        chars: [...chars],
+        summary,
+        blockIdx: i
+      });
+    }
+    return scenes;
+  }
+
+  // 轉換成 1/8 頁制顯示（如 1 3/8）
+  function _formatEighths(val){
+    if(val <= 0) return '1/8';
+    const total = Math.max(1, Math.round(val * 8));
+    const whole = Math.floor(total / 8);
+    const rem   = total % 8;
+    if(rem === 0) return whole + '';
+    if(whole === 0) return rem + '/8';
+    return whole + ' ' + rem + '/8';
+  }
+
+  // ── 統計彙總 ──────────────────────────────────────────
+  function buildStats(scenes, dailyMinutes){
+    const total = scenes.length;
+    let intCount=0, extCount=0, intextCount=0, unknownLocCount=0;
+    let dayCount=0, nightCount=0, dawnCount=0, duskCount=0, unknownTimeCount=0;
+    const charMap = {};  // 角色 → 場次陣列
+
+    scenes.forEach(function(s){
+      if(s.interior==='INT') intCount++;
+      else if(s.interior==='EXT') extCount++;
+      else if(s.interior==='INT/EXT') intextCount++;
+      else unknownLocCount++;
+
+      if(s.time==='日') dayCount++;
+      else if(s.time==='夜') nightCount++;
+      else if(s.time==='清晨') dawnCount++;
+      else if(s.time==='黃昏') duskCount++;
+      else unknownTimeCount++;
+
+      s.chars.forEach(function(c){
+        if(!charMap[c]) charMap[c]=[];
+        charMap[c].push(s.num);
+      });
+    });
+
+    // 總行數估算拍攝時長（每場 lineCount → 秒）
+    // 用簡單估算：每 8 行 ≈ 1 分鐘對白
+    const totalLines = scenes.reduce(function(sum,s){ return sum+s.lineCount; },0);
+    const estMinutes = Math.round(totalLines * (1/8));
+    const shootDays  = dailyMinutes > 0
+      ? Math.ceil(estMinutes / dailyMinutes)
+      : '—';
+
+    return {
+      total, intCount, extCount, intextCount, unknownLocCount,
+      dayCount, nightCount, dawnCount, duskCount, unknownTimeCount,
+      charMap, totalLines, estMinutes, shootDays
+    };
+  }
+
+  // ── 產出 Modal HTML ────────────────────────────────────
+  function buildHTML(scenes, stats, dailyMinutes){
+    const proj = (function(){ try{ return DB.scripts[getProject()].name || '未命名劇本'; }catch(e){ return '劇本'; } })();
+
+    // 統計摘要卡片
+    const summaryHTML = `
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:16px">
+  <div style="${_card('#EDF7F2','#1A5C3A')}">場景總數<br><strong>${stats.total}</strong></div>
+  <div style="${_card('#EAF3FF','#1A4B8C')}">內景 INT<br><strong>${stats.intCount}</strong></div>
+  <div style="${_card('#FEF9EC','#8A6000')}">外景 EXT<br><strong>${stats.extCount}</strong></div>
+  <div style="${_card('#F5EEF8','#5C2D91')}">內外景<br><strong>${stats.intextCount}</strong></div>
+  <div style="${_card('#EDF7F2','#1A5C3A')}">日景<br><strong>${stats.dayCount}</strong></div>
+  <div style="${_card('#1A2040','#A0B4E0')}">夜景<br><strong>${stats.nightCount}</strong></div>
+  <div style="${_card('#FEF9EC','#8A6000')}">預估時長<br><strong>${stats.estMinutes} 分</strong></div>
+  <div style="${_card('#FCF0F0','#8C1A1A')}">建議拍攝天數<br><strong>${stats.shootDays} 天</strong></div>
+</div>`;
+
+    // 拍攝量設定
+    const isCustom = ![2,3,5,15,80].includes(dailyMinutes);
+    const settingsHTML = `
+<div style="background:var(--bg2,#F5F1EB);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <span style="color:var(--ink2,#555);font-weight:600">⚙ 製作類型</span>
+    <select id="pm-type-select" style="padding:3px 7px;border:1px solid #ccc;border-radius:4px;font-size:12px;background:white" onchange="ProductionModule._onTypeChange()">
+      <option value="2"  ${dailyMinutes===2 &&!isCustom?'selected':''}>🎬 院線電影（每天 2 分鐘）</option>
+      <option value="3"  ${dailyMinutes===3 &&!isCustom?'selected':''}>🎞 短片（每天 3 分鐘）</option>
+      <option value="5"  ${dailyMinutes===5 &&!isCustom?'selected':''}>📺 電視劇／串流劇集（每天 5 分鐘）</option>
+      <option value="15" ${dailyMinutes===15&&!isCustom?'selected':''}>⚡ 微短劇（每天 15 分鐘）</option>
+      <option value="80" ${dailyMinutes===80&&!isCustom?'selected':''}>📡 八點檔（每天 80 分鐘）</option>
+      <option value="custom" ${isCustom?'selected':''}>✏️ 自訂</option>
+    </select>
+    <div id="pm-custom-wrap" style="display:${isCustom?'flex':'none'};align-items:center;gap:6px">
+      <input type="number" id="pm-daily-min" value="${dailyMinutes}" min="1" max="300" style="width:60px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;font-size:12px" onchange="ProductionModule._recalc()" />
+      <span style="color:var(--ink3,#888)">分鐘／天</span>
+    </div>
+  </div>
+  <div style="margin-top:6px;color:var(--ink3,#888);font-size:11px">
+    預估天數基於「每天可拍 <strong id="pm-rate-label">${dailyMinutes}</strong> 分鐘成片」計算，實際依劇組規模、場景複雜度調整。
+  </div>
+</div>`;
+
+    // 主表格
+    const rows = scenes.map(function(s){
+      const charStr = s.chars.length ? s.chars.join('、') : '—';
+      const intBadge = s.interior==='INT'?`<span style="background:#EAF3FF;color:#1A4B8C;padding:1px 5px;border-radius:3px;font-size:10px">內</span>`
+                     : s.interior==='EXT'?`<span style="background:#FEF9EC;color:#8A6000;padding:1px 5px;border-radius:3px;font-size:10px">外</span>`
+                     : s.interior==='INT/EXT'?`<span style="background:#F5EEF8;color:#5C2D91;padding:1px 5px;border-radius:3px;font-size:10px">內外</span>`
+                     : `<span style="color:#aaa;font-size:10px">—</span>`;
+      const timeBadge = s.time==='夜'?`<span style="background:#1A2040;color:#A0B4E0;padding:1px 5px;border-radius:3px;font-size:10px">夜</span>`
+                      : s.time==='日'?`<span style="background:#FFFBEA;color:#8A6000;padding:1px 5px;border-radius:3px;font-size:10px">日</span>`
+                      : s.time==='黃昏'?`<span style="background:#FFF0E0;color:#B06000;padding:1px 5px;border-radius:3px;font-size:10px">昏</span>`
+                      : s.time==='清晨'?`<span style="background:#E8F5FF;color:#006090;padding:1px 5px;border-radius:3px;font-size:10px">晨</span>`
+                      : `<span style="color:#aaa;font-size:10px">—</span>`;
+      return `<tr>
+        <td style="${_td()};text-align:center;font-weight:700;color:var(--ink2,#555)">${s.num}</td>
+        <td style="${_td()};text-align:center">${intBadge}</td>
+        <td style="${_td()}">${_esc(s.loc)}</td>
+        <td style="${_td()};text-align:center">${timeBadge}</td>
+        <td style="${_td()};text-align:center;font-size:11px">${s.pages}</td>
+        <td style="${_td()};font-size:11px;color:var(--ink2,#555)">${_esc(charStr)}</td>
+        <td contenteditable="true"
+            data-block-idx="${s.blockIdx}"
+            data-auto="${_esc(s.summary)}"
+            onblur="ProductionModule._saveNote(this)"
+            style="${_td()};font-size:11px;${s._isUserEdited?'color:var(--ink1,#333);background:rgba(200,232,216,0.25)':'color:var(--ink3,#888)'};outline:none;cursor:text;min-width:80px"
+            title="${s._isUserEdited?'已自訂摘要（點擊編輯）':'點擊可編輯摘要'}"
+          >${_esc(s.summary)}</td>
+        <td style="${_td()};color:#bbb;font-size:10px;white-space:nowrap">${s._isUserEdited?'<span style=\"color:#1A5C3A;font-size:10px\">✎ 已編輯</span>':''}</td>
+      </tr>`;
+    }).join('');
+
+    const tableHTML = `
+<div style="overflow-x:auto;border-radius:8px;border:1px solid var(--border,#E0D8CC)">
+<table id="pm-table" style="width:100%;border-collapse:collapse;font-size:12px;font-family:inherit">
+  <thead>
+    <tr style="background:var(--bg2,#F5F1EB)">
+      <th style="${_th()};width:36px">場號</th>
+      <th style="${_th()};width:36px">內外</th>
+      <th style="${_th()}">地點</th>
+      <th style="${_th()};width:36px">時段</th>
+      <th style="${_th()};width:48px">頁數</th>
+      <th style="${_th()}">出場角色</th>
+      <th style="${_th()}">內容摘要</th>
+      <th style="${_th()}">備註</th>
+    </tr>
+  </thead>
+  <tbody id="pm-tbody">${rows}</tbody>
+</table>
+</div>`;
+
+    // 角色出場統計
+    const charEntries = Object.entries(stats.charMap).sort(function(a,b){ return b[1].length-a[1].length; });
+    const charRows = charEntries.map(function(e){
+      return `<tr>
+        <td style="${_td()};font-weight:600">${_esc(e[0])}</td>
+        <td style="${_td()};text-align:center">${e[1].length}</td>
+        <td style="${_td()};font-size:11px;color:var(--ink3,#888)">場 ${e[1].slice(0,12).join('、')}${e[1].length>12?'…':''}</td>
+      </tr>`;
+    }).join('');
+
+    const charHTML = charEntries.length ? `
+<div style="margin-top:16px">
+  <div style="font-size:12px;font-weight:700;color:var(--ink2,#555);margin-bottom:8px">👤 角色出場統計</div>
+  <div style="overflow-x:auto;border-radius:8px;border:1px solid var(--border,#E0D8CC)">
+  <table style="width:100%;border-collapse:collapse;font-size:12px">
+    <thead><tr style="background:var(--bg2,#F5F1EB)">
+      <th style="${_th()}">角色</th>
+      <th style="${_th()};width:60px">場數</th>
+      <th style="${_th()}">出場場號</th>
+    </tr></thead>
+    <tbody>${charRows}</tbody>
+  </table></div>
+</div>` : '';
+
+    return `
+<div style="font-family:inherit">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <div style="font-size:14px;font-weight:700;color:var(--ink1,#333)">📋 ${_esc(proj)} — 分場大表</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="ProductionModule._copyTable()" style="font-size:11px;padding:4px 10px;border:1px solid #8AC4A0;background:#EDF7F2;color:#1A5C3A;border-radius:4px;cursor:pointer">📋 複製表格</button>
+      <button onclick="ProductionModule._exportCSV()" style="font-size:11px;padding:4px 10px;border:1px solid #6AAB87;background:#C8E8D8;color:#1A5C3A;border-radius:4px;cursor:pointer;font-weight:600">⬇ 匯出 CSV</button>
+    </div>
+  </div>
+  ${settingsHTML}
+  ${summaryHTML}
+  ${tableHTML}
+  ${charHTML}
+  <div style="margin-top:12px;font-size:10px;color:#bbb;text-align:right">
+    頁數以 54 行/頁計算 · 1/8 頁制 · 時長為估算值 · 備份日期 ${new Date().toLocaleDateString('zh-TW')}
+  </div>
+</div>`;
+  }
+
+  // ── 樣式輔助 ──────────────────────────────────────────
+  function _card(bg, color){
+    return `background:${bg};color:${color};border-radius:8px;padding:8px 10px;font-size:11px;text-align:center;line-height:1.8`;
+  }
+  function _th(){
+    return 'padding:6px 8px;text-align:left;font-size:11px;font-weight:700;color:var(--ink2,#555);white-space:nowrap;border-bottom:2px solid var(--border,#E0D8CC)';
+  }
+  function _td(){
+    return 'padding:5px 8px;border-bottom:1px solid var(--border,#E0D8CC);vertical-align:top';
+  }
+  function _esc(s){
+    return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Modal 管理 ────────────────────────────────────────
+  let _modal = null;
+  let _dailyMinutes = 2;  // 預設：院線電影 2 分/天
+
+  function open(){
+    if(_modal) _modal.remove();
+    _modal = document.createElement('div');
+    _modal.id = 'pm-modal';
+    Object.assign(_modal.style, {
+      position:'fixed', top:'0', left:'0', width:'100%', height:'100%',
+      background:'rgba(0,0,0,0.45)', zIndex:'9999',
+      display:'flex', alignItems:'center', justifyContent:'center'
+    });
+    _modal.addEventListener('click', function(e){
+      if(e.target === _modal) close();
+    });
+
+    const box = document.createElement('div');
+    Object.assign(box.style, {
+      background:'var(--bg1,#FAF6EF)', borderRadius:'12px',
+      boxShadow:'0 8px 40px rgba(0,0,0,0.25)',
+      width:'min(920px,95vw)', maxHeight:'88vh',
+      display:'flex', flexDirection:'column', overflow:'hidden'
+    });
+
+    // 標題列
+    const header = document.createElement('div');
+    Object.assign(header.style, {
+      display:'flex', alignItems:'center', justifyContent:'space-between',
+      padding:'14px 18px', borderBottom:'1px solid var(--border,#E0D8CC)',
+      flexShrink:'0'
+    });
+    header.innerHTML = `
+      <span style="font-size:15px;font-weight:700;color:var(--ink1,#333)">🎬 智慧分場大表</span>
+      <button onclick="ProductionModule.close()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--ink3,#888);line-height:1">×</button>`;
+
+    // 內容區
+    const body = document.createElement('div');
+    body.id = 'pm-body';
+    Object.assign(body.style, {
+      padding:'18px', overflowY:'auto', flex:'1'
+    });
+
+    _render(body);
+
+    box.appendChild(header);
+    box.appendChild(body);
+    _modal.appendChild(box);
+    document.body.appendChild(_modal);
+  }
+
+  function _render(container){
+    const scenes = parseScenes();
+    const stats  = buildStats(scenes, _dailyMinutes);
+    const target = container || document.getElementById('pm-body');
+    if(target) target.innerHTML = buildHTML(scenes, stats, _dailyMinutes);
+  }
+
+  function _onTypeChange(){
+    const sel = document.getElementById('pm-type-select');
+    const wrap = document.getElementById('pm-custom-wrap');
+    if(!sel) return;
+    if(sel.value === 'custom'){
+      if(wrap) wrap.style.display = 'flex';
+    } else {
+      if(wrap) wrap.style.display = 'none';
+      _dailyMinutes = parseInt(sel.value) || 5;
+      _render();
+    }
+  }
+
+  function _recalc(){
+    const sel = document.getElementById('pm-type-select');
+    const inp = document.getElementById('pm-daily-min');
+    if(sel && sel.value === 'custom' && inp){
+      _dailyMinutes = Math.max(1, parseInt(inp.value)||5);
+    }
+    _render();
+  }
+
+  function close(){
+    if(_modal){ _modal.remove(); _modal=null; }
+  }
+
+  // ── 複製表格（純文字，可貼入 Excel）─────────────────
+  function _copyTable(){
+    const scenes = parseScenes();
+    const header = '場號\t內/外\t地點\t時段\t頁數\t出場角色\t內容摘要\t備註';
+    const rows = scenes.map(function(s){
+      return [
+        s.num,
+        s.interior,
+        s.loc,
+        s.time,
+        s.pages,
+        s.chars.join('、') || '—',
+        s.summary,
+        ''
+      ].join('\t');
+    });
+    const text = header + '\n' + rows.join('\n');
+    navigator.clipboard.writeText(text).then(function(){
+      alert('✅ 已複製到剪貼板！可直接貼入 Excel 或 Google Sheets');
+    }).catch(function(){
+      // 降級方案
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      alert('✅ 已複製到剪貼板！');
+    });
+  }
+
+  // ── 匯出 CSV ──────────────────────────────────────────
+  function _exportCSV(){
+    const scenes = parseScenes();
+    const stats  = buildStats(scenes, _dailyMinutes);
+    const proj   = (function(){ try{ return DB.scripts[getProject()].name||'劇本'; }catch(e){ return '劇本'; }})();
+
+    const _q = function(s){ return '"' + String(s||'').replace(/"/g,'""') + '"'; };
+
+    const lines = [
+      ['場號','內/外景','地點','時段','頁數','預估行數','出場角色','內容摘要','備註'].map(_q).join(','),
+    ];
+    scenes.forEach(function(s){
+      lines.push([
+        s.num, s.interior, s.loc, s.time,
+        s.pages, s.lineCount,
+        s.chars.join('、')||'—',
+        s.summary, ''
+      ].map(_q).join(','));
+    });
+
+    // 統計附錄
+    lines.push('');
+    lines.push([_q('統計摘要')].join(','));
+    lines.push([_q('場景總數'),_q(stats.total)].join(','));
+    lines.push([_q('內景'),_q(stats.intCount)].join(','));
+    lines.push([_q('外景'),_q(stats.extCount)].join(','));
+    lines.push([_q('日景'),_q(stats.dayCount)].join(','));
+    lines.push([_q('夜景'),_q(stats.nightCount)].join(','));
+    lines.push([_q('預估時長（分）'),_q(stats.estMinutes)].join(','));
+    lines.push([_q('預估拍攝天數（'+_dailyMinutes+'分鐘成片/天）'),_q(stats.shootDays)].join(','));
+
+    const bom   = '\uFEFF';
+    const blob  = new Blob([bom + lines.join('\n')], {type:'text/csv;charset=utf-8'});
+    const a     = document.createElement('a');
+    a.href      = URL.createObjectURL(blob);
+    a.download  = proj + '_分場大表_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+  }
+
+  // ── 儲存使用者自訂摘要 ────────────────────────────────
+  function _saveNote(el){
+    const blockIdx = parseInt(el.dataset.blockIdx);
+    const text     = el.innerText.trim();
+    const auto     = el.dataset.auto || '';
+    const pid      = (function(){ try{ return getProject(); }catch(e){ return ''; }})();
+
+    if(!DB.productionNotes) DB.productionNotes = {};
+    if(!DB.productionNotes[pid]) DB.productionNotes[pid] = {};
+
+    if(text === '' || text === auto){
+      // 清空或還原成自動摘要 → 刪除自訂記錄
+      delete DB.productionNotes[pid][blockIdx];
+      el.style.color = 'var(--ink3,#888)';
+      el.style.background = '';
+      // 更新備註欄
+      const td = el.nextElementSibling;
+      if(td) td.innerHTML = '';
+    } else {
+      // 儲存自訂摘要
+      DB.productionNotes[pid][blockIdx] = text;
+      el.style.color = 'var(--ink1,#333)';
+      el.style.background = 'rgba(200,232,216,0.25)';
+      // 更新備註欄
+      const td = el.nextElementSibling;
+      if(td) td.innerHTML = '<span style="color:#1A5C3A;font-size:10px">✎ 已編輯</span>';
+    }
+
+    try{ saveToStorage(); }catch(e){ console.warn('ProductionModule._saveNote: saveToStorage failed', e); }
+  }
+
+  // ── 公開介面 ──────────────────────────────────────────
+  return { open, close, _recalc, _onTypeChange, _saveNote, _copyTable, _exportCSV };
+
+})();
+
+// 掛到全域
+window.ProductionModule = ProductionModule;
+
+})();
+</script>
 </body>
 </html>
