@@ -1099,6 +1099,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -1699,6 +1700,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       <button onclick="showGuideSection(11,this)">快捷鍵總覽</button>
       <button onclick="showGuideSection(12,this)">🔫 伏筆系統</button>
       <button onclick="showGuideSection(13,this)">⏱ 拍攝時長</button>
+      <button onclick="showGuideSection(16,this)">🎬 分場大表</button>
       <button onclick="showGuideSection(14,this)">常見問題</button>
       <button onclick="showGuideSection(15,this)">🎯 結構診斷</button>
     </div>
@@ -6045,6 +6047,7 @@ var GUIDE_SECTIONS = [
 +'<li><strong>⬇ Fountain ／ Word ／ 備份 ／ ⬆ 還原 ／ 🖨 列印 PDF</strong>：匯出與備份</li>'
 +'<li><strong>🎬 📺 ⚡ 時長劇種</strong>：拍攝時長估算的劇種模式</li>'
 +'<li><strong>🎯 節拍板</strong>：Save the Cat 15 節點結構診斷</li>'
++'<li><strong>🎬 分場大表</strong>：自動分析劇本，生成場景統計、角色出場表與拍攝天數估算，摘要欄可手動編輯並自動儲存</li>'
 +'<li><strong>📸 快照分享</strong>：生成劇本圖片快照，可直接貼到 LINE／Messenger</li>'
 +'<li><strong>◀ ▶</strong>：收合 ／ 展開左右側欄（可拖曳分隔線調整寬度）</li>'
 +'</ul>'
@@ -6327,6 +6330,40 @@ var GUIDE_SECTIONS = [
 +'<h3>劇作提示欄</h3>'
 +'<p>診斷視窗每個節點旁永遠顯示劇作建議，提醒這幾場戲應專注解決什麼問題，即使未標記任何節點也看得到。</p>'
 +'<div class="g-callout note"><span class="g-callout-icon">📌</span><div class="g-callout-body">結構診斷依賴時長估算，建議先確認劇種模式（電影 ／ 電視劇 ／ 短影音）設定正確，推算結果才準確。</div></div>',
+
+// 16 — 分場大表
+'<h2>🎬 分場大表</h2>'
++'<p>點擊頂部工具列的「🎬 分場大表」按鈕，系統會自動分析目前劇本，產出一份可供製片、導演參考的<strong>分場統計報表</strong>。</p>'
++'<h3>報表內容</h3>'
++'<ul>'
++'<li><strong>統計摘要</strong>：場景總數、內景／外景數量、日景／夜景比例、預估成片時長與建議拍攝天數</li>'
++'<li><strong>分場大表</strong>：每場場號、內外景、地點、時段、頁數（1/8 頁制）、出場角色、內容摘要</li>'
++'<li><strong>角色出場統計</strong>：各角色共出現幾場、以及對應的場號列表</li>'
++'</ul>'
++'<h3>製作類型設定</h3>'
++'<p>報表頂端可選擇製作類型，系統會依此計算建議拍攝天數：</p>'
++'<ul>'
++'<li><strong>院線電影</strong>：每天 2 分鐘成片</li>'
++'<li><strong>短片</strong>：每天 3 分鐘成片</li>'
++'<li><strong>電視劇／串流劇集</strong>：每天 5 分鐘成片</li>'
++'<li><strong>微短劇</strong>：每天 15 分鐘成片</li>'
++'<li><strong>八點檔</strong>：每天 80 分鐘成片</li>'
++'<li><strong>自訂</strong>：手動輸入每天可拍分鐘數</li>'
++'</ul>'
++'<div class="g-callout note"><span class="g-callout-icon">📌</span><div class="g-callout-body">拍攝天數為估算值，實際依劇組規模、場景複雜度、外景比例而不同，建議與製片討論後調整。</div></div>'
++'<h3>內容摘要編輯</h3>'
++'<p>每場的「內容摘要」欄預設抓取場景第一行動作描述（前 30 字）。<strong>點擊格子可直接編輯</strong>，游標離開後自動儲存。</p>'
++'<ul>'
++'<li>已手動編輯的格子會變淡綠色，備註欄顯示「✎ 已編輯」</li>'
++'<li>將格子清空可還原為自動摘要</li>'
++'<li>摘要資料跟劇本一起儲存，備份 JSON 時也會帶走，換專案不互相污染</li>'
++'</ul>'
++'<h3>匯出</h3>'
++'<ul>'
++'<li><strong>複製表格</strong>：複製為 Tab 分隔純文字，可直接貼入 Excel 或 Google Sheets</li>'
++'<li><strong>匯出 CSV</strong>：下載含 BOM 的 CSV 檔，中文不亂碼，附統計摘要附錄</li>'
++'</ul>'
++'<div class="g-callout tip"><span class="g-callout-icon">💡</span><div class="g-callout-body">編劇可以把分場大表交給製片，讓製片直接在 Excel 裡繼續填寫道具、服裝、特殊需求等欄位。</div></div>'
 ];
 
 // ══════════════════════════════════════════════
@@ -7651,7 +7688,7 @@ const ProductionModule = (function(){
     <div style="font-size:14px;font-weight:700;color:var(--ink1,#333)">📋 ${_esc(proj)} — 分場大表</div>
     <div style="display:flex;gap:8px">
       <button onclick="ProductionModule._copyTable()" style="font-size:11px;padding:4px 10px;border:1px solid #8AC4A0;background:#EDF7F2;color:#1A5C3A;border-radius:4px;cursor:pointer">📋 複製表格</button>
-      <button onclick="ProductionModule._exportCSV()" style="font-size:11px;padding:4px 10px;border:1px solid #6AAB87;background:#C8E8D8;color:#1A5C3A;border-radius:4px;cursor:pointer;font-weight:600">⬇ 匯出 CSV</button>
+      <button onclick="ProductionModule._exportXLSX()" style="font-size:11px;padding:4px 10px;border:1px solid #6AAB87;background:#C8E8D8;color:#1A5C3A;border-radius:4px;cursor:pointer;font-weight:600">⬇ 匯出 Excel</button>
     </div>
   </div>
   ${settingsHTML}
@@ -7793,42 +7830,97 @@ const ProductionModule = (function(){
     });
   }
 
-  // ── 匯出 CSV ──────────────────────────────────────────
+  // ── 匯出 Excel（兩個工作頁）─────────────────────────
+  function _exportXLSX(){
+    if(typeof XLSX === 'undefined'){
+      alert('Excel 匯出功能需要網路連線載入函式庫，請確認網路後重試。');
+      return;
+    }
+    const scenes = parseScenes();
+    const stats  = buildStats(scenes, _dailyMinutes);
+    const proj   = (function(){ try{ return DB.scripts[getProject()].name||'劇本'; }catch(e){ return '劇本'; }})();
+    const date   = new Date().toISOString().slice(0,10);
+
+    // ── 工作頁一：分場大表 ──────────────────────────
+    const sheet1Data = [
+      ['場號','內/外景','地點','時段','頁數（1/8）','行數','出場角色','內容摘要','備註']
+    ];
+    scenes.forEach(function(s){
+      sheet1Data.push([
+        s.num,
+        s.interior || '—',
+        s.loc,
+        s.time || '—',
+        s.pages,
+        s.lineCount,
+        s.chars.join('、') || '—',
+        s.summary || '',
+        ''
+      ]);
+    });
+    // 空行後加統計摘要
+    sheet1Data.push([]);
+    sheet1Data.push(['統計摘要','']);
+    sheet1Data.push(['場景總數', stats.total]);
+    sheet1Data.push(['內景（INT）', stats.intCount]);
+    sheet1Data.push(['外景（EXT）', stats.extCount]);
+    sheet1Data.push(['內外景（INT/EXT）', stats.intextCount]);
+    sheet1Data.push(['日景', stats.dayCount]);
+    sheet1Data.push(['夜景', stats.nightCount]);
+    sheet1Data.push(['清晨', stats.dawnCount]);
+    sheet1Data.push(['黃昏', stats.duskCount]);
+    sheet1Data.push(['預估成片時長（分）', stats.estMinutes]);
+    sheet1Data.push(['製作類型每日拍攝量（分）', _dailyMinutes]);
+    sheet1Data.push(['預估拍攝天數', stats.shootDays]);
+
+    const ws1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+
+    // 欄寬設定
+    ws1['!cols'] = [
+      {wch:6},{wch:8},{wch:20},{wch:6},{wch:10},{wch:6},{wch:24},{wch:30},{wch:16}
+    ];
+
+    // ── 工作頁二：角色出場統計 ──────────────────────
+    const charEntries = Object.entries(stats.charMap)
+      .sort(function(a,b){ return b[1].length - a[1].length; });
+
+    const sheet2Data = [
+      ['角色','出場場數','出場場號','備註（通告用）']
+    ];
+    charEntries.forEach(function(e){
+      sheet2Data.push([
+        e[0],
+        e[1].length,
+        e[1].join('、'),
+        ''
+      ]);
+    });
+
+    const ws2 = XLSX.utils.aoa_to_sheet(sheet2Data);
+    ws2['!cols'] = [{wch:16},{wch:10},{wch:40},{wch:20}];
+
+    // ── 組裝 Workbook ────────────────────────────────
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws1, '分場大表');
+    XLSX.utils.book_append_sheet(wb, ws2, '角色出場統計');
+
+    XLSX.writeFile(wb, proj + '_分場大表_' + date + '.xlsx');
+  }
+
+  // ── 保留CSV作為降級方案（內部使用）──────────────────
   function _exportCSV(){
     const scenes = parseScenes();
     const stats  = buildStats(scenes, _dailyMinutes);
     const proj   = (function(){ try{ return DB.scripts[getProject()].name||'劇本'; }catch(e){ return '劇本'; }})();
-
     const _q = function(s){ return '"' + String(s||'').replace(/"/g,'""') + '"'; };
-
-    const lines = [
-      ['場號','內/外景','地點','時段','頁數','預估行數','出場角色','內容摘要','備註'].map(_q).join(','),
-    ];
+    const lines = [['場號','內/外景','地點','時段','頁數','出場角色','內容摘要','備註'].map(_q).join(',')];
     scenes.forEach(function(s){
-      lines.push([
-        s.num, s.interior, s.loc, s.time,
-        s.pages, s.lineCount,
-        s.chars.join('、')||'—',
-        s.summary, ''
-      ].map(_q).join(','));
+      lines.push([s.num,s.interior,s.loc,s.time,s.pages,s.chars.join('、')||'—',s.summary,''].map(_q).join(','));
     });
-
-    // 統計附錄
-    lines.push('');
-    lines.push([_q('統計摘要')].join(','));
-    lines.push([_q('場景總數'),_q(stats.total)].join(','));
-    lines.push([_q('內景'),_q(stats.intCount)].join(','));
-    lines.push([_q('外景'),_q(stats.extCount)].join(','));
-    lines.push([_q('日景'),_q(stats.dayCount)].join(','));
-    lines.push([_q('夜景'),_q(stats.nightCount)].join(','));
-    lines.push([_q('預估時長（分）'),_q(stats.estMinutes)].join(','));
-    lines.push([_q('預估拍攝天數（'+_dailyMinutes+'分鐘成片/天）'),_q(stats.shootDays)].join(','));
-
-    const bom   = '\uFEFF';
-    const blob  = new Blob([bom + lines.join('\n')], {type:'text/csv;charset=utf-8'});
-    const a     = document.createElement('a');
-    a.href      = URL.createObjectURL(blob);
-    a.download  = proj + '_分場大表_' + new Date().toISOString().slice(0,10) + '.csv';
+    const blob = new Blob(['\uFEFF'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = proj+'_分場大表_'+new Date().toISOString().slice(0,10)+'.csv';
     a.click();
   }
 
@@ -7864,7 +7956,7 @@ const ProductionModule = (function(){
   }
 
   // ── 公開介面 ──────────────────────────────────────────
-  return { open, close, _recalc, _onTypeChange, _saveNote, _copyTable, _exportCSV };
+  return { open, close, _recalc, _onTypeChange, _saveNote, _copyTable, _exportXLSX, _exportCSV };
 
 })();
 
