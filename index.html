@@ -4004,6 +4004,10 @@ document.getElementById('project-select').addEventListener('change',function(){
   // 讀取新專案的標題
   restoreTitleFromScript();
   renderAll();
+  // 如果分場大表 Modal 是開著的，跟著重新 render
+  if(document.getElementById('pm-modal')){
+    try{ ProductionModule._render(); }catch(e){}
+  }
 });
 
 // ═══════════════════════════════════════════════
@@ -7956,7 +7960,7 @@ const ProductionModule = (function(){
   }
 
   // ── 公開介面 ──────────────────────────────────────────
-  return { open, close, _recalc, _onTypeChange, _saveNote, _copyTable, _exportXLSX, _exportCSV };
+  return { open, close, _render, _recalc, _onTypeChange, _saveNote, _copyTable, _exportXLSX, _exportCSV };
 
 })();
 
