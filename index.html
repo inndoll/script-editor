@@ -1476,6 +1476,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
     <div class="import-tabs">
       <button class="import-tab active" id="itab-text" onclick="switchImportTab('text',this)">📋 貼上純文字</button>
       <button class="import-tab" id="itab-docx" onclick="switchImportTab('docx',this)">📄 上傳 Word 檔（.docx / .doc）</button>
+      <button class="import-tab" id="itab-rtf" onclick="switchImportTab('rtf',this)">📝 上傳 RTF 檔（Final Draft 匯出）</button>
     </div>
 
     <!-- 純文字 pane -->
@@ -1506,7 +1507,20 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       <div class="import-hint" id="docx-status">等待選擇檔案……</div>
     </div>
 
-    <!-- 預覽區（兩個 pane 共用） -->
+    <!-- RTF 上傳 pane -->
+    <div class="import-pane" id="ipane-rtf">
+      <div class="import-dropzone" id="rtf-dropzone"
+        onclick="document.getElementById('rtf-file-input').click()"
+        ondragover="rtfDragOver(event)" ondragleave="rtfDragLeave(event)" ondrop="rtfDrop(event)">
+        <span class="dz-icon">📝</span>
+        <div class="dz-main">拖曳 .rtf 檔至此，或點擊選擇檔案</div>
+        <div class="dz-sub">支援 Final Draft、Word、TextEdit 匯出的 RTF 格式</div>
+      </div>
+      <input type="file" id="rtf-file-input" accept=".rtf" style="display:none" onchange="handleRtfFile(this.files[0])">
+      <div class="import-hint" id="rtf-status">等待選擇檔案……</div>
+    </div>
+
+    <!-- 預覽區（三個 pane 共用） -->
     <div id="import-preview-section" style="display:none;padding:0 20px 16px;flex-direction:column;gap:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0">
         <span style="font-size:12px;font-weight:600;color:var(--ink2)">辨識結果預覽 <span id="import-count" style="color:var(--ink3);font-weight:400"></span></span>
@@ -3896,7 +3910,8 @@ function applyProjectSettings(){
     renderLines();
     scheduleUpdate();
   }
-  closeModal();
+  // 直接關閉，不依賴 closeModal 的參數判斷邏輯
+  document.getElementById('modal-overlay').classList.remove('open');
 }
 
 function renameProject(){
@@ -5672,6 +5687,99 @@ function handleDocxFile(file){
   reader.readAsArrayBuffer(file);
 }
 
+// ── RTF pane ─────────────────────────────────────
+function rtfDragOver(e){
+  e.preventDefault();
+  document.getElementById('rtf-dropzone').classList.add('dragover');
+}
+function rtfDragLeave(e){
+  document.getElementById('rtf-dropzone').classList.remove('dragover');
+}
+function rtfDrop(e){
+  e.preventDefault();
+  document.getElementById('rtf-dropzone').classList.remove('dragover');
+  var file = e.dataTransfer.files[0];
+  if(file) handleRtfFile(file);
+}
+function handleRtfFile(file){
+  if(!file) return;
+  if(!file.name.match(/\.rtf$/i)){
+    alert('請上傳 .rtf 格式的檔案。');
+    return;
+  }
+  var status = document.getElementById('rtf-status');
+  status.textContent = '⏳ 正在讀取 ' + file.name + ' ……';
+
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    try {
+      var raw = ev.target.result;
+      var text = stripRtf(raw);
+      if(!text.trim()){
+        status.textContent = '⚠️ 無法從此檔案讀取到文字，可能是加密或圖片型文件。';
+        return;
+      }
+      var lineCount = text.split('\n').filter(function(l){ return l.trim(); }).length;
+      status.textContent = '✓ 已讀取「' + file.name + '」，共 ' + lineCount + ' 行，辨識中……';
+      var blocks = textToBlocks(text);
+      _importBlocks = blocks;
+      renderImportPreview(blocks);
+      document.getElementById('import-footer-note').textContent = '✓ 辨識完成，確認格式後按「匯入劇本」';
+      document.getElementById('import-confirm-btn').disabled = false;
+      document.getElementById('import-confirm-btn').style.opacity = '1';
+    } catch(err){
+      status.textContent = '❌ 讀取失敗：' + err.message;
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+// ── RTF 剝殼（純正則，無需外部套件）─────────────────
+function stripRtf(rtf){
+  var text = rtf;
+
+  // 偵測編碼
+  var isBig5 = /\\ansicpg950/.test(text);
+
+  if(isBig5){
+    // Big5：收集連續 \'XX 解碼
+    text = text.replace(/((\\'[0-9a-fA-F]{2})+)/g, function(match){
+      try {
+        var bytes = [];
+        var re = /\\'([0-9a-fA-F]{2})/g, m;
+        while((m = re.exec(match)) !== null) bytes.push(parseInt(m[1], 16));
+        return new TextDecoder('big5').decode(new Uint8Array(bytes));
+      } catch(e){ return ''; }
+    });
+  } else {
+    // UTF-8：移除剩餘 \'XX
+    text = text.replace(/\\'[0-9a-fA-F]{2}/g, '');
+  }
+
+  // Unicode 跳脫
+  text = text.replace(/\\u-?[0-9]+\s?\?/g, '');
+  text = text.replace(/\\u-?[0-9]+\s?/g, '');
+
+  // 換行
+  text = text.replace(/\\par\b/g, '\n');
+  text = text.replace(/\\line\b/g, '\n');
+  text = text.replace(/\\tab\b/g, '\t');
+
+  // 移除控制字
+  text = text.replace(/\\[a-z*]+[-]?[0-9]*/gi, '');
+
+  // 移除大括號
+  text = text.replace(/[{}]/g, '');
+
+  // 清理
+  text = text.split('\n')
+    .map(function(l){ return l.replace(/\s+/g, ' ').trim(); })
+    .filter(function(l){ return l.length > 0; })
+    .join('\n');
+
+  return text;
+}
+
 function showDocConvertGuide(filename){
   var body = '<div style="display:flex;flex-direction:column;gap:16px">'
     + '<div style="background:var(--amber-l);border:1px solid var(--amber2);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.7">'
@@ -6047,7 +6155,7 @@ var GUIDE_SECTIONS = [
 +'<li><strong>＋</strong>：建立新劇本，自動跳出專案設定讓你選格式</li>'
 +'<li><strong>✏ / ⚙ / 🗑</strong>：重新命名 ／ 專案設定（含格式切換）／ 刪除</li>'
 +'<li><strong>劇本格式 Tab Bar</strong>：好萊塢 ／ 優劇 ／ 電視劇 ／ 舞台劇，隨時可切換</li>'
-+'<li><strong>⬆ 匯入</strong>：貼上純文字或上傳 Word 檔自動辨識格式</li>'
++'<li><strong>⬆ 匯入</strong>：貼上純文字、上傳 Word 檔（.docx）或 RTF 檔（Final Draft 匯出），自動辨識格式</li>'
 +'<li><strong>⬇ Fountain ／ Word ／ 備份 ／ ⬆ 還原 ／ 🖨 列印 PDF</strong>：匯出與備份</li>'
 +'<li><strong>🎬 📺 ⚡ 時長劇種</strong>：拍攝時長估算的劇種模式</li>'
 +'<li><strong>🎯 節拍板</strong>：Save the Cat 15 節點結構診斷</li>'
@@ -6188,6 +6296,8 @@ var GUIDE_SECTIONS = [
 +'</ul>'
 +'<h3>📄 上傳 Word 檔（.docx）</h3>'
 +'<p>拖曳或點擊上傳，用 mammoth.js 讀取文字後自動辨識（需網路連線）。</p>'
++'<h3>上傳 RTF 檔（Final Draft 匯出）</h3>'
++'<p>直接上傳從 Final Draft 或其他軟體匯出的 <code>.rtf</code> 檔，系統自動剝殼成純文字再辨識，不需要網路連線。支援好萊塢格式（INT./EXT. 場景標題）。</p>'
 +'<h3>匯入模式</h3>'
 +'<ul><li><strong>取代目前劇本</strong></li><li><strong>附加到劇本末尾</strong></li><li><strong>插入游標位置</strong></li></ul>'
 +'<div class="g-callout note"><span class="g-callout-icon">📌</span><div class="g-callout-body">辨識僅供初步整理，匯入後可用工具列或 Tab 鍵繼續校正格式。</div></div>',
