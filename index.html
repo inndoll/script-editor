@@ -3923,6 +3923,7 @@ function psFormatChange(radio){
 }
 
 function applyProjectSettings(){
+  document.getElementById('modal-overlay').classList.remove('open');
   var sel = document.querySelector('input[name="ps-format"]:checked');
   if(sel){
     getScript().format = sel.value;
@@ -3930,8 +3931,6 @@ function applyProjectSettings(){
     renderLines();
     scheduleUpdate();
   }
-  // 直接關閉，不依賴 closeModal 的參數判斷邏輯
-  document.getElementById('modal-overlay').classList.remove('open');
 }
 
 function renameProject(){
@@ -5598,12 +5597,15 @@ function textToBlocks(rawText){
 
   var result = [];
   var prevType = null;
+  var prevMeaningful = null;
   lines.forEach(function(line){
     var t = line.trim();
     if(!t){ prevType = null; return; }
 
+    // Carry parenthetical context across blank lines: paren → blank → dialogue should still be dialogue
+    var ctxType = prevType !== null ? prevType : (prevMeaningful === 'parenthetical' ? 'parenthetical' : null);
     // First check normal classifiers (scene / transition / parenthetical / all-caps character)
-    var type = classifyLine(t, prevType);
+    var type = classifyLine(t, ctxType);
 
     // If classified as action or dialogue, check for inline "名字：對白" pattern
     if(type === 'action' || type === 'dialogue'){
@@ -5621,19 +5623,19 @@ function textToBlocks(rawText){
           // Split into character block + optional parenthetical + dialogue block
           var parenMatch = dialPart.match(/^[（(]([^）)]{0,60})[）)](.*)/);
           result.push({ id: uid(), type: 'character', text: charPart, linkedCardId: null });
-          prevType = 'character';
+          prevType = 'character'; prevMeaningful = 'character';
           if(parenMatch){
             var parenText = '（' + parenMatch[1].trim() + '）';
             var restDial = parenMatch[2].trim();
             result.push({ id: uid(), type: 'parenthetical', text: parenText, linkedCardId: null });
-            prevType = 'parenthetical';
+            prevType = 'parenthetical'; prevMeaningful = 'parenthetical';
             if(restDial){
               result.push({ id: uid(), type: 'dialogue', text: restDial, linkedCardId: null });
-              prevType = 'dialogue';
+              prevType = 'dialogue'; prevMeaningful = 'dialogue';
             }
           } else {
             result.push({ id: uid(), type: 'dialogue', text: dialPart, linkedCardId: null });
-            prevType = 'dialogue';
+            prevType = 'dialogue'; prevMeaningful = 'dialogue';
           }
           return; // skip normal push below
         }
@@ -5642,7 +5644,7 @@ function textToBlocks(rawText){
 
     if(!type) return;
     result.push({ id: uid(), type: type, text: t, linkedCardId: null });
-    prevType = type;
+    prevType = type; prevMeaningful = type;
   });
   return result;
 }
