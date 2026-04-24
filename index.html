@@ -3814,11 +3814,30 @@ function toggleRight(){
 //  PROJECT
 // ═══════════════════════════════════════════════
 function newProject(){
-  const name = prompt('新劇本名稱：', '無題劇本 #'+(DB.projects.length+1));
-  if(!name || !name.trim()) return;
-  const id = 'p'+Date.now();
-  DB.projects.push({id, name: name.trim()});
-  // Default format = hollywood; user can change via toolbar or project settings
+  var n = DB.projects.length + 1;
+  document.getElementById('modal-title').textContent = '＋ 新建劇本';
+  document.getElementById('modal-body').innerHTML =
+    '<div style="display:flex;flex-direction:column;gap:8px">'
+    + '<label style="font-size:12px;font-weight:600;color:var(--ink2)">劇本名稱</label>'
+    + '<input type="text" id="new-proj-name" class="form-input" value="無題劇本 #'+n+'" style="font-size:14px;padding:10px 12px" '
+    + 'onkeydown="if(event.key===\'Enter\'){event.preventDefault();confirmNewProject();}">'
+    + '</div>';
+  document.getElementById('modal-footer').innerHTML =
+    '<button class="tbtn" onclick="closeModal()">取消</button>'
+    + '<button class="tbtn primary" onclick="confirmNewProject()">建立</button>';
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(function(){
+    var inp = document.getElementById('new-proj-name');
+    if(inp){ inp.focus(); inp.select(); }
+  }, 80);
+}
+
+function confirmNewProject(){
+  var inp = document.getElementById('new-proj-name');
+  var name = inp ? inp.value.trim() : '';
+  if(!name){ if(inp) inp.focus(); return; }
+  var id = 'p'+Date.now();
+  DB.projects.push({id:id, name:name});
   DB.scripts[id] = {id:'s'+Date.now(), projectId:id, format:'hollywood', blocks:[
     {id:uid(), type:'scene', text:'INT. 場景一 - 日', linkedCardId:null},
     {id:uid(), type:'action', text:''},
@@ -3830,14 +3849,14 @@ function newProject(){
   DB.foreshadow[id] = [];
   DB.activeProject = id;
   syncProjectSelector();
-  document.getElementById('sb-project').textContent = name.trim();
+  var sbp = document.getElementById('sb-project');
+  if(sbp) sbp.textContent = name;
   var ti = document.getElementById('script-title-input');
   var si = document.getElementById('script-subtitle-input');
   if(ti) ti.value = '';
   if(si) si.value = '';
   renderAll();
   debouncedSave();
-  // Open project settings so user can set format right away
   openProjectSettings();
   setTimeout(function(){ if(ti) ti.focus(); }, 300);
 }
@@ -5874,7 +5893,6 @@ function confirmImport(){
   var newBlocks = _importBlocks.slice();
 
   if(mode === 'replace'){
-    if(!confirm('確定要取代目前劇本全部內容嗎？（建議先點「⬇ 備份 JSON」儲存備份）')) return;
     DB.scripts[getProject()].blocks = newBlocks;
   } else if(mode === 'append'){
     newBlocks.forEach(function(b){ getBlocks().push(b); });
