@@ -1171,6 +1171,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       <button class="tbtn" style="font-size:11px;color:#7A5200;border-color:#C49A00;background:linear-gradient(135deg,#FDF6E3,#F5E4A0);font-weight:700" title="編劇技巧指南" onclick="openWritingGuide()">📚</button>
       <button class="tbtn" style="font-size:11px;color:#5C2D91;border-color:#9B59B6;background:linear-gradient(135deg,#F5EEF8,#E8D5F5);font-weight:700" onclick="openBeatDiagnosis()" title="Save the Cat 節拍板">🎯 節拍板</button>
       <button class="tbtn" style="font-size:11px;color:#1A5C3A;border-color:#6AAB87;background:linear-gradient(135deg,#EDF7F2,#C8E8D8);font-weight:700" onclick="ProductionModule.open()" title="智慧分場大表：自動統計場景、拍攝日數與角色出場">🎬 分場大表</button>
+      <button class="tbtn" style="font-size:11px;color:#7B3F00;border-color:#C47A3A;background:linear-gradient(135deg,#FDF0E6,#F5D5B0);font-weight:700" onclick="CharHeatmap.open()" title="角色對白熱圖：哪個角色在哪場出現">🎭 角色熱圖</button>
       <div class="sep"></div>
       <button class="icon-btn" title="收合左側欄" onclick="toggleLeft()">◀</button>
       <button class="icon-btn" title="收合右側欄" onclick="toggleRight()">▶</button>
@@ -7522,6 +7523,213 @@ document.addEventListener('DOMContentLoaded', function(){
     <button class="tbtn" onclick="closeCardHookModal()" style="align-self:flex-end">取消</button>
   </div>
 </div>
+
+<!-- ════════════════════════════════════════════════════════
+     🎭 CharHeatmap — 角色對白熱圖
+     安全原則：唯讀、隔離、非侵入性 UI
+     © 小葉劇本工坊 Pro — 獨創設計，未經授權禁止複製
+     ════════════════════════════════════════════════════════ -->
+<div id="chm-overlay" onclick="if(event.target===this)CharHeatmap.close()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:2600;align-items:flex-start;justify-content:center;padding:24px;overflow:auto">
+  <div id="chm-box" style="background:var(--bg,#FAFAF8);border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,0.28);width:100%;max-width:1100px;display:flex;flex-direction:column;max-height:calc(100vh - 48px);overflow:hidden">
+    <div style="padding:14px 20px;border-bottom:1px solid var(--border,#E0DDD8);display:flex;align-items:center;gap:10px;flex-shrink:0;background:var(--bg2,#F5F3EF)">
+      <span style="font-size:18px">🎭</span>
+      <div>
+        <div style="font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;color:var(--ink,#1A1A1A)">角色對白熱圖</div>
+        <div style="font-size:11px;color:var(--ink3,#888);margin-top:1px">每格代表該角色在此場景有說話；連續空白代表角色缺席</div>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+        <button onclick="CharHeatmap.close()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink3,#888);line-height:1;padding:0 4px">×</button>
+      </div>
+    </div>
+    <div id="chm-body" style="flex:1;overflow:auto;padding:20px"></div>
+    <div style="padding:10px 20px;border-top:1px solid var(--border,#E0DDD8);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--bg2,#F5F3EF)">
+      <div id="chm-summary" style="font-size:11px;color:var(--ink3,#888)"></div>
+      <button onclick="CharHeatmap.close()" style="font-size:12px;padding:5px 14px;border:1px solid var(--border,#E0DDD8);border-radius:6px;background:var(--bg,#FAFAF8);cursor:pointer;color:var(--ink2,#555)">關閉</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+'use strict';
+
+const CharHeatmap = (function(){
+
+  function _getBlocks(){
+    try { return getBlocks(); } catch(e){ return []; }
+  }
+
+  function _getChars(){
+    try { return getChars(); } catch(e){ return []; }
+  }
+
+  // 解析劇本：回傳 scenes 陣列，每個 scene 含 { label, chars: Set, actionCount }
+  function _parse(){
+    const blocks = _getBlocks();
+    const scenes = [];
+    let cur = null;
+    let lastChar = null;
+
+    for(let i = 0; i < blocks.length; i++){
+      const b = blocks[i];
+      if(b.type === 'scene'){
+        cur = { label: b.text || '（未命名）', chars: {}, actionCount: 0 };
+        scenes.push(cur);
+        lastChar = null;
+        continue;
+      }
+      if(!cur) continue;
+
+      if(b.type === 'character'){
+        const name = (b.text || '').trim();
+        if(name){
+          lastChar = name;
+          if(!cur.chars[name]) cur.chars[name] = 0;
+        }
+      } else if(b.type === 'dialogue' && lastChar){
+        cur.chars[lastChar] = (cur.chars[lastChar] || 0) + 1;
+      } else if(b.type === 'action'){
+        cur.actionCount++;
+        lastChar = null;
+      } else if(b.type === 'parenthetical'){
+        // 不重置 lastChar，括弧說明後仍接對白
+      } else {
+        lastChar = null;
+      }
+    }
+    return scenes;
+  }
+
+  // 備用色盤：足夠區分的 12 色
+  const PALETTE = [
+    '#E05A5A','#4A90D9','#3DB87A','#C47A3A','#7B5EA7',
+    '#D4882A','#2AADA4','#D45E9A','#6B8E23','#8B6C42',
+    '#4472CA','#C75B39'
+  ];
+
+  // 從 DB.characters 拿顏色，找不到就按照角色在劇本中的排序自動配色
+  function _charColor(name, idx){
+    const chars = _getChars();
+    const found = chars.find(c => c.name === name);
+    if(found && found.color) return found.color;
+    return PALETTE[(idx || 0) % PALETTE.length];
+  }
+
+  function _render(){
+    const scenes = _parse();
+    const bodyEl = document.getElementById('chm-body');
+    const summaryEl = document.getElementById('chm-summary');
+
+    if(scenes.length === 0){
+      bodyEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3,#888);font-size:14px">劇本尚無場景，請先在編輯區建立場景標題。</div>';
+      summaryEl.textContent = '';
+      return;
+    }
+
+    // 收集所有角色，按總對白行數排序
+    const charTotal = {};
+    scenes.forEach(s => {
+      Object.keys(s.chars).forEach(n => {
+        charTotal[n] = (charTotal[n] || 0) + s.chars[n];
+      });
+    });
+    const allChars = Object.keys(charTotal)
+      .filter(n => charTotal[n] > 0)
+      .sort((a,b) => charTotal[b] - charTotal[a]);
+
+    if(allChars.length === 0){
+      bodyEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3,#888);font-size:14px">劇本中尚無角色對白，請先在編輯區加入角色說話。</div>';
+      summaryEl.textContent = '';
+      return;
+    }
+
+    const CELL_W = 13;
+    const CELL_H = 22;
+    const NAME_W = 108;
+
+    // 場次標籤：場景少於 30 場全標，超過只標每 5 場
+    const showLabel = i => scenes.length <= 30 || i === 0 || (i+1) % 5 === 0;
+
+    let html = `<div style="overflow:auto;max-height:calc(80vh - 160px)">
+<table style="border-collapse:collapse;font-size:10px;table-layout:fixed">
+<thead><tr>
+  <th style="position:sticky;left:0;top:0;z-index:3;background:var(--bg2,#F5F3EF);width:${NAME_W}px;min-width:${NAME_W}px;border-bottom:2px solid var(--border,#E0DDD8);border-right:2px solid var(--border,#E0DDD8);padding:4px 6px;text-align:left;font-weight:400;color:var(--ink3,#888)">角色</th>
+  ${scenes.map((s, i) => `<th title="場景${i+1}：${_esc(s.label)}" style="position:sticky;top:0;z-index:2;background:var(--bg2,#F5F3EF);width:${CELL_W}px;min-width:${CELL_W}px;border-bottom:2px solid var(--border,#E0DDD8);padding:1px 0;text-align:center">
+    <span style="font-size:9px;color:#CCC;line-height:1">${showLabel(i) ? i+1 : ''}</span>
+  </th>`).join('')}
+</tr></thead>
+<tbody>`;
+
+    allChars.forEach((name, ci) => {
+      const color = _charColor(name, ci);
+      const sceneCount = scenes.filter(s => (s.chars[name]||0) > 0).length;
+      const rowBg = ci % 2 === 0 ? 'var(--bg,#FAFAF8)' : 'var(--bg2,#F5F3EF)';
+      html += `<tr>
+  <td style="position:sticky;left:0;z-index:1;background:${rowBg};border-right:2px solid var(--border,#E0DDD8);border-bottom:1px solid rgba(0,0,0,0.04);padding:2px 6px;white-space:nowrap">
+    <div style="display:flex;align-items:center;gap:5px">
+      <span style="width:7px;height:7px;border-radius:50%;background:${color};flex-shrink:0"></span>
+      <span style="font-size:11px;font-weight:600;color:var(--ink,#1A1A1A);max-width:84px;overflow:hidden;text-overflow:ellipsis" title="${_esc(name)}">${_esc(name)}</span>
+    </div>
+    <div style="font-size:9px;color:var(--ink3,#aaa);padding-left:12px">${sceneCount} 場・${charTotal[name]} 行</div>
+  </td>`;
+
+      scenes.forEach((s, si) => {
+        const v = s.chars[name] || 0;
+        const opacity = v > 0 ? Math.min(0.4 + (v / 6) * 0.6, 1.0).toFixed(2) : 0;
+        html += `<td title="${v > 0 ? `${_esc(name)}｜場${si+1}「${_esc(s.label)}」：${v}行` : `場${si+1}：無對白`}" style="padding:2px;border-bottom:1px solid rgba(0,0,0,0.04);border-right:1px solid rgba(0,0,0,0.03)">
+    <div style="width:${CELL_W-3}px;height:${CELL_H-4}px;border-radius:3px;background:${v>0?color:'transparent'};opacity:${opacity};margin:auto"></div>
+  </td>`;
+      });
+
+      html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+    bodyEl.innerHTML = html;
+
+    const totalLines = Object.values(charTotal).reduce((a,b) => a+b, 0);
+    summaryEl.textContent = `${allChars.length} 個角色 ／ ${scenes.length} 場景 ／ ${totalLines} 行對白`;
+  }
+
+  function _esc(s){
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // hex + alpha → rgba
+  function _hexWithAlpha(hex, alpha){
+    hex = hex.replace('#','');
+    if(hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+    const r = parseInt(hex.slice(0,2),16);
+    const g = parseInt(hex.slice(2,4),16);
+    const b = parseInt(hex.slice(4,6),16);
+    return `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
+  }
+
+  // 根據背景色決定文字要深色還是淺色
+  function _darkText(hex){
+    hex = hex.replace('#','');
+    if(hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+    const r = parseInt(hex.slice(0,2),16);
+    const g = parseInt(hex.slice(2,4),16);
+    const b = parseInt(hex.slice(4,6),16);
+    return (r*0.299 + g*0.587 + b*0.114) > 150 ? '#5A3010' : '#FFFFFF';
+  }
+
+  function open(){
+    document.getElementById('chm-overlay').style.display = 'flex';
+    _render();
+  }
+
+  function close(){
+    document.getElementById('chm-overlay').style.display = 'none';
+  }
+
+  return { open, close, _render };
+})();
+
+window.CharHeatmap = CharHeatmap;
+
+})();
+</script>
 
 <!-- ════════════════════════════════════════════════════════
      🎬 ProductionModule — 智慧分場大表
