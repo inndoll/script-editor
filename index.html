@@ -1478,6 +1478,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       <button class="import-tab active" id="itab-text" onclick="switchImportTab('text',this)">📋 貼上純文字</button>
       <button class="import-tab" id="itab-docx" onclick="switchImportTab('docx',this)">📄 上傳 Word 檔（.docx / .doc）</button>
       <button class="import-tab" id="itab-rtf" onclick="switchImportTab('rtf',this)">📝 上傳 RTF 檔（Final Draft 匯出）</button>
+      <button class="import-tab" id="itab-fountain" onclick="switchImportTab('fountain',this)">🌊 上傳 Fountain 檔（.fountain）</button>
     </div>
 
     <!-- 純文字 pane -->
@@ -1521,7 +1522,20 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       <div class="import-hint" id="rtf-status">等待選擇檔案……</div>
     </div>
 
-    <!-- 預覽區（三個 pane 共用） -->
+    <!-- Fountain 上傳 pane -->
+    <div class="import-pane" id="ipane-fountain">
+      <div class="import-dropzone" id="fountain-dropzone"
+        onclick="document.getElementById('fountain-file-input').click()"
+        ondragover="fountainDragOver(event)" ondragleave="fountainDragLeave(event)" ondrop="fountainDrop(event)">
+        <span class="dz-icon">🌊</span>
+        <div class="dz-main">拖曳 .fountain 檔至此，或點擊選擇檔案</div>
+        <div class="dz-sub">支援 Final Draft、Highland 2、Arc Studio 匯出的 Fountain 格式</div>
+      </div>
+      <input type="file" id="fountain-file-input" accept=".fountain,.txt" style="display:none" onchange="handleFountainFile(this.files[0])">
+      <div class="import-hint" id="fountain-status">等待選擇檔案……</div>
+    </div>
+
+    <!-- 預覽區（四個 pane 共用） -->
     <div id="import-preview-section" style="display:none;padding:0 20px 16px;flex-direction:column;gap:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0">
         <span style="font-size:12px;font-weight:600;color:var(--ink2)">辨識結果預覽 <span id="import-count" style="color:var(--ink3);font-weight:400"></span></span>
@@ -5800,6 +5814,129 @@ function stripRtf(rtf){
     .join('\n');
 
   return text;
+}
+
+// ── Fountain 匯入 ────────────────────────────────────
+function fountainDragOver(e){ e.preventDefault(); document.getElementById('fountain-dropzone').style.borderColor='var(--amber)'; }
+function fountainDragLeave(){ document.getElementById('fountain-dropzone').style.borderColor=''; }
+function fountainDrop(e){
+  e.preventDefault();
+  fountainDragLeave();
+  var f = e.dataTransfer.files[0];
+  if(f) handleFountainFile(f);
+}
+
+function handleFountainFile(file){
+  if(!file) return;
+  if(!file.name.match(/\.(fountain|txt)$/i)){
+    alert('請上傳 .fountain 格式的檔案。');
+    return;
+  }
+  var status = document.getElementById('fountain-status');
+  status.textContent = '⏳ 正在讀取 ' + file.name + ' ……';
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    try {
+      var raw = ev.target.result;
+      if(!raw.trim()){
+        status.textContent = '⚠️ 檔案內容為空。';
+        return;
+      }
+      var blocks = fountainToBlocks(raw);
+      if(!blocks.length){
+        status.textContent = '⚠️ 無法辨識內容，請確認為 Fountain 格式。';
+        return;
+      }
+      _importBlocks = blocks;
+      renderImportPreview(blocks);
+      status.textContent = '✓ 已讀取「' + file.name + '」，共 ' + blocks.length + ' 行';
+    } catch(err){
+      status.textContent = '❌ 讀取失敗：' + err.message;
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function fountainToBlocks(raw){
+  var lines = raw.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+  var blocks = [];
+
+  // 略過 title page（開頭連續的 Key: Value 行，直到第一個空行）
+  var start = 0;
+  if(/^[A-Za-z ]+:/.test(lines[0])){
+    while(start < lines.length && lines[start].trim() !== '') start++;
+    start++; // 跳過空行
+  }
+
+  // 移除 boneyard /* ... */ 與 note [[...]]
+  var text = lines.slice(start).join('\n');
+  text = text.replace(/\/\*[\s\S]*?\*\//g, '');
+  text = text.replace(/\[\[[\s\S]*?\]\]/g, '');
+  lines = text.split('\n');
+
+  var prevType = null;
+  var i = 0;
+  while(i < lines.length){
+    var raw_line = lines[i];
+    var t = raw_line.trim();
+    i++;
+
+    if(!t) { prevType = null; continue; } // 空行重置上下文
+
+    var type, content;
+
+    // 強制場景標題：以 . 開頭（但不是 .. 或 ...）
+    if(/^\.[^.]/.test(t)){
+      type = 'scene';
+      content = t.slice(1).trim();
+
+    // 標準場景標題：INT./EXT. 開頭
+    } else if(/^(INT|EXT|INT\.\/EXT\.|I\/E)[.\s\/]/i.test(t)){
+      type = 'scene';
+      content = t;
+
+    // 強制動作：! 開頭
+    } else if(t.startsWith('!')){
+      type = 'action';
+      content = t.slice(1).trim();
+
+    // 強制角色：@ 開頭
+    } else if(t.startsWith('@')){
+      type = 'character';
+      content = t.slice(1).trim();
+
+    // 轉場：以 TO: 結尾，或 FADE IN/OUT 等
+    } else if(/\sTO:$/.test(t) || /^FADE (IN|OUT)[.:]?$/i.test(t) || /^(SMASH CUT|MATCH CUT|CUT TO)[.:]?$/i.test(t)){
+      type = 'transition';
+      content = t;
+
+    // 語氣說明：(xxx) 格式
+    } else if(/^[(（].{0,60}[)）]\s*$/.test(t)){
+      type = 'parenthetical';
+      content = t;
+
+    // 全大寫 + 不含中文標點 + 短行 → 角色名稱
+    } else if(t === t.toUpperCase() && t.length <= 40 && /[A-Z]/.test(t) && !/[。，、：；！？「」『』]/.test(t)){
+      type = 'character';
+      content = t.replace(/\s*\(.*?\)\s*$/, '').trim(); // 移除 (V.O.) (O.S.) 等
+
+    // 角色/括弧/對白 之後 → 對白
+    } else if(prevType === 'character' || prevType === 'parenthetical' || prevType === 'dialogue'){
+      type = 'dialogue';
+      content = t;
+
+    // 其餘 → 動作描述
+    } else {
+      type = 'action';
+      content = t;
+    }
+
+    if(content && content.trim()){
+      blocks.push({ type: type, text: content.trim() });
+      prevType = type;
+    }
+  }
+  return blocks;
 }
 
 function showDocConvertGuide(filename){
