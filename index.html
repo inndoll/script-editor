@@ -3657,6 +3657,10 @@ function importBreakdownWord(event){
         return l.replace(/^[\s　﻿]+|[\s　]+$/g, '');
       });
 
+      // DEBUG：先顯示 mammoth 抽出的前 20 行，確認格式
+      var debugLines = lines.filter(function(l){ return l.length > 0; }).slice(0, 20);
+      if(!confirm('【除錯】mammoth 抽出的前 20 行（確定繼續匯入，取消查看內容）：\n\n' + debugLines.join('\n'))) return;
+
       var isFountain = lines.some(function(l){
         return /^(INT\.\/EXT|EXT\.\/INT|INT\/EXT|INT|EXT)[.\s\/]/i.test(l);
       });
