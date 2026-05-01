@@ -1253,6 +1253,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
           title="從 Word 分場文件匯入，自動建立分場卡並填入分場描述">
           ☁ 匯入分場 Word
         </button>
+        <div style="text-align:center;font-size:10px;color:var(--ink3);opacity:0.7;margin-top:-3px;margin-bottom:2px">或將 .docx 拖曳到此欄</div>
         <button
           style="width:100%;padding:6px;border:1px solid #C9A0DC;border-radius:6px;background:#F5EEF8;color:#7B4EA0;font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all 0.15s"
           onmouseover="this.style.background='#7B4EA0';this.style.color='#fff'"
@@ -2316,7 +2317,7 @@ function renderCards(){
   var el = document.getElementById('scene-cards-list');
   if(!el) return;
   if(cards.length===0){
-    el.innerHTML='<div class="empty-state"><span class="es-icon">🗂</span>尚無分場卡<br>點擊右上角 ＋ 新增</div>';
+    el.innerHTML='<div class="empty-state"><span class="es-icon">🗂</span>尚無分場卡<br>點擊右上角 ＋ 新增<br><span style="font-size:10px;opacity:0.55;margin-top:6px;display:block">或拖曳 .docx 分場文件到此</span></div>';
     showReorderBtn();
     return;
   }
