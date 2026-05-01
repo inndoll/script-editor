@@ -1502,7 +1502,8 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
     <div class="import-tabs">
       <button class="import-tab active" id="itab-text" onclick="switchImportTab('text',this)">📋 貼上純文字</button>
       <button class="import-tab" id="itab-docx" onclick="switchImportTab('docx',this)">📄 上傳 Word 檔（.docx / .doc）</button>
-      <button class="import-tab" id="itab-rtf" onclick="switchImportTab('rtf',this)">📝 上傳 RTF 檔（Final Draft 匯出）</button>
+      <button class="import-tab" id="itab-fdx" onclick="switchImportTab('fdx',this)">📑 Final Draft（.fdx）</button>
+      <button class="import-tab" id="itab-rtf" onclick="switchImportTab('rtf',this)">📝 上傳 RTF 檔</button>
       <button class="import-tab" id="itab-fountain" onclick="switchImportTab('fountain',this)">🌊 上傳 Fountain 檔（.fountain）</button>
     </div>
 
@@ -1534,6 +1535,19 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       <div class="import-hint" id="docx-status">等待選擇檔案……</div>
     </div>
 
+    <!-- Final Draft FDX pane -->
+    <div class="import-pane" id="ipane-fdx">
+      <div class="import-dropzone" id="fdx-dropzone"
+        onclick="document.getElementById('fdx-file-input').click()"
+        ondragover="fdxDragOver(event)" ondragleave="fdxDragLeave(event)" ondrop="fdxDrop(event)">
+        <span class="dz-icon">📑</span>
+        <div class="dz-main">拖曳 .fdx 檔至此，或點擊選擇檔案</div>
+        <div class="dz-sub">Final Draft 12 → 檔案 → 另存新檔 → Final Draft Document (*.fdx)，元素類型（場景標題、對白等）完整保留</div>
+      </div>
+      <input type="file" id="fdx-file-input" accept=".fdx" style="display:none" onchange="handleFdxFile(this.files[0])">
+      <div class="import-hint" id="fdx-status">等待選擇檔案……</div>
+    </div>
+
     <!-- RTF 上傳 pane -->
     <div class="import-pane" id="ipane-rtf">
       <div class="import-dropzone" id="rtf-dropzone"
@@ -1541,7 +1555,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
         ondragover="rtfDragOver(event)" ondragleave="rtfDragLeave(event)" ondrop="rtfDrop(event)">
         <span class="dz-icon">📝</span>
         <div class="dz-main">拖曳 .rtf 檔至此，或點擊選擇檔案</div>
-        <div class="dz-sub">支援 Final Draft、Word、TextEdit 匯出的 RTF 格式</div>
+        <div class="dz-sub">支援 Word、TextEdit 匯出的 RTF 格式｜Final Draft 用戶建議改用左側「📑 Final Draft (.fdx)」頁籤</div>
       </div>
       <input type="file" id="rtf-file-input" accept=".rtf" style="display:none" onchange="handleRtfFile(this.files[0])">
       <div class="import-hint" id="rtf-status">等待選擇檔案……</div>
@@ -5989,6 +6003,61 @@ function rtfDrop(e){
   var file = e.dataTransfer.files[0];
   if(file) handleRtfFile(file);
 }
+// ── Final Draft FDX 匯入 ──────────────────────────────
+function fdxDragOver(e){ e.preventDefault(); document.getElementById('fdx-dropzone').style.borderColor='var(--amber)'; }
+function fdxDragLeave(){ document.getElementById('fdx-dropzone').style.borderColor=''; }
+function fdxDrop(e){
+  e.preventDefault(); fdxDragLeave();
+  var f = e.dataTransfer.files[0];
+  if(f) handleFdxFile(f);
+}
+function handleFdxFile(file){
+  if(!file) return;
+  if(!file.name.match(/\.fdx$/i)){
+    alert('請上傳 .fdx 格式的 Final Draft 文件。');
+    return;
+  }
+  var status = document.getElementById('fdx-status');
+  status.textContent = '⏳ 正在讀取 ' + file.name + ' ……';
+
+  var typeMap = {
+    'Scene Heading':'scene', 'Action':'action', 'Character':'character',
+    'Dialogue':'dialogue', 'Parenthetical':'parenthetical', 'Transition':'transition',
+    'General':'action', 'Shot':'scene', 'Cast List':'action', 'New Act':'action'
+  };
+
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    try {
+      var doc = new DOMParser().parseFromString(ev.target.result, 'text/xml');
+      if(doc.querySelector('parsererror')) throw new Error('XML 解析失敗，請確認檔案完整');
+
+      var paragraphs = doc.querySelectorAll('Paragraph');
+      var blocks = [];
+      paragraphs.forEach(function(p){
+        var type = p.getAttribute('Type') || 'General';
+        var blockType = typeMap[type] || 'action';
+        var text = Array.from(p.querySelectorAll('Text')).map(function(t){ return t.textContent; }).join('');
+        if(text.trim()){
+          blocks.push({ id:uid(), type:blockType, text:text.trim(), linkedCardId:null });
+        }
+      });
+
+      if(!blocks.length){ status.textContent = '⚠️ 無法從此檔案讀取到內容。'; return; }
+
+      _importBlocks = blocks;
+      renderImportPreview(blocks);
+      status.textContent = '✓ 已讀取「' + file.name + '」，共 ' + blocks.length + ' 個段落';
+      document.getElementById('import-footer-note').textContent = '✓ 辨識完成，確認格式後按「匯入劇本」';
+      document.getElementById('import-confirm-btn').disabled = false;
+      document.getElementById('import-confirm-btn').style.opacity = '1';
+    } catch(err){
+      status.textContent = '❌ 讀取失敗：' + err.message;
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
 function handleRtfFile(file){
   if(!file) return;
   if(!file.name.match(/\.rtf$/i)){
@@ -6059,10 +6128,23 @@ function stripRtf(rtf){
   // 移除大括號
   text = text.replace(/[{}]/g, '');
 
-  // 清理
+  // 偵測 Final Draft RTF 並過濾私有 metadata 行
+  var isFinalDraftRtf = /CourierFinalDraft|SansMonoCJKFinalDraft/i.test(rtf);
+
   text = text.split('\n')
     .map(function(l){ return l.replace(/\s+/g, ' ').trim(); })
-    .filter(function(l){ return l.length > 0; })
+    .filter(function(l){
+      if(!l.length) return false;
+      if(isFinalDraftRtf){
+        // 過濾 Final Draft 的樣式範圍行：:Scene Heading,0,8
+        if(/^:[A-Za-z ]+,\d+,\d+$/.test(l)) return false;
+        // 過濾字型定義行
+        if(/FinalDraft/.test(l)) return false;
+        // 過濾分隔符行
+        if(/^;+$/.test(l)) return false;
+      }
+      return true;
+    })
     .join('\n');
 
   return text;
