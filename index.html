@@ -3657,25 +3657,21 @@ function importBreakdownWord(event){
         return l.replace(/^[\s　﻿]+|[\s　]+$/g, '');
       });
 
-      // DEBUG：先顯示 mammoth 抽出的前 20 行，確認格式
-      var debugLines = lines.filter(function(l){ return l.length > 0; }).slice(0, 20);
-      if(!confirm('【除錯】mammoth 抽出的前 20 行（確定繼續匯入，取消查看內容）：\n\n' + debugLines.join('\n'))) return;
+      var hasChinese  = lines.some(function(l){ return /景[\s　]*[：:]/.test(l); });
+      var hasFountain = lines.some(function(l){ return /^(INT\.\/EXT|EXT\.\/INT|INT\/EXT|INT|EXT)[.\s\/]/i.test(l); });
+      var hasNumbered = lines.some(function(l){ return /^[\d０-９]+[．.]\s*(INT\.\/EXT|EXT\.\/INT|INT\/EXT|INT|EXT)[．.\s\/]/i.test(l); });
 
-      var isFountain = lines.some(function(l){
-        return /^(INT\.\/EXT|EXT\.\/INT|INT\/EXT|INT|EXT)[.\s\/]/i.test(l);
-      });
-      var hasChinese = lines.some(function(l){ return /景[\s　]*[：:]/.test(l); });
-
-      var scenes;
-      if(isFountain && !hasChinese){
-        scenes = _parseBreakdownFountain(lines);
-      } else {
-        scenes = _parseBreakdownChinese(lines);
-        if(scenes.length === 0 && isFountain) scenes = _parseBreakdownFountain(lines);
-      }
+      var scenes = [];
+      if(hasChinese)       scenes = _parseBreakdownChinese(lines);
+      if(!scenes.length && hasFountain) scenes = _parseBreakdownFountain(lines);
+      if(!scenes.length && hasNumbered) scenes = _parseBreakdownNumbered(lines);
+      // 最後全力嘗試：三種格式都試一遍
+      if(!scenes.length) scenes = _parseBreakdownNumbered(lines);
+      if(!scenes.length) scenes = _parseBreakdownFountain(lines);
+      if(!scenes.length) scenes = _parseBreakdownChinese(lines);
 
       if(scenes.length === 0){
-        alert('找不到任何場景標題。\n請確認 Word 文件格式正確（需包含「景：地點」或 INT./EXT. 場景標題）。');
+        alert('找不到任何場景標題。\n請確認 Word 文件格式正確（需包含「景：地點」、「INT./EXT. 地點」或「1. EXT. 地點」格式）。');
         return;
       }
 
@@ -3769,6 +3765,31 @@ function _parseBreakdownFountain(lines){
 }
 
 // ── Fill scene headings from cards into empty script ───────────
+function _parseBreakdownNumbered(lines){
+  var scenes = [], current = null, bodyLines = [];
+  var timeMap = { DAY:'日', NIGHT:'夜', DUSK:'黃昏', DAWN:'清晨' };
+  for(var i = 0; i < lines.length; i++){
+    var line = lines[i];
+    // 格式：1．EXT．地點 — 日  或  1. EXT. 地點 - 日
+    var m = line.match(/^[\d０-９]+[．.]\s*(INT\.\/EXT|EXT\.\/INT|INT\/EXT|INT|EXT)[．.\s\/]*(.*)/i);
+    if(m){
+      if(current){ current.breakdown = bodyLines.join('\n').trim(); scenes.push(current); }
+      var prefix = m[1].replace(/\./g,'').toUpperCase();
+      var rest = m[2].trim();
+      var tM = rest.match(/[—\-─]\s*(日|夜|黃昏|清晨|DAY|NIGHT|DUSK|DAWN)\s*$/i);
+      var time = tM ? (timeMap[tM[1].toUpperCase()] || tM[1]) : '日';
+      var location = rest.replace(/\s*[—\-─]\s*(日|夜|黃昏|清晨|DAY|NIGHT|DUSK|DAWN)\s*$/i,'').trim();
+      var interior = /INT\/EXT|INT.\/EXT/.test(prefix) ? 'INT/EXT' : (/^INT/.test(prefix) ? 'INT' : 'EXT');
+      current = { location: location, time: time, interior: interior, characters: [], breakdown: '' };
+      bodyLines = [];
+      continue;
+    }
+    if(current && line) bodyLines.push(line);
+  }
+  if(current){ current.breakdown = bodyLines.join('\n').trim(); scenes.push(current); }
+  return scenes;
+}
+
 function fillSceneHeadingsFromCards(){
   var cards = getCards();
   if(cards.length === 0){
