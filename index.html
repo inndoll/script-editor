@@ -135,7 +135,7 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans TC',sans-serif;back
 .lnav-btn:hover{color:var(--ink2)}
 .lnav-btn.active{color:var(--amber);border-bottom-color:var(--amber);background:var(--bg2)}
 .left-content{overflow-y:auto;padding:6px;flex:1;min-height:0}
-.left-panel{display:none}.left-panel.active{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.left-panel{display:none}.left-panel.active{display:flex;flex-direction:column;flex:1;overflow:hidden;position:relative}
 
 /* Scene items */
 .scene-item{
@@ -1194,13 +1194,21 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
     </div>
 
     <!-- SCENE CARDS -->
-    <div class="left-panel active" id="lpanel-cards">
+    <div class="left-panel active" id="lpanel-cards"
+      ondragover="cardsPanelDragOver(event)"
+      ondragleave="cardsPanelDragLeave(event)"
+      ondrop="cardsPanelDrop(event)">
       <div class="panel-hdr">
         分場卡
         <div style="display:flex;gap:4px;align-items:center">
           <button class="add-btn" onclick="renderCards()" title="重新整理分場卡" style="font-size:11px;width:22px;height:22px">↺</button>
           <button class="add-btn" onclick="openNewCardModal()" title="新增分場卡">＋</button>
         </div>
+      </div>
+      <!-- File drop overlay -->
+      <div id="cards-drop-overlay" style="display:none;position:absolute;inset:0;background:rgba(26,74,122,0.12);border:2.5px dashed #4A7FB5;border-radius:8px;z-index:200;flex-direction:column;align-items:center;justify-content:center;gap:6px;pointer-events:none">
+        <div style="font-size:28px">☁</div>
+        <div style="font-size:12px;font-weight:600;color:#1A4A7A">放開以匯入分場 Word</div>
       </div>
       <div class="left-content" id="scene-cards-list"></div>
       <!-- Tail drop zone: allows dropping after the last card -->
@@ -3644,11 +3652,44 @@ function showReorderBtn(){
 }
 
 // ── Import scene breakdown from Word file ──────────────────────
+function _isFileDrag(e){
+  return e.dataTransfer && e.dataTransfer.types &&
+    Array.prototype.indexOf.call(e.dataTransfer.types, 'Files') >= 0;
+}
+function cardsPanelDragOver(e){
+  if(!_isFileDrag(e)) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+  var ov = document.getElementById('cards-drop-overlay');
+  if(ov) ov.style.display = 'flex';
+}
+function cardsPanelDragLeave(e){
+  var panel = document.getElementById('lpanel-cards');
+  if(panel && panel.contains(e.relatedTarget)) return;
+  var ov = document.getElementById('cards-drop-overlay');
+  if(ov) ov.style.display = 'none';
+}
+function cardsPanelDrop(e){
+  var ov = document.getElementById('cards-drop-overlay');
+  if(ov) ov.style.display = 'none';
+  if(!_isFileDrag(e)) return;
+  e.preventDefault();
+  var file = e.dataTransfer.files[0];
+  if(file) _processBreakdownFile(file);
+}
+
 function importBreakdownWord(event){
   var file = event.target.files[0];
   if(!file) return;
   event.target.value = '';
+  _processBreakdownFile(file);
+}
 
+function _processBreakdownFile(file){
+  if(!file.name.toLowerCase().endsWith('.docx')){
+    alert('請選擇 .docx 格式的 Word 文件。');
+    return;
+  }
   var reader = new FileReader();
   reader.onload = function(e){
     mammoth.extractRawText({arrayBuffer: e.target.result}).then(function(result){
