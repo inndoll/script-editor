@@ -3652,13 +3652,23 @@ function importBreakdownWord(event){
   var reader = new FileReader();
   reader.onload = function(e){
     mammoth.extractRawText({arrayBuffer: e.target.result}).then(function(result){
-      var lines = result.value.split('\n').map(function(l){ return l.trim(); });
+      // trim() 不去全形空格，需手動清除行首行尾的全形空格與 BOM
+      var lines = result.value.split('\n').map(function(l){
+        return l.replace(/^[\s　﻿]+|[\s　]+$/g, '');
+      });
 
       var isFountain = lines.some(function(l){
         return /^(INT\.\/EXT|EXT\.\/INT|INT\/EXT|INT|EXT)[.\s\/]/i.test(l);
       });
+      var hasChinese = lines.some(function(l){ return /景[\s　]*[：:]/.test(l); });
 
-      var scenes = isFountain ? _parseBreakdownFountain(lines) : _parseBreakdownChinese(lines);
+      var scenes;
+      if(isFountain && !hasChinese){
+        scenes = _parseBreakdownFountain(lines);
+      } else {
+        scenes = _parseBreakdownChinese(lines);
+        if(scenes.length === 0 && isFountain) scenes = _parseBreakdownFountain(lines);
+      }
 
       if(scenes.length === 0){
         alert('找不到任何場景標題。\n請確認 Word 文件格式正確（需包含「景：地點」或 INT./EXT. 場景標題）。');
@@ -3701,7 +3711,7 @@ function _parseBreakdownChinese(lines){
   for(var i = 0; i < lines.length; i++){
     var line = lines[i];
     if(!line) continue;
-    var locM = line.match(/^景[：:]\s*(.+)/);
+    var locM = line.match(/景[\s　]*[：:]\s*(.+)/);
     if(locM){
       if(current){ current.breakdown = bodyLines.join('\n').trim(); scenes.push(current); }
       current = { location: locM[1].trim(), time: '日', interior: 'EXT', characters: [], breakdown: '' };
@@ -3709,16 +3719,16 @@ function _parseBreakdownChinese(lines){
       continue;
     }
     if(!current) continue;
-    var timeM = line.match(/^時[：:]\s*(.+)/);
+    var timeM = line.match(/時[\s　]*[：:]\s*(.+)/);
     if(timeM){ current.time = timeM[1].trim(); continue; }
-    var charM = line.match(/^人[：:]\s*(.*)/);
+    var charM = line.match(/人[\s　]*[：:]\s*(.*)/);
     if(charM){
       current.characters = charM[1].trim()
         ? charM[1].trim().split(/[,，、]/).map(function(s){ return s.trim(); }).filter(Boolean)
         : [];
       continue;
     }
-    if(/^S[：:]\s*/.test(line)) continue;
+    if(/^S[\s　]*[：:]/.test(line)) continue;
     bodyLines.push(line);
   }
   if(current){ current.breakdown = bodyLines.join('\n').trim(); scenes.push(current); }
