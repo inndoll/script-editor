@@ -5261,7 +5261,7 @@ var LS_BUILTIN_VER = 'xiaoyeBuiltinVer_v1'; // 更新內建範例時遞增這個
 var CURRENT_BUILTIN_VER = 7; // 版本7：強制重設範例劇本（2026-05-01 聚會演示後覆蓋修復）
 var LS_HIST_KEY  = 'xiaoyeHistory_v1';
 var LS_TITLE_KEY = 'xiaoyeTitle_v1';
-var MAX_HISTORY  = 50;
+var MAX_HISTORY  = 15;
 var _saveDebounce = null;
 var _histDebounce = null;
 var _historyList  = [];
@@ -5278,12 +5278,22 @@ function saveToStorage(){
       script.subtitle = subEl   ? subEl.value   : '';
     }
     var payload = JSON.stringify(DB);
-    localStorage.setItem(LS_KEY, payload);
+    try {
+      localStorage.setItem(LS_KEY, payload);
+    } catch(quotaErr) {
+      // 空間不足：清掉歷史快照後重試
+      try { localStorage.removeItem(LS_HIST_KEY); _historyList = []; } catch(e2){}
+      try { localStorage.setItem(LS_KEY, payload); } catch(e3){
+        setSaveIndicator('⚠ 儲存失敗（空間不足？）'); return;
+      }
+    }
     // 同步保留舊的 LS_TITLE_KEY 作為 fallback
-    localStorage.setItem(LS_TITLE_KEY, JSON.stringify({
-      title:   titleEl ? titleEl.value : '',
-      subtitle: subEl  ? subEl.value   : ''
-    }));
+    try {
+      localStorage.setItem(LS_TITLE_KEY, JSON.stringify({
+        title:   titleEl ? titleEl.value : '',
+        subtitle: subEl  ? subEl.value   : ''
+      }));
+    } catch(e){}
     setSaveIndicator('✦ 已自動儲存');
   } catch(e) {
     setSaveIndicator('⚠ 儲存失敗（空間不足？）');
@@ -5654,10 +5664,18 @@ document.addEventListener('keydown', function(e){
 
 // ── INIT: all scripts parsed, DOM ready ──────────────────────────────
 window.addEventListener('DOMContentLoaded', function(){
-  // Load history
+  // Load history（若過大自動清除，避免撐爆 localStorage）
   try {
     var raw = localStorage.getItem(LS_HIST_KEY);
-    if(raw) _historyList = JSON.parse(raw);
+    if(raw){
+      if(raw.length > 2 * 1024 * 1024){ // 超過 2MB 就清掉
+        localStorage.removeItem(LS_HIST_KEY);
+        _historyList = [];
+      } else {
+        _historyList = JSON.parse(raw);
+        if(_historyList.length > MAX_HISTORY) _historyList = _historyList.slice(0, MAX_HISTORY);
+      }
+    }
   } catch(e){ _historyList = []; }
 
   // Patch scheduleUpdate and renderAll (now safe — all functions defined)
@@ -5695,7 +5713,7 @@ window.addEventListener('DOMContentLoaded', function(){
   var gb = document.getElementById('guide-body');
   if(gb) gb.innerHTML = GUIDE_SECTIONS[0];
   // Show welcome modal on first visit
-  showWelcomeIfNeeded();
+  try{ showWelcomeIfNeeded(); }catch(e){}
   // Check if opened via share link
   checkShareHash();
 });
