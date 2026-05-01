@@ -1220,6 +1220,14 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
           onclick="reorderScriptByCards()">
           ↕ 依分場卡順序重排劇本
         </button>
+        <button id="fill-headings-btn"
+          style="display:none;width:100%;padding:6px;border:1px solid var(--blue);border-radius:6px;background:var(--blue-l);color:var(--blue);font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all 0.15s"
+          onmouseover="this.style.background='var(--blue)';this.style.color='#fff'"
+          onmouseout="this.style.background='var(--blue-l)';this.style.color='var(--blue)'"
+          onclick="fillSceneHeadingsFromCards()"
+          title="將分場卡的場景標題依序填入空白的劇本主文">
+          ↓ 填入場景標題至劇本主文
+        </button>
         <button
           style="width:100%;padding:6px;border:1px solid var(--amber);border-radius:6px;background:var(--amber-l);color:var(--amber);font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all 0.15s"
           onmouseover="this.style.background='var(--amber)';this.style.color='#fff'"
@@ -1227,6 +1235,15 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
           onclick="extractScenesFromScript()"
           title="掃描劇本主文中所有場景標題行，自動建立對應的分場卡">
           ＋ 從劇本主文導入分場
+        </button>
+        <input type="file" id="breakdown-word-input" accept=".docx" style="display:none" onchange="importBreakdownWord(event)">
+        <button
+          style="width:100%;padding:6px;border:1px solid #4A7FB5;border-radius:6px;background:#E8F0FA;color:#1A4A7A;font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all 0.15s"
+          onmouseover="this.style.background='#4A7FB5';this.style.color='#fff'"
+          onmouseout="this.style.background='#E8F0FA';this.style.color='#1A4A7A'"
+          onclick="document.getElementById('breakdown-word-input').click()"
+          title="從 Word 分場文件匯入，自動建立分場卡並填入分場描述">
+          ☁ 匯入分場 Word
         </button>
         <button
           style="width:100%;padding:6px;border:1px solid #C9A0DC;border-radius:6px;background:#F5EEF8;color:#7B4EA0;font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all 0.15s"
@@ -3320,9 +3337,18 @@ function openCardModal(title, cardData, isNew){
     <div class="form-row"><label>衝突</label><textarea class="form-textarea" id="cf-conflict" rows="2">${esc(cardData.conflict||'')}</textarea></div>
     <div class="form-row"><label>備註</label><textarea class="form-textarea" id="cf-notes" rows="2">${esc(cardData.notes||'')}</textarea></div>
     <div class="form-row">
-      <label style="display:flex;align-items:center;gap:6px">
-        分場描述
-        <span style="font-size:10px;color:var(--ink3);font-weight:400">（供分場文件匯出用，可寫故事概要、場景氛圍、戲劇節點等）</span>
+      <label style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+        <span style="display:flex;align-items:center;gap:6px">
+          分場描述
+          <span style="font-size:10px;color:var(--ink3);font-weight:400">（供分場文件匯出用，可寫故事概要、場景氛圍、戲劇節點等）</span>
+        </span>
+        <button type="button"
+          style="font-size:10px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:var(--bg2);color:var(--ink3);cursor:pointer;flex-shrink:0;font-family:'Noto Sans TC',sans-serif"
+          onmouseover="this.style.background='var(--amber-l)';this.style.color='var(--amber)';this.style.borderColor='var(--amber)'"
+          onmouseout="this.style.background='var(--bg2)';this.style.color='var(--ink3)';this.style.borderColor='var(--border2)'"
+          onclick="var t=document.getElementById('cf-breakdown');if(t.value){navigator.clipboard.writeText(t.value).then(function(){var b=event.target;b.textContent='✓ 已複製';setTimeout(function(){b.textContent='複製描述'},1500)});}else{alert('分場描述尚未填寫');}">
+          複製描述
+        </button>
       </label>
       <textarea class="form-textarea" id="cf-breakdown" rows="4" placeholder="在此描述這場戲的故事內容、情緒走向、重要戲劇節點……&#10;這段文字將出現在分場文件中，供寫手參考完成完整劇本。">${esc(cardData.breakdown||'')}</textarea>
     </div>
@@ -3608,6 +3634,156 @@ function showReorderBtn(){
   var hasLinked = getCards().some(function(c){ return !!c.linkedBlockId; });
   var btn = document.getElementById('reorder-btn');
   if(btn) btn.style.display = hasLinked ? 'block' : 'none';
+
+  var fillBtn = document.getElementById('fill-headings-btn');
+  if(fillBtn){
+    var hasCards = getCards().length > 0;
+    var hasScenes = getBlocks().some(function(b){ return b.type === 'scene' && b.text.trim(); });
+    fillBtn.style.display = (hasCards && !hasScenes) ? 'block' : 'none';
+  }
+}
+
+// ── Import scene breakdown from Word file ──────────────────────
+function importBreakdownWord(event){
+  var file = event.target.files[0];
+  if(!file) return;
+  event.target.value = '';
+
+  var reader = new FileReader();
+  reader.onload = function(e){
+    mammoth.extractRawText({arrayBuffer: e.target.result}).then(function(result){
+      var lines = result.value.split('\n').map(function(l){ return l.trim(); });
+
+      var isFountain = lines.some(function(l){
+        return /^(INT\.\/EXT|EXT\.\/INT|INT\/EXT|INT|EXT)[.\s\/]/i.test(l);
+      });
+
+      var scenes = isFountain ? _parseBreakdownFountain(lines) : _parseBreakdownChinese(lines);
+
+      if(scenes.length === 0){
+        alert('找不到任何場景標題。\n請確認 Word 文件格式正確（需包含「景：地點」或 INT./EXT. 場景標題）。');
+        return;
+      }
+
+      if(!confirm('找到 ' + scenes.length + ' 個場景。\n確定要匯入並建立分場卡嗎？')) return;
+
+      if(!DB.sceneCards[getProject()]) DB.sceneCards[getProject()] = [];
+      var startNum = getCards().length + 1;
+
+      scenes.forEach(function(s, idx){
+        DB.sceneCards[getProject()].push({
+          id: uid(), projectId: getProject(),
+          num: startNum + idx,
+          title: s.location || '（未命名場景）',
+          location: s.location,
+          time: s.time,
+          interior: s.interior,
+          characters: s.characters,
+          purpose: '', conflict: '', notes: '',
+          breakdown: s.breakdown,
+          linkedBlockId: null,
+          plants: [], hooks: []
+        });
+      });
+
+      renderCards();
+      saveToStorage();
+      alert('✓ 已匯入 ' + scenes.length + ' 張分場卡。');
+    }).catch(function(err){
+      alert('讀取 Word 文件時出錯：' + err.message);
+    });
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function _parseBreakdownChinese(lines){
+  var scenes = [], current = null, bodyLines = [];
+  for(var i = 0; i < lines.length; i++){
+    var line = lines[i];
+    if(!line) continue;
+    var locM = line.match(/^景[：:]\s*(.+)/);
+    if(locM){
+      if(current){ current.breakdown = bodyLines.join('\n').trim(); scenes.push(current); }
+      current = { location: locM[1].trim(), time: '日', interior: 'EXT', characters: [], breakdown: '' };
+      bodyLines = [];
+      continue;
+    }
+    if(!current) continue;
+    var timeM = line.match(/^時[：:]\s*(.+)/);
+    if(timeM){ current.time = timeM[1].trim(); continue; }
+    var charM = line.match(/^人[：:]\s*(.*)/);
+    if(charM){
+      current.characters = charM[1].trim()
+        ? charM[1].trim().split(/[,，、]/).map(function(s){ return s.trim(); }).filter(Boolean)
+        : [];
+      continue;
+    }
+    if(/^S[：:]\s*/.test(line)) continue;
+    bodyLines.push(line);
+  }
+  if(current){ current.breakdown = bodyLines.join('\n').trim(); scenes.push(current); }
+
+  scenes.forEach(function(s){
+    if(/室內|內景/.test(s.location)) s.interior = 'INT';
+    else if(/室外|外景/.test(s.location)) s.interior = 'EXT';
+  });
+  return scenes;
+}
+
+function _parseBreakdownFountain(lines){
+  var scenes = [], current = null, bodyLines = [];
+  var timeMap = { DAY:'日', NIGHT:'夜', DUSK:'黃昏', DAWN:'清晨' };
+  for(var i = 0; i < lines.length; i++){
+    var line = lines[i];
+    var m = line.match(/^(INT\.\/EXT|EXT\.\/INT|INT\/EXT|INT|EXT)[.\s\/]+(.+)/i);
+    if(m){
+      if(current){ current.breakdown = bodyLines.join('\n').trim(); scenes.push(current); }
+      var prefix = m[1].replace(/\./g,'').toUpperCase();
+      var rest = m[2].trim();
+      var tM = rest.match(/[-－]\s*(日|夜|黃昏|清晨|DAY|NIGHT|DUSK|DAWN)\s*$/i);
+      var time = tM ? (timeMap[tM[1].toUpperCase()] || tM[1]) : '日';
+      var location = rest.replace(/\s*[-－]\s*(日|夜|黃昏|清晨|DAY|NIGHT|DUSK|DAWN)\s*$/i,'').trim();
+      var interior = /^INT\/EXT|^INT.\/EXT/.test(prefix) ? 'INT/EXT' : (/^INT/.test(prefix) ? 'INT' : 'EXT');
+      current = { location: location, time: time, interior: interior, characters: [], breakdown: '' };
+      bodyLines = [];
+      continue;
+    }
+    if(current && line) bodyLines.push(line);
+  }
+  if(current){ current.breakdown = bodyLines.join('\n').trim(); scenes.push(current); }
+  return scenes;
+}
+
+// ── Fill scene headings from cards into empty script ───────────
+function fillSceneHeadingsFromCards(){
+  var cards = getCards();
+  if(cards.length === 0){
+    alert('目前沒有分場卡，請先匯入或建立分場卡。');
+    return;
+  }
+
+  var hasScenes = getBlocks().some(function(b){ return b.type === 'scene' && b.text.trim(); });
+  var msg = hasScenes
+    ? '劇本主文中已有場景標題。\n此操作將在現有內容末尾追加分場卡的場景標題。\n確定繼續？'
+    : '將依分場卡順序把 ' + cards.length + ' 個場景標題填入劇本主文。\n確定繼續？';
+  if(!confirm(msg)) return;
+
+  var blocks = getBlocks();
+  while(blocks.length > 0 && !blocks[blocks.length - 1].text.trim()) blocks.pop();
+
+  cards.forEach(function(card){
+    var sceneTitle = card.interior + '. ' + (card.location || '場景') + ' - ' + card.time;
+    var sceneId = uid();
+    blocks.push({ id: sceneId, type: 'scene', text: sceneTitle, linkedCardId: card.id });
+    blocks.push({ id: uid(), type: 'action', text: '', linkedCardId: null });
+    card.linkedBlockId = sceneId;
+  });
+  if(blocks[blocks.length - 1].type !== 'action'){
+    blocks.push({ id: uid(), type: 'action', text: '', linkedCardId: null });
+  }
+
+  renderAll();
+  saveToStorage();
 }
 
 // ── Reorder script blocks to match card order ──────────────────
