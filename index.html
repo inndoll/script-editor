@@ -307,6 +307,17 @@ body.paste-mode .sl:hover{background:rgba(0,160,100,0.08)!important;outline:1px 
   letter-spacing:0.5px;margin-top:14px;margin-bottom:2px;
   border-bottom:1px solid rgba(0,0,0,0.08);padding-bottom:2px;
 }
+@media screen{
+  /* Scene rows: chips on first line; heading text wraps to full-width second line */
+  .sl[data-scene="1"]{flex-wrap:wrap;margin-top:12px}
+  .sl[data-scene="1"] .sl-content[data-type="scene"]{
+    flex:0 0 100%;padding-left:94px;
+    text-align:left;margin-top:2px!important;margin-bottom:4px!important;
+  }
+  /* Wide-mode: expand editing area on large screens */
+  body.wide-mode #editor-page{max-width:min(960px,calc(100% - 20px))}
+  #wide-mode-btn.active{background:var(--amber-l)!important;border-color:var(--amber)!important;color:var(--amber)!important}
+}
 .sl-content[data-type="action"]{
   color:var(--ink);font-weight:400;margin-bottom:2px;
 }
@@ -1173,6 +1184,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       <button class="tbtn" style="font-size:11px;color:#1A5C3A;border-color:#6AAB87;background:linear-gradient(135deg,#EDF7F2,#C8E8D8);font-weight:700" onclick="ProductionModule.open()" title="智慧分場大表：自動統計場景、拍攝日數與角色出場">🎬 分場大表</button>
       <button class="tbtn" style="font-size:11px;color:#7B3F00;border-color:#C47A3A;background:linear-gradient(135deg,#FDF0E6,#F5D5B0);font-weight:700" onclick="CharHeatmap.open()" title="角色對白熱圖：哪個角色在哪場出現">🎭 角色熱圖</button>
       <div class="sep"></div>
+      <button id="wide-mode-btn" class="icon-btn" onclick="toggleWideMode()" title="寬螢幕模式：放大編輯區寬度（680px → 960px）">↔</button>
       <button class="icon-btn" title="收合左側欄" onclick="toggleLeft()">◀</button>
       <button class="icon-btn" title="收合右側欄" onclick="toggleRight()">▶</button>
     </div>
@@ -4090,6 +4102,12 @@ function toggleLeft(){
 function toggleRight(){
   document.getElementById('right').classList.toggle('collapsed');
 }
+function toggleWideMode(){
+  var on = document.body.classList.toggle('wide-mode');
+  localStorage.setItem('wideMode', on ? '1' : '0');
+  var btn = document.getElementById('wide-mode-btn');
+  if(btn) btn.classList.toggle('active', on);
+}
 
 // ═══════════════════════════════════════════════
 //  PROJECT
@@ -5709,6 +5727,12 @@ window.addEventListener('DOMContentLoaded', function(){
   // Init panel resize dividers
   initPanelResize('divider-left',  'left',  'left');
   initPanelResize('divider-right', 'right', 'right');
+  // Restore wide mode preference
+  if(localStorage.getItem('wideMode') === '1'){
+    document.body.classList.add('wide-mode');
+    var wmBtn = document.getElementById('wide-mode-btn');
+    if(wmBtn) wmBtn.classList.add('active');
+  }
 
   // Init guide first section
   var gb = document.getElementById('guide-body');
