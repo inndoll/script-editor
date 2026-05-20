@@ -1690,6 +1690,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       <button onclick="showWGuideSection(3,this)">SKILL 4 類型喜劇</button>
       <button onclick="showWGuideSection(4,this)">SKILL 5 工作方法</button>
       <button onclick="showWGuideSection(5,this)">SKILL 6 三幕 & 英雄旅程</button>
+      <button onclick="showWGuideSection(6,this)">SKILL 7 理財與世界經濟</button>
     </div>
     <div id="wguide-body"></div>
   </div>
@@ -7141,6 +7142,42 @@ var WGUIDE_SECTIONS = [
 +'<tr><td>12. 帶著仙丹妙藥歸返</td><td>帶著寶藏或經驗回到平凡世界，改變了自己與周遭世界。</td></tr>'
 +'</table>'
 +'<div class="tip-card"><strong>💡 應用指令建議</strong>在構思長篇故事時，嚴格對齊「1:2:1 的三幕劇比例」與「英雄旅程12階段」。確保「苦難折磨（中間點）」剛好落在故事正中央；並且在進入第三幕前，必須經歷「回歸之路」的反撲與「復甦（高潮）」的終極蛻變，絕不能遺漏任何一個心理節拍。</div>',
+
+// 6 — SKILL 7 理財與世界經濟
+'<h2>SKILL 7 · 理財與世界經濟研究</h2>'
++'<div class="skill-badge">Personal Finance & Global Economics</div>'
++'<p>為故事增添真實的財經脈絡，讓角色的財務困境、商業決策與時代背景更具說服力。</p>'
++'<h3>💰 個人理財基礎</h3>'
++'<div class="tip-card"><strong>資產 vs 負債</strong>資產能帶來現金流（房租收入、股息、版稅），負債則持續消耗金錢（貸款、信用卡、折舊）。《富爸爸窮爸爸》核心：窮人買負債，富人買資產。角色的財務觀決定其命運走向。</div>'
++'<div class="tip-card"><strong>複利的力量</strong>72法則：將72除以年化報酬率，即可得知本金翻倍所需年數（例：年報酬8%，約9年翻倍）。提早投資比投入多少本金更重要——這是「時間」最強大的財務武器。</div>'
++'<div class="tip-card"><strong>緊急備用金 & 保險</strong>財務規劃的第一步：建立3–6個月生活費的緊急備用金，並確保基本保障（壽險、醫療險）。沒有地基的財富只是空中樓閣，一場病或失業就能讓故事急轉直下。</div>'
++'<div class="tip-card"><strong>常見投資工具比較</strong>'
++'<table class="wg-table"><tr><th>工具</th><th>特性</th><th>風險</th></tr>'
++'<tr><td>定存 / 債券</td><td>低報酬、本金相對安全</td><td>低</td></tr>'
++'<tr><td>ETF / 指數基金</td><td>分散風險、長期穩健成長</td><td>中</td></tr>'
++'<tr><td>個股</td><td>高潛力，需深度研究</td><td>中高</td></tr>'
++'<tr><td>房地產</td><td>抗通膨、槓桿效應大</td><td>中高</td></tr>'
++'<tr><td>加密貨幣</td><td>高波動、高投機性</td><td>極高</td></tr>'
++'</table></div>'
++'<h3>🌐 世界經濟運作原理</h3>'
++'<div class="tip-card"><strong>GDP 與經濟成長</strong>國內生產毛額（GDP）衡量一國的生產規模。GDP 成長放緩→景氣降溫→失業率上升→消費萎縮，形成惡性循環。劇本中的時代背景若設定在經濟衰退期，角色的財務困境就有了可信的宏觀根源。</div>'
++'<div class="tip-card"><strong>通貨膨脹與利率</strong>通膨上升→央行升息→貸款成本增加→房市降溫、企業縮編。升息周期是「財富重分配」的時刻：持有現金的人受益，高負債者受苦。這是衝突與情節轉折的天然溫床。</div>'
++'<div class="tip-card"><strong>貿易戰與供應鏈</strong>國與國之間以關稅作為武器，影響原物料價格、製造業就業與民眾生活成本。供應鏈斷鏈（如疫情期間）會放大商品短缺、通膨飆升，衍生社會矛盾與政治危機。</div>'
++'<div class="tip-card"><strong>貨幣政策 vs 財政政策</strong>央行（貨幣政策）：透過升降息、量化寬鬆（QE）控制貨幣供給。政府（財政政策）：透過增減稅收、擴大公共支出刺激或冷卻經濟。兩者相互牽制，是全球市場最大的「幕後黑手」。</div>'
++'<h3>📈 金融市場與危機</h3>'
++'<div class="tip-card"><strong>歷史金融危機速覽</strong>'
++'<table class="wg-table"><tr><th>危機</th><th>年份</th><th>核心原因</th><th>影響</th></tr>'
++'<tr><td>1929 大蕭條</td><td>1929–1933</td><td>股市崩盤、銀行擠兌</td><td>全球失業率飆升，催生福利國家</td></tr>'
++'<tr><td>亞洲金融風暴</td><td>1997–1998</td><td>泰銖崩潰、熱錢撤退</td><td>南韓、泰國、印尼 GDP 重挫</td></tr>'
++'<tr><td>網際網路泡沫</td><td>2000–2002</td><td>科技股估值嚴重泡沫化</td><td>那斯達克下跌逾75%</td></tr>'
++'<tr><td>次貸危機</td><td>2008–2009</td><td>抵押貸款衍生品崩潰</td><td>雷曼兄弟破產，全球衰退</td></tr>'
++'<tr><td>COVID 衝擊</td><td>2020</td><td>全球停工、需求急凍</td><td>各國史上最大規模財政刺激</td></tr>'
++'</table></div>'
++'<div class="tip-card"><strong>股市基本概念</strong>「市場先生」（Mr. Market）是本傑明・葛拉漢的比喻：市場每天報價，但它情緒化且非理性。價值投資者在市場恐慌時買入，在市場狂喜時賣出。這個概念適合塑造「冷靜對抗狂熱時代」的角色弧線。</div>'
++'<h3>🎬 財經題材編劇應用</h3>'
++'<div class="tip-card"><strong>財務困境作為情節引擎</strong>負債、破產、詐騙、內線交易——財務危機天然具備時間壓力（還款期限）、對立陣營（債主 vs 債務人）與道德困境（為求生存而妥協底線），是製造衝突的高效工具。</div>'
++'<div class="tip-card"><strong>貧富差距與階級對立</strong>當全球財富集中在頂端1%，底層的憤怒就成為故事的燃料。參考：《寄生上流》以韓國階級為切入點、《大賣空》解構2008年危機的道德虛無。財經知識讓這類故事的細節更有說服力。</div>'
++'<blockquote>「金錢不是故事的主題，金錢是照出人性的鏡子——它放大了貪婪、恐懼、愛與犧牲。」</blockquote>',
 
 ];
 
