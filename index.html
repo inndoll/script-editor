@@ -547,13 +547,7 @@ body.stage-editor .sl[data-chargroup-start="1"] .sl-content[data-type="character
   }
   #editor-page{max-width:none!important;padding:0!important;height:auto!important;display:block!important}
   #lines-container{overflow:visible!important;height:auto!important;display:block!important}
-  /* Force block layout on rows (Hollywood format keeps flex by default; flex + display:none children
-     can leave ghost elements in some Chrome print versions) */
-  .sl{display:block!important;overflow:visible!important;height:auto!important;page-break-inside:avoid}
-  /* Belt-and-suspenders: hide every non-content child of a row */
-  .sl > *:not(.sl-content){display:none!important;visibility:hidden!important}
-  /* Also hide the snapshot off-screen canvas target which is position:fixed and appears on every page */
-  #snapshot-render-target{display:none!important}
+  .sl{overflow:visible!important;height:auto!important;page-break-inside:avoid}
   #script-title-block{text-align:center;margin-bottom:36pt;padding-bottom:12pt;border-bottom:1pt solid #999}
   #script-title-input{font-size:18pt;font-weight:700;display:block;width:100%;text-align:center;border:none;background:transparent;font-family:'Courier Prime',Courier,monospace}
   #script-subtitle-input{font-size:12pt;display:block;width:100%;text-align:center;border:none;background:transparent;font-family:'Courier Prime',Courier,monospace;color:#555}
