@@ -5858,6 +5858,7 @@ function syncEditorFormatClass(){
 // ═══════════════════════════════════════════════
 
 var _importBlocks = [];
+var _importFileName = '';
 
 function openImportModal(){
   _importBlocks = [];
@@ -6069,6 +6070,7 @@ function handleDocxFile(file){
     alert('請上傳 .docx 格式的 Word 檔案。');
     return;
   }
+  _importFileName = file.name.replace(/\.[^.]+$/, '');
   var status = document.getElementById('docx-status');
   status.textContent = '⏳ 正在讀取 ' + file.name + ' ……';
   if(typeof mammoth === 'undefined'){
@@ -6470,6 +6472,11 @@ function confirmImport(){
 
   if(mode === 'replace'){
     DB.scripts[getProject()].blocks = newBlocks;
+    var titleInput = document.getElementById('script-title-input');
+    if(titleInput && !titleInput.value.trim() && _importFileName){
+      titleInput.value = _importFileName;
+      scheduleUpdate();
+    }
   } else if(mode === 'append'){
     newBlocks.forEach(function(b){ getBlocks().push(b); });
   } else {
