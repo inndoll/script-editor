@@ -20,6 +20,7 @@
   --radius:5px;--radius2:8px;--radius3:12px;
   --shadow:0 1px 3px rgba(0,0,0,0.08);
   --shadow2:0 2px 8px rgba(0,0,0,0.12);
+  --editor-font-size:12.5px;
 }
 
 html,body{height:100%;overflow:hidden;font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
@@ -297,7 +298,7 @@ body.paste-mode .sl:hover{background:rgba(0,160,100,0.08)!important;outline:1px 
   line-height:1.7;border:1px solid transparent;border-radius:3px;
   transition:border-color 0.1s;word-break:break-all;
   font-family:'Courier Prime',Courier,monospace;
-  font-size:12.5px;color:var(--ink);
+  font-size:var(--editor-font-size);color:var(--ink);
 }
 .sl-content:focus{border-color:rgba(184,122,0,0.25);background:rgba(255,255,255,0.4)}
 
@@ -1465,7 +1466,12 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
   <span>字：<b id="sb-chars">0</b></span>
   <span id="sb-duration" title="預估拍攝總時長（點擊切換劇種模式）">⏱ —</span>
   <span id="sb-save" style="color:var(--teal);font-size:9px;margin-left:4px">✦ 已儲存</span>
-  <span style="margin-left:auto;opacity:0.45;font-family:sans-serif;letter-spacing:0.02em">© 2026 小葉（朱鈺珊）｜首次發布 2026-03-17</span>
+  <span style="margin-left:auto;display:flex;align-items:center;gap:4px">
+    <button onclick="changeEditorFontSize(-1)" title="縮小字級" style="border:none;background:none;cursor:pointer;color:var(--ink3);font-size:11px;font-weight:700;padding:0 2px;line-height:1">A-</button>
+    <span id="font-size-label" style="font-size:9px;color:var(--ink3);min-width:22px;text-align:center;font-family:monospace">12px</span>
+    <button onclick="changeEditorFontSize(1)" title="放大字級" style="border:none;background:none;cursor:pointer;color:var(--ink3);font-size:13px;font-weight:700;padding:0 2px;line-height:1">A+</button>
+  </span>
+  <span style="opacity:0.45;font-family:sans-serif;letter-spacing:0.02em">© 2026 小葉（朱鈺珊）｜首次發布 2026-03-17</span>
 </div>
 </div>
 
@@ -4109,6 +4115,18 @@ function toggleWideMode(){
   if(btn) btn.classList.toggle('active', on);
 }
 
+function applyEditorFontSize(size){
+  document.documentElement.style.setProperty('--editor-font-size', size + 'px');
+  var label = document.getElementById('font-size-label');
+  if(label) label.textContent = Math.round(size) + 'px';
+}
+function changeEditorFontSize(delta){
+  var cur = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--editor-font-size')) || 12.5;
+  var next = Math.min(28, Math.max(9, cur + delta));
+  applyEditorFontSize(next);
+  localStorage.setItem('editorFontSize', next);
+}
+
 // ═══════════════════════════════════════════════
 //  PROJECT
 // ═══════════════════════════════════════════════
@@ -5733,6 +5751,9 @@ window.addEventListener('DOMContentLoaded', function(){
     var wmBtn = document.getElementById('wide-mode-btn');
     if(wmBtn) wmBtn.classList.add('active');
   }
+  // Restore editor font size preference
+  var savedFontSize = parseFloat(localStorage.getItem('editorFontSize') || '12.5');
+  applyEditorFontSize(savedFontSize);
 
   // Init guide first section
   var gb = document.getElementById('guide-body');
