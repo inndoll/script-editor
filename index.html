@@ -5778,17 +5778,20 @@ window.addEventListener('DOMContentLoaded', function(){
   document.getElementById('editor-scroll').addEventListener('wheel', function(e){
     if(!e.shiftKey) return;
     e.preventDefault();
-    changeEditorFontSize(e.deltaY < 0 ? 1 : -1);
+    var d = e.deltaY || e.deltaX;
+    changeEditorFontSize(d < 0 ? 1 : -1);
   }, {passive:false});
   document.getElementById('left').addEventListener('wheel', function(e){
     if(!e.shiftKey) return;
     e.preventDefault();
-    changeSidebarZoom(e.deltaY < 0 ? 0.1 : -0.1);
+    var d = e.deltaY || e.deltaX;
+    changeSidebarZoom(d < 0 ? 0.1 : -0.1);
   }, {passive:false});
   document.getElementById('right').addEventListener('wheel', function(e){
     if(!e.shiftKey) return;
     e.preventDefault();
-    changeSidebarZoom(e.deltaY < 0 ? 0.1 : -0.1);
+    var d = e.deltaY || e.deltaX;
+    changeSidebarZoom(d < 0 ? 0.1 : -0.1);
   }, {passive:false});
 
   // Init guide first section
