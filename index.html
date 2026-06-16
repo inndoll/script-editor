@@ -1720,7 +1720,7 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
       <button onclick="closeWhiteboardModal()" style="margin-left:auto;width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);cursor:pointer;font-size:14px;color:#fff;display:flex;align-items:center;justify-content:center">✕</button>
     </div>
     <!-- Body -->
-    <div style="padding:20px 22px;overflow-y:auto;flex:1">
+    <div id="wb-body" style="padding:20px 22px;overflow-y:auto;flex:1">
       <p style="font-size:13px;color:var(--ink2);line-height:1.75;margin-bottom:4px">在開始寫劇本之前，先用視覺化的方式把故事骨架整理出來，能讓你在動筆時更有把握。</p>
       <p style="font-size:11px;color:var(--ink3);line-height:1.65;margin-bottom:16px">以下是我們推薦的免費線上工具 <strong style="color:var(--ink2)">Excalidraw</strong>（excalidraw.com），介面預設為英文，進去後可以點左上角 ☰ 選單，拉到最下方找到語言下拉選單，選「中文（简体）」即可切換。</p>
 
@@ -4133,7 +4133,7 @@ function changeEditorFontSize(delta){
   localStorage.setItem('editorFontSize', next);
 }
 function applyGuideZoom(zoom){
-  document.querySelectorAll('#guide-body,#wguide-body').forEach(function(el){ el.style.zoom = zoom; });
+  document.querySelectorAll('#guide-body,#wguide-body,#beat-diag-body,.snap-body,#wb-body,#chm-body,#pm-body').forEach(function(el){ el.style.zoom = zoom; });
   localStorage.setItem('guideZoom', zoom);
 }
 function changeGuideZoom(delta){
@@ -5786,8 +5786,8 @@ window.addEventListener('DOMContentLoaded', function(){
   // Restore guide zoom preference
   var savedGuideZoom = parseFloat(localStorage.getItem('guideZoom') || '1');
   applyGuideZoom(savedGuideZoom);
-  // Shift+scroll on guide modals
-  ['guide-box','wguide-box'].forEach(function(id){
+  // Shift+scroll on all modals (static ones; pm-modal handled in ProductionModule.open)
+  ['guide-box','wguide-box','snapshot-overlay','wb-overlay','beat-diag-overlay','chm-overlay'].forEach(function(id){
     var el = document.getElementById(id);
     if(!el) return;
     el.addEventListener('wheel', function(e){
@@ -8723,11 +8723,23 @@ const ProductionModule = (function(){
     });
 
     _render(body);
+    // Apply saved zoom to dynamic body
+    var _gz = parseFloat(localStorage.getItem('guideZoom') || '1');
+    if(_gz !== 1) body.style.zoom = _gz;
 
     box.appendChild(header);
     box.appendChild(body);
     _modal.appendChild(box);
     document.body.appendChild(_modal);
+    // Shift+scroll to adjust modal zoom
+    _modal.addEventListener('wheel', function(e){
+      if(!e.shiftKey) return;
+      e.preventDefault();
+      var d = e.deltaY || e.deltaX;
+      changeGuideZoom(d < 0 ? 0.1 : -0.1);
+      var pb = document.getElementById('pm-body');
+      if(pb) pb.style.zoom = parseFloat(localStorage.getItem('guideZoom') || '1');
+    }, {passive:false});
   }
 
   function _render(container){
