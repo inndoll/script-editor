@@ -5774,6 +5774,22 @@ window.addEventListener('DOMContentLoaded', function(){
   // Restore sidebar zoom preference
   var savedSidebarZoom = parseFloat(localStorage.getItem('sidebarZoom') || '1');
   applySidebarZoom(savedSidebarZoom);
+  // Shift+scroll to adjust font sizes
+  document.getElementById('editor-scroll').addEventListener('wheel', function(e){
+    if(!e.shiftKey) return;
+    e.preventDefault();
+    changeEditorFontSize(e.deltaY < 0 ? 1 : -1);
+  }, {passive:false});
+  document.getElementById('left').addEventListener('wheel', function(e){
+    if(!e.shiftKey) return;
+    e.preventDefault();
+    changeSidebarZoom(e.deltaY < 0 ? 0.1 : -0.1);
+  }, {passive:false});
+  document.getElementById('right').addEventListener('wheel', function(e){
+    if(!e.shiftKey) return;
+    e.preventDefault();
+    changeSidebarZoom(e.deltaY < 0 ? 0.1 : -0.1);
+  }, {passive:false});
 
   // Init guide first section
   var gb = document.getElementById('guide-body');
