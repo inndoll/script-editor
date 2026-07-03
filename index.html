@@ -2330,6 +2330,7 @@ function renderSceneNav(){
     return {b,si,realIdx};
   });
   const el = document.getElementById('scene-nav-list');
+  if(!el) return;
   if(scenes.length===0){
     el.innerHTML=`<div class="empty-state"><span class="es-icon">🎬</span>尚無場景標題<br>在編輯區輸入後會自動出現</div>`;return;
   }
@@ -3205,6 +3206,7 @@ function jumpToLine(idx){
 function updateModeIndicator(){
   const pill = document.getElementById('mode-pill');
   const blocks = getBlocks();
+  if(!pill) return;
 
   // Clear all toolbar highlights
   document.querySelectorAll('.fmt-btn').forEach(b=>b.classList.remove('fmt-active'));
@@ -5848,7 +5850,7 @@ window.addEventListener('DOMContentLoaded', function(){
   // Show welcome modal on first visit
   try{ showWelcomeIfNeeded(); }catch(e){}
   // Check if opened via share link
-  checkShareHash();
+  if(typeof checkShareHash === 'function') checkShareHash();
 });
 
 // ── Panel resize ─────────────────────────────────
