@@ -222,6 +222,15 @@ kbd{
 .sl:hover{background:rgba(184,122,0,0.05)}
 .sl.focused{background:rgba(184,122,0,0.07)}
 .sl.sl-selected{background:rgba(184,122,0,0.13)!important;outline:1px solid var(--amber2)}
+/* 虛擬頁數分隔線（依內容量估算，與列印 PDF 分頁接近但非完全一致） */
+.sl[data-page-start]{margin-top:28px}
+.sl[data-page-start]::before{
+  content:'──────  第 ' attr(data-page-start) ' 頁  ──────';
+  position:absolute;top:-22px;left:0;right:0;
+  text-align:center;font-size:10px;letter-spacing:2px;
+  color:var(--ink4);opacity:0.75;pointer-events:none;user-select:none;
+}
+.sl[data-page-start="1"]{margin-top:22px}
 /* Checkbox column — hidden until multi-select mode */
 .sl-check{
   width:22px;flex-shrink:0;display:flex;align-items:flex-start;padding-top:5px;
@@ -554,6 +563,9 @@ body.stage-editor .sl[data-chargroup-start="1"] .sl-content[data-type="character
   #editor-page{max-width:none!important;padding:0!important;height:auto!important;display:block!important}
   #lines-container{overflow:visible!important;height:auto!important;display:block!important}
   .sl{overflow:visible!important;height:auto!important;page-break-inside:avoid}
+  /* 列印時隱藏虛擬頁數分隔線（PDF 有自己的真實頁碼） */
+  .sl[data-page-start]{margin-top:0!important}
+  .sl[data-page-start]::before{display:none!important}
   #script-title-block{text-align:center;margin-bottom:36pt;padding-bottom:12pt;border-bottom:1pt solid #999}
   #script-title-input{font-size:18pt;font-weight:700;display:block;width:100%;text-align:center;border:none;background:transparent;font-family:'Courier Prime',Courier,monospace}
   #script-subtitle-input{font-size:12pt;display:block;width:100%;text-align:center;border:none;background:transparent;font-family:'Courier Prime',Courier,monospace;color:#555}
@@ -1659,11 +1671,19 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
           <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer">
             <input type="radio" name="snap-range" value="custom" onchange="snapRangeChange(this)"> 指定場景範圍
           </label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer">
+            <input type="radio" name="snap-range" value="page" onchange="snapRangeChange(this)"> 指定頁數範圍
+          </label>
           <div id="snap-range-inputs" style="display:none;align-items:center;gap:6px;font-size:12px;color:var(--ink2)">
             第 <input type="number" id="snap-from" min="1" value="1" class="snap-field" style="width:60px;padding:4px 6px;border:1px solid var(--border2);border-radius:4px;font-size:12px"> 場
             到第 <input type="number" id="snap-to" min="1" value="1" class="snap-field" style="width:60px;padding:4px 6px;border:1px solid var(--border2);border-radius:4px;font-size:12px"> 場
           </div>
+          <div id="snap-page-inputs" style="display:none;align-items:center;gap:6px;font-size:12px;color:var(--ink2)">
+            第 <input type="number" id="snap-page-from" min="1" value="1" class="snap-field" style="width:60px;padding:4px 6px;border:1px solid var(--border2);border-radius:4px;font-size:12px"> 頁
+            到第 <input type="number" id="snap-page-to" min="1" value="1" class="snap-field" style="width:60px;padding:4px 6px;border:1px solid var(--border2);border-radius:4px;font-size:12px"> 頁
+          </div>
         </div>
+        <div id="snap-total-info" style="margin-top:6px;font-size:11px;color:var(--ink3)"></div>
       </div>
       <div class="snap-field">
         <label>圖片版式</label>
@@ -2252,6 +2272,9 @@ function renderLines(){
     }
   }
 
+  // 虛擬頁數：算出每頁第一行的位置，渲染分頁標記
+  var _pageStarts = computePageMap(blocks).pageStarts;
+
   container.innerHTML = blocks.map((b,i) => {
     const isScene = b.type === 'scene';
     const interior = parseInterior(b.text);
@@ -2303,7 +2326,7 @@ function renderLines(){
       stageSuffixAttr = ' data-stage-suffix="' + esc(stageCharGroupStart[i]) + '"';
     }
 
-    return '<div class="sl' + (activeLineIdx===i?' focused':'') + '" id="row-'+i+'" data-idx="'+i+'"' + (isScene?' data-scene="1"':'') + stageAttrs + ' onclick="if(_pasteMode)msRowClickForPaste('+i+')">'
+    return '<div class="sl' + (activeLineIdx===i?' focused':'') + '" id="row-'+i+'" data-idx="'+i+'"' + (isScene?' data-scene="1"':'') + (_pageStarts[i]?' data-page-start="'+_pageStarts[i]+'"':'') + stageAttrs + ' onclick="if(_pasteMode)msRowClickForPaste('+i+')">'
       + '<span class="sl-check"><input type="checkbox" onchange="msToggleLine('+i+',this)" onclick="event.stopPropagation()" id="chk-'+i+'"></span>'
       + '<span class="sl-num">' + (i+1) + '</span>'
       + '<div class="sl-type-wrap" id="typewrap-'+i+'">'
@@ -3279,13 +3302,13 @@ function updateStats(){
   });
   const sceneCount = blocks.filter(b=>b.type==='scene').length;
   const wordCount = blocks.map(b=>b.text).join('').replace(/\s/g,'').length;
-  const pages = Math.max(1, Math.round(blocks.length/50));
+  const pages = computePageMap(blocks).totalPages;
 
   document.getElementById('stat-scenes').textContent = sceneCount;
   document.getElementById('stat-lines').textContent = blocks.length;
   document.getElementById('stat-chars-count').textContent = wordCount;
   document.getElementById('stat-dialogues').textContent = diaCount;
-  document.getElementById('stat-pages').textContent = `約 ${pages} 頁（每頁約 50 行估算）`;
+  document.getElementById('stat-pages').textContent = `約 ${pages} 頁（依內容量估算，對應編輯區分頁線）`;
   document.getElementById('sb-lines').textContent = blocks.length;
   document.getElementById('sb-chars').textContent = wordCount;
 
@@ -6553,6 +6576,44 @@ function confirmImport(){
 // ══════════════════════════════════════════════
 var _snapOrient = 'portrait'; // portrait | landscape | square
 var _snapVersionCounter = 1;
+var SNAP_DIMS = { portrait:{w:750,pad:40}, landscape:{w:1200,pad:60}, square:{w:1080,pad:50} };
+
+// ── 虛擬頁數系統 ─────────────────────────────
+// 依內容量估算 A4 劇本頁（與列印 PDF 分頁接近但不保證一致）
+var PAGE_CHARS_PER_LINE = 34; // A4 中文每行約字數
+var PAGE_LINES_PER_PAGE = 38; // A4 每頁約行數
+
+function computePageMap(blocks){
+  var pageStarts = {};  // blockIdx → 頁碼（該頁的第一行）
+  var pageOfBlock = new Array(blocks.length);
+  var lineCount = 0, page = 1;
+  if(blocks.length) pageStarts[0] = 1;
+  for(var i=0;i<blocks.length;i++){
+    var t = (blocks[i].text||'').trim();
+    var cost = t ? Math.ceil(t.length / PAGE_CHARS_PER_LINE) : 1;
+    if(blocks[i].type === 'scene') cost += 2; // 場景標題前後留白
+    if(lineCount > 0 && lineCount + cost > PAGE_LINES_PER_PAGE){
+      page++; lineCount = 0;
+      pageStarts[i] = page;
+    }
+    pageOfBlock[i] = page;
+    lineCount += cost;
+  }
+  return { pageStarts: pageStarts, pageOfBlock: pageOfBlock, totalPages: page };
+}
+
+// 估算快照圖片高度（px，未含 scale），用於生成前防呆
+function estimateSnapHeight(blocks, dim){
+  var charsPerLine = Math.max(10, Math.floor((dim.w - dim.pad*2) / 13));
+  var h = 200; // header + footer 概估
+  for(var i=0;i<blocks.length;i++){
+    var t = (blocks[i].text||'').trim();
+    if(!t){ h += 8; continue; }
+    h += Math.ceil(t.length / charsPerLine) * 23 + 6;
+    if(blocks[i].type === 'scene') h += 30;
+  }
+  return h;
+}
 
 function openSnapshotModal(){
   // Pre-fill title and scene count
@@ -6563,16 +6624,27 @@ function openSnapshotModal(){
   document.getElementById('snap-version').value = 'v' + _snapVersionCounter;
 
   // Set scene range max
-  var sceneCount = getBlocks().filter(function(b){ return b.type==='scene'; }).length;
+  var blocks = getBlocks();
+  var sceneCount = blocks.filter(function(b){ return b.type==='scene'; }).length;
   var toEl = document.getElementById('snap-to');
   if(toEl) toEl.value = sceneCount || 1;
   if(toEl) toEl.max = sceneCount || 1;
   var fromEl = document.getElementById('snap-from');
   if(fromEl) fromEl.max = sceneCount || 1;
 
+  // Set page range max ＋ 總覽提示
+  var pm = computePageMap(blocks);
+  var pToEl = document.getElementById('snap-page-to');
+  if(pToEl){ pToEl.value = pm.totalPages; pToEl.max = pm.totalPages; }
+  var pFromEl = document.getElementById('snap-page-from');
+  if(pFromEl){ pFromEl.value = 1; pFromEl.max = pm.totalPages; }
+  var infoEl = document.getElementById('snap-total-info');
+  if(infoEl) infoEl.textContent = '目前劇本約 ' + pm.totalPages + ' 頁 · ' + sceneCount + ' 場';
+
   document.getElementById('snap-status').textContent = '';
   document.querySelector('input[name="snap-range"][value="all"]').checked = true;
   document.getElementById('snap-range-inputs').style.display = 'none';
+  document.getElementById('snap-page-inputs').style.display = 'none';
 
   document.getElementById('snapshot-overlay').classList.add('open');
 }
@@ -6588,6 +6660,8 @@ function snapOverlayClick(e){
 function snapRangeChange(radio){
   document.getElementById('snap-range-inputs').style.display =
     radio.value === 'custom' ? 'flex' : 'none';
+  document.getElementById('snap-page-inputs').style.display =
+    radio.value === 'page' ? 'flex' : 'none';
 }
 
 function snapSetOrient(btn){
@@ -6599,8 +6673,20 @@ function snapSetOrient(btn){
 // Build the snapshot blocks (filtered by scene range if needed)
 function getSnapshotBlocks(){
   var blocks = getBlocks();
-  var rangeAll = document.querySelector('input[name="snap-range"]:checked').value === 'all';
-  if(rangeAll) return blocks;
+  var rangeMode = document.querySelector('input[name="snap-range"]:checked').value;
+  if(rangeMode === 'all') return blocks;
+
+  if(rangeMode === 'page'){
+    var pm = computePageMap(blocks);
+    var pFrom = parseInt(document.getElementById('snap-page-from').value) || 1;
+    var pTo   = parseInt(document.getElementById('snap-page-to').value)   || 1;
+    if(pFrom > pTo){ var ptmp=pFrom; pFrom=pTo; pTo=ptmp; }
+    var out = [];
+    for(var pi=0; pi<blocks.length; pi++){
+      if(pm.pageOfBlock[pi] >= pFrom && pm.pageOfBlock[pi] <= pTo) out.push(blocks[pi]);
+    }
+    return out;
+  }
 
   var fromScene = parseInt(document.getElementById('snap-from').value) || 1;
   var toScene   = parseInt(document.getElementById('snap-to').value)   || 1;
@@ -6630,8 +6716,7 @@ function buildSnapshotHTML(blocks){
   var sceneNum = 0;
 
   // Dimensions by orientation
-  var dims = { portrait:{w:750,pad:40}, landscape:{w:1200,pad:60}, square:{w:1080,pad:50} };
-  var dim = dims[_snapOrient] || dims.portrait;
+  var dim = SNAP_DIMS[_snapOrient] || SNAP_DIMS.portrait;
 
   var lines = '';
   var i = 0;
@@ -6726,6 +6811,18 @@ async function generateSnapshot(action){
   var snapBlocks = getSnapshotBlocks();
   if(!snapBlocks.length){
     document.getElementById('snap-status').textContent = '❌ 沒有可截取的劇本內容。';
+    return;
+  }
+
+  // 防呆：長劇本一張圖放不下（會凍結頁面／超過瀏覽器畫布上限），生成前先擋
+  var guardDim = SNAP_DIMS[_snapOrient] || SNAP_DIMS.portrait;
+  var estH = estimateSnapHeight(snapBlocks, guardDim);
+  var maxH = Math.min(6000, Math.floor(16000000 / (guardDim.w * 4)));
+  if(estH > maxH){
+    var gpm = computePageMap(snapBlocks);
+    var okPages = Math.max(1, Math.floor(gpm.totalPages * maxH / estH));
+    document.getElementById('snap-status').textContent =
+      '⚠️ 選取內容太長（約 ' + gpm.totalPages + ' 頁），一張圖放不下。請改用「指定頁數／場景範圍」縮小範圍，此版式建議一次不超過 ' + okPages + ' 頁。';
     return;
   }
 
@@ -6992,7 +7089,7 @@ var GUIDE_SECTIONS = [
 +'<li><strong>快照標題</strong>：預填劇本名稱，可修改</li>'
 +'<li><strong>版本號碼</strong>：預填 v1、v2（每次生成自動遞增），可改成「第一稿」「修改版」等</li>'
 +'<li><strong>備註</strong>：自由輸入，顯示在圖片上，例如「請特別看第三場的對白修改」</li>'
-+'<li><strong>劇本範圍</strong>：全文，或指定第 X 場到第 Y 場</li>'
++'<li><strong>劇本範圍</strong>：全文、指定第 X 場到第 Y 場，或指定第 X 頁到第 Y 頁（頁數對應編輯區的「— 第 N 頁 —」分隔線）</li>'
 +'<li><strong>圖片版式</strong>：直式手機模式 ／ 橫向螢幕模式 ／ IG 正方形模式</li>'
 +'</ul>'
 +'<h3>複製 vs 下載</h3>'
@@ -7000,7 +7097,8 @@ var GUIDE_SECTIONS = [
 +'<li><strong>複製圖片</strong>：Android ／ 桌機可直接複製，貼到 LINE 等即可</li>'
 +'<li><strong>⬇ 下載圖片</strong>：iOS 用戶或需要存檔時使用，下載後再自行分享</li>'
 +'</ul>'
-+'<div class="g-callout info"><span class="g-callout-icon">ℹ️</span><div class="g-callout-body"><strong>快照是靜態圖片</strong>你之後對劇本做的修改不會反映在已分享的圖片上。想讓夥伴看最新版，請重新生成快照。</div></div>',
++'<div class="g-callout info"><span class="g-callout-icon">ℹ️</span><div class="g-callout-body"><strong>快照是靜態圖片</strong>你之後對劇本做的修改不會反映在已分享的圖片上。想讓夥伴看最新版，請重新生成快照。</div></div>'
++'<div class="g-callout note"><span class="g-callout-icon">📌</span><div class="g-callout-body"><strong>長劇本請分段快照</strong>一張圖片放不下整部長片劇本（瀏覽器有圖片大小上限，太長也難以閱讀）。內容太長時系統會擋下並提示建議頁數，請改用「指定頁數／場景範圍」分段生成。編輯區的頁數為系統依內容量估算的虛擬頁，與列印 PDF 的實際頁碼接近但不完全相同。</div></div>',
 
 // 10 — 自動儲存與版本歷史
 '<h2>💾 自動儲存與版本歷史</h2>'
