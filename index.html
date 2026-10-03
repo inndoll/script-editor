@@ -1193,7 +1193,14 @@ body.readonly-mode #topbar select{pointer-events:none;opacity:0.6}
 
       <!-- 分享工具（圖示） -->
       <button class="tb-icon" onclick="openSnapshotModal()" title="快照分享">📸</button>
-      <button class="tb-icon" onclick="window.open('https://inndoll.github.io/dual-column-script-editor/','_blank')" title="切換到影片雙軌腳本編輯器">🔗</button>
+      <div id="tools-menu-wrap" style="position:relative">
+        <button class="tb-icon" onclick="toggleToolsMenu(event)" title="其他創作工具（另開新分頁，這裡的劇本不受影響）">🔗</button>
+        <div id="tools-menu" style="display:none;position:fixed;z-index:9999;background:#fff;border:1px solid #D9D5CC;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.15);padding:4px;min-width:230px;font-size:13px">
+          <div style="font-size:11px;color:#9a948a;padding:4px 10px 2px">其他創作工具（開新分頁）</div>
+          <a href="https://xiaoye-musical-opera.netlify.app" target="_blank" rel="noopener" onclick="closeToolsMenu()" style="display:block;padding:7px 10px;border-radius:5px;color:inherit;text-decoration:none">🎼 音樂劇／戲曲劇本寫作工坊</a>
+          <a href="https://inndoll.github.io/dual-column-script-editor/" target="_blank" rel="noopener" onclick="closeToolsMenu()" style="display:block;padding:7px 10px;border-radius:5px;color:inherit;text-decoration:none">🎞 影片雙軌腳本編輯器</a>
+        </div>
+      </div>
       <button class="tb-icon" onclick="openWhiteboardModal()" title="故事白板">🗺</button>
       <div class="sep"></div>
 
@@ -9066,6 +9073,23 @@ const ProductionModule = (function(){
 window.ProductionModule = ProductionModule;
 
 })();
+</script>
+<style>#tools-menu a:hover{background:#EFEDE8}</style>
+<script>
+// 🔗 其他創作工具選單
+function toggleToolsMenu(e){
+  e.stopPropagation();
+  var m=document.getElementById('tools-menu');
+  if (m.style.display!=='none') { m.style.display='none'; return; }
+  // 用 fixed 定位貼在按鈕下方，避免被工具列裁切
+  var r=e.currentTarget.getBoundingClientRect();
+  m.style.display='block';
+  m.style.top=(r.bottom+6)+'px';
+  m.style.left=Math.max(8, Math.min(r.right - m.offsetWidth, window.innerWidth - m.offsetWidth - 8))+'px';
+}
+function closeToolsMenu(){ document.getElementById('tools-menu').style.display='none'; }
+document.addEventListener('click', function(e){ var w=document.getElementById('tools-menu-wrap'); if (w && !w.contains(e.target)) closeToolsMenu(); });
+document.addEventListener('keydown', function(e){ if (e.key==='Escape') closeToolsMenu(); });
 </script>
 </body>
 </html>
